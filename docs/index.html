@@ -1313,7 +1313,7 @@ const WISHES={
  senzu:['Senzu bean harvest','Four Senzu Beans appear beside you.']};
 function updBalls(dt){
  const p=S.p;
- if(S.dbN<7&&S.balls.length<2){S.dbT-=dt;if(S.dbT<=0){S.dbT=42*(1-.042*S.pe.rad);spawnBall()}}
+ if(S.dbN<7&&S.balls.length<3){S.dbT-=dt;if(S.dbT<=0){S.dbT=34*(1-.042*S.pe.rad);spawnBall()}}
  for(const b of S.balls)if(Math.hypot(b.x-p.x,b.y-p.y)<28){b.got=1;ballGot(b)}
  S.balls=S.balls.filter(b=>!b.got);
  if(S.wishPend&&S.mode=='play')startWish();

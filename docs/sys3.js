@@ -194,6 +194,22 @@ function drawScouter(cx, cy, t) {
 { const _d = drawNew; drawNew = function (cx, cy, t) { _d(cx, cy, t); drawPk3(cx, cy, t); drawScouter(cx, cy, t); }; }
 { const _d = draw; draw = function () { _d(); drawFreeze(); }; }
 
+/* ---------- Level 2 pacing (Phase E) ---------- */
+// Frieza waits until Captain Ginyu is down (+25 s), so the two big fights don't pile up.
+// He never arrives more than 90 s after his scheduled time.
+{ const _u = update; update = function (dt) {
+    const r = _u(dt);
+    if (S.mode == 'play' && S.stage == 2 && S.sch) { const q = S.sch.find(q => q.k == 'fr1');
+      if (q && !q.d) { if (q.t0 === undefined) q.t0 = q.t;
+        const gin = S.en.some(e => e.k == 'gin' && !e.dead), seen = S.sch.some(s => s.k == 'gin' && s.d);
+        if (gin) { q.gd = 0; q.t = Math.min(q.t0 + 90, Math.max(q.t0, S.t + 25)); }
+        else if (seen && !q.gd) { q.gd = 1; q.t = Math.min(q.t0 + 90, Math.max(q.t0, S.t + 25)); } } }
+    return r;
+  }; }
+
+// Piccolo was the slowest boss-killer in bot tests: a little more punch.
+{ const _h = hitE; hitE = function (e, d) { if (S.hero == 'pic') d *= 1.2; return _h(e, d); }; }
+
 /* ---------- settings rows for the new toggles ---------- */
 { const _st = settings; settings = function (back) {
     _st(back); const c = ov.querySelector('.card'); if (!c) return; const g = c.querySelector('.sgrid') || c;
@@ -243,4 +259,12 @@ function vegSkin() { P.skin = P.skin || {}; P.skin.vegeta = P.skin.vegeta == 'sa
 .card .gch.on{background:linear-gradient(#8a3cd8,#5a1ea0);border-color:#e7c8ff;color:#fff;box-shadow:0 0 10px rgba(180,110,255,.55)}
 .card .vskin{display:block;margin:0 auto 6px;width:auto;padding:4px 12px;font-size:12px;text-align:center}
 .gcz{color:#d9b8ff}
+/* phones: the 13-row shop fits without scrolling */
+@media (max-width:420px){
+ .shop .dhead{margin-bottom:4px}.shop .sgrid{gap:4px}
+ .shop .sup{padding:4px 6px;gap:1px}.shop .sup .sn{font-size:11.5px;padding-right:20px}
+ .shop .sup .sd{font-size:9.5px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding-right:4px}
+ .shop .sup .sbar{height:4px;margin-top:1px}.shop .sup .sf{font-size:10px}
+ .shop .sref{width:19px;height:19px;font-size:14px;line-height:17px;top:3px;right:3px}
+}
 `; document.head.appendChild(st); }

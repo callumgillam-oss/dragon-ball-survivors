@@ -39,7 +39,7 @@ function unlIcon(u) {
 }
 
 /* ---------- lifetime progress (dbs_prog) ---------- */
-const PROG_NEW = () => ({ unl: {}, ach: {}, kills: 0, discK: 0, zeni: 0, bestLv: 0, bestT: 0, bk: {}, wishes: 0, runs: 0, deaths: 0, clr: {}, evo: {} });
+const PROG_NEW = () => ({ unl: {}, ach: {}, kills: 0, discK: 0, zeni: 0, bestLv: 0, bestT: 0, bk: {}, wishes: 0, runs: 0, deaths: 0, clr: {}, evo: {}, balls: 0, elites: 0 });
 let P = PROG_NEW(), PROG_READY = false;
 function loadProg() { P = PROG_NEW(); try { Object.assign(P, JSON.parse(store.getItem('dbs_prog') || '{}')); } catch (e) { } U2 = HAS('lvl2'); }
 function saveProg() { if (PROG_READY) try { store.setItem('dbs_prog', JSON.stringify(P)); } catch (e) { } }
@@ -58,7 +58,7 @@ const ACH = [
   { id: 's2', c: 'story', n: "Brother's Keeper", d: 'Defeat Raditz', r: ['kiburst', 's:ult'], t: () => P.bk.rad },
   { id: 's3', c: 'story', n: 'Bald Brute', d: 'Defeat Nappa', r: ['dragonballs', 'p:rad', 'w:hell'], t: () => P.bk.nap },
   { id: 's4', c: 'story', n: 'Prince of All Saiyans', d: 'Defeat Vegeta and clear Level 1', r: ['lvl2', 'h:vegeta', 'w:galick'], t: () => P.bk.veg },
-  { id: 's5', c: 'story', n: 'Planet Namek', d: 'Survive 2:00 on Level 2', r: ['s:magnet'], t: () => S.stage == 2 && S.t >= 120 },
+  { id: 's5', c: 'story', n: 'Planet Namek', d: 'Survive 10:00 on Level 2', r: ['s:magnet'], t: () => S.stage == 2 && S.t >= 600 },
   { id: 's6', c: 'story', n: 'Ultra Fighting Bomber', d: 'Defeat Recoome', r: ['w:wave'], t: () => P.bk.rec },
   { id: 's7', c: 'story', n: 'Fastest in the Universe', d: 'Defeat Burter and Jeice', r: ['w:after'], t: () => P.bk.bur && P.bk.jei },
   { id: 's8', c: 'story', n: 'Time Stands Still', d: 'Defeat Guldo', r: ['timefreeze'], t: () => P.bk.gul },
@@ -72,13 +72,15 @@ const ACH = [
   { id: 'm3', c: 'mile', n: 'Hardened', d: 'Survive 5:00 in a single run', r: ['p:arm', 'w:flare'], pg: () => [Math.floor(Math.max(P.bestT, S && S.mode != 'menu' ? S.t : 0)), 300], fmt: 1 },
   { id: 'm4', c: 'mile', n: 'Power Within', d: 'Evolve any attack', r: ['p:cdr', 'w:bomb', 's:area'], t: () => Object.keys(P.evo).length >= 1 },
   { id: 'm5', c: 'mile', n: 'Level Up!', d: 'Reach level 20 in a single run', r: ['s:rr'], pg: () => [bestLv(), 20] },
-  { id: 'm6', c: 'mile', n: 'Veteran', d: 'Defeat 10,000 enemies in total', r: ['w:tri'], pg: () => [kills(), 10000] },
+  { id: 'm6', c: 'mile', n: 'Veteran', d: 'Defeat 15,000 enemies in total', r: ['w:tri'], pg: () => [kills(), 15000] },
   { id: 'm7', c: 'mile', n: 'Legendary', d: 'Transform: evolve 3 attacks in one run', r: ['w:thunder'], t: () => S.ssj },
   { id: 'm8', c: 'mile', n: 'Eternal Dragon', d: 'Gather all 7 Dragon Balls and make a wish', r: ['wish4', 'z:500'], t: () => P.wishes >= 1 },
   { id: 'm9', c: 'mile', n: 'Full Arsenal', d: 'Hold 4 attacks and 5 passives at once', r: ['s:seal'], t: () => own('w') >= LIM.w && own('ps') >= LIM.ps },
-  { id: 'm10', c: 'mile', n: 'Capsule Corp Investor', d: 'Earn 5,000 Zeni in total', r: ['s:armor', 's:greed'], pg: () => [P.zeni, 5000] },
-  { id: 'm11', c: 'mile', n: 'Reaching Level 30', d: 'Reach level 30 in a single run', r: ['vacuum'], pg: () => [bestLv(), 30] },
-  { id: 'm12', c: 'mile', n: 'Saiyan Army', d: 'Defeat 30,000 enemies in total', r: ['z:1000'], pg: () => [kills(), 30000] },
+  { id: 'm10', c: 'mile', n: 'Capsule Corp Investor', d: 'Earn 5,000 Zeni in total', r: ['s:greed'], pg: () => [P.zeni, 5000] },
+  { id: 'm17', c: 'mile', n: 'Dragon Hunter', d: 'Collect 10 Dragon Balls in total', r: ['s:armor'], pg: () => [P.balls || 0, 10] },
+  { id: 'm18', c: 'mile', n: 'Elite Hunter', d: 'Defeat 25 elite enemies in total', r: ['z:500'], pg: () => [P.elites || 0, 25] },
+  { id: 'm11', c: 'mile', n: 'Over the Limit', d: 'Reach level 25 in a single run', r: ['vacuum'], pg: () => [bestLv(), 25] },
+  { id: 'm12', c: 'mile', n: 'Saiyan Army', d: 'Defeat 40,000 enemies in total', r: ['z:1000'], pg: () => [kills(), 40000] },
   { id: 'm13', c: 'mile', n: 'Hero of Earth', d: 'Clear Level 1 with Goku, Piccolo and Gohan', r: ['z:1000'], pg: () => [['goku', 'pic', 'gohan'].filter(h => P.clr[1] && P.clr[1][h]).length, 3] },
   { id: 'm14', c: 'mile', n: 'Slayer I', d: 'Defeat 75,000 enemies in total', r: ['z:1500'], pg: () => [kills(), 75000] },
   { id: 'm15', c: 'mile', n: 'Slayer II', d: 'Defeat 150,000 enemies in total', r: ['z:2500'], pg: () => [kills(), 150000] },
@@ -144,11 +146,11 @@ let HSRC = '';
     return _h(e, d); }; }
 { const _k = killE; killE = function (e) {
     const was = e.dead; _k(e); if (was || !e.dead) return;
-    P.kills++; if (HSRC == 'disc') P.discK++;
+    P.kills++; if (HSRC == 'disc') P.discK++; if (e.elite) P.elites = (P.elites || 0) + 1;
     if (e.boss) { P.bk[e.k] = 1; (S.bkr || (S.bkr = {}))[e.k] = 1;
       if (e.k == 'veg') { if (S.hero == 'goku' && S.p.hp < S.p.max * .1) S.kak = 1; if (S.hero == 'vegeta') S.vegVeg = 1; } }
   }; }
-{ const _bg = ballGot; ballGot = function (b) { (S.dbTs || (S.dbTs = [])).push(S.t); const n = S.dbTs.length; if (n > 1 && S.dbTs[n - 1] - S.dbTs[n - 2] <= 10) S.db2 = 1; return _bg(b); }; }
+{ const _bg = ballGot; ballGot = function (b) { P.balls = (P.balls || 0) + 1; (S.dbTs || (S.dbTs = [])).push(S.t); const n = S.dbTs.length; if (n > 1 && S.dbTs[n - 1] - S.dbTs[n - 2] <= 10) S.db2 = 1; return _bg(b); }; }
 { const _my = mythic; mythic = function (g, k) { P.wishes++; saveProg(); return _my(g, k); }; }
 { const _pk = pick; pick = function (g, k, r) { if (g == 'e') P.evo[k] = 1; return _pk(g, k, r); }; }
 { const _uf = ultFire; ultFire = function () {

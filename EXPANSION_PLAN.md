@@ -155,7 +155,7 @@ on the field at once. Dragon Radar shortens the timer by up to 40%. All 7 can co
 | S2 | Brother's Keeper | Defeat Raditz | **Ki Burst** ultimate + shop: Ki Reserves |
 | S3 | Bald Brute | Defeat Nappa | **Dragon Balls** + **Dragon Radar** passive + **Hellzone Grenade** **(?)** see Q1 |
 | S4 | Prince of All Saiyans | Defeat Vegeta | **Level 2** + **Vegeta playable** + **Galick Gun** |
-| S5 | Planet Namek | Survive 2:00 on Level 2 | Shop: Capsule Magnet |
+| S5 | Planet Namek | Survive 10:00 on Level 2 | Shop: Capsule Magnet |
 | S6 | Ultra Fighting Bomber | Defeat Recoome | **Explosive Wave** (new) |
 | S7 | Fastest in the Universe | Defeat Burter and Jeice | **Afterimage Strike** (new) |
 | S8 | Time Stands Still | Defeat Guldo | **Time Freeze** floor pickup (new mechanic) |
@@ -174,15 +174,17 @@ on the field at once. Dragon Radar shortens the timer by up to 40%. All 7 can co
 | M3 | Hardened | Survive 5:00 in any run | **Saiyan Armor** + **Solar Flare** |
 | M4 | Power Within | Evolve any attack | **Hyperbolic Chamber** + **Spirit Bomb** + shop: Ki Mastery |
 | M5 | Level Up! | Reach level 20 in a run | Shop: Senzu Stock (rerolls) |
-| M6 | Veteran | 10,000 lifetime kills | **Tri-Beam** (new) |
+| M6 | Veteran | 15,000 lifetime kills | **Tri-Beam** (new) |
 | M7 | Legendary | Transform (3 evolutions in one run) | **Dragon Thunder** |
 | M8 | Eternal Dragon | Make your first wish | Shenron offers a **4th wish choice** + 500 Zeni |
 | M9 | Full Arsenal | Have 4 attacks and 5 passives at once | Shop: **Mafuba Seal** (banish, §6.4) |
-| M10 | Capsule Corp Investor | Earn 5,000 lifetime Zeni | Shop: Hercule Sponsorship, Battle Armor |
-| M11 | Reaching Level 30 | Reach level 30 in a run | **Capsule Vacuum** floor pickup (collects all XP gems) |
-| M12 | Saiyan Army | 30,000 lifetime kills | +1,000 Zeni |
+| M10 | Capsule Corp Investor | Earn 5,000 lifetime Zeni | Shop: Hercule Sponsorship |
+| M11 | Over the Limit | Reach level 25 in a run | **Capsule Vacuum** floor pickup (collects all XP gems) |
+| M12 | Saiyan Army | 40,000 lifetime kills | +1,000 Zeni |
 | M13 | Hero of Earth | Clear Level 1 with all 3 starter heroes | +1,000 Zeni |
 | M14-16 | Slayer tiers | 75k / 150k / 300k kills | Zeni (late-game sink) |
+| M17 | Dragon Hunter | Collect 10 Dragon Balls in total | Shop: Battle Armor |
+| M18 | Elite Hunter | Defeat 25 elite enemies in total | +500 Zeni |
 
 ### 4.3 Secret (hidden until earned)
 | # | Name | Hint shown | Requirement | Unlocks |
@@ -221,6 +223,32 @@ You asked that the late game not feel sparse. On top of the story unlocks in §8
 - **Lifetime milestones that scale into the late game:** 100 evolutions, 50 wishes, 25 fusions, Endless 20/30/45/60 min.
 - Target: **at least one new unlock every 2 runs** in Levels 3-4, checked with the bot cadence report in
   Phase E and again in Phase H. If it's sparse, we move rewards earlier or add more.
+
+### 4.6 Phase E results (Levels 1-2 balance pass, bot-tested on Hard)
+`[x]` Done on `v3-dev`. The bot plays like a strong player, so a human will land a bit later on every row.
+- **Bot fixes first:** the bot now dodges telegraphed beam lanes (it walked through Frieza's Death Beams before),
+  picks the heal on Limit Break when hurt, ends capped runs properly, and its shop presets start from an empty shop.
+  Earlier Frieza numbers were too pessimistic because of the lane bug.
+- **Level 1 (unchanged):** brand-new account, no shop: Nappa 6/9, Vegeta 0/9. Light shop (~1,500 Zeni, 3-4 runs):
+  Vegeta about 1 in 6 (7/40), Nappa about 40%. On target ("Vegeta becomes winnable after a few runs of upgrades").
+- **Level 2:** Frieza fights ran 6-10 minutes and stacked with Captain Ginyu. Changes:
+  Frieza now waits until Ginyu is down (+25 s, never more than 90 s late); boss HP multipliers
+  Recoome 3.6→3.0, Ginyu 4.2→3.6, Frieza 3.2/3.2/4.2 → 2.4/2.0/2.7; Piccolo +20% damage (slowest boss-killer).
+  Solid shop (~3,500 Zeni): Frieza won 3/12 with Frieza at 2.4/2.2/3.0 and 6/12 at 2.4/1.9/2.5; the final 2.4/2.0/2.7
+  sits between (about 1 in 3, not re-measured). Maxed shop: 4/4.
+  Winning Frieza fights now take 3-6 minutes for all three forms.
+- **Cadence (30-run campaigns from a fresh account):** run 1 gives 6-9 unlocks, Vegeta falls around run 3-8,
+  Frieza around run 11-13. Changes: Planet Namek now needs 10:00 on Level 2, Veteran 15k kills, Saiyan Army 40k,
+  Level 30 → Level 25 for the Vacuum (Level 30 never happened), and two new milestones for the
+  Level 1 grind (Dragon Hunter: 10 Dragon Balls → Battle Armor; Elite Hunter: 25 elites → +500 Zeni).
+- **Still open (for you):**
+  1. **Shop is fully bought by about run 13** (17,780 Zeni). Fine for Levels 1-2, but Levels 3-4 will have nothing to
+     buy. Price pass planned for after Levels 3-4 exist (your decision 6).
+  2. **Wishes (loosened, your call):** up to 3 Dragon Balls can now wait on the map (was 2) and a new one spawns
+     every 34 s (was 42 s); distance and guards are unchanged. A bot that fetches balls mid-fight (`BOT_BALLS = 1`)
+     collects 4-7 per Namek run and made its first wish; Level 1 runs are short, so wishes there stay rare.
+  3. Gohan is the strongest hero on Namek, Piccolo the weakest even after the buff.
+- Shop now fits on a small phone without scrolling (compact rows on screens 420 px wide or less).
 
 ---
 

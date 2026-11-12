@@ -48,7 +48,7 @@ function settingsBack() { if (V2.back == 'pause') pz.onclick(); else menu(); }
 
 /* ---------- balance ---------- */
 // Boss toughness (Hard is the default): Raditz is a warm-up, Nappa is a real wall, Vegeta is the final exam.
-DIFF.boss = k => ({ rad: 2.4, nap: 4.2, veg: 11, rec: 3.6, bur: 3.4, jei: 3.4, gul: 3.2, gin: 4.2, fr1: 3.2, fr2: 3.2, fr3: 4.2 }[k] || 2.8) * (.6 + .4 * DF[DLV]);
+DIFF.boss = k => ({ rad: 2.4, nap: 4.2, veg: 11, rec: 3.0, bur: 3.4, jei: 3.4, gul: 3.2, gin: 3.6, fr1: 2.4, fr2: 2.0, fr3: 2.7 }[k] || 2.8) * (.6 + .4 * DF[DLV]);
 // Namek mobs: the original eased them to 80%; level 2 should feel like a step up, not a step down.
 { const _h2 = DIFF.hp; DIFF.hp = t => _h2(t) * (S.stage == 2 ? 1.3 : 1); }
 // The rest of the mob curve is a little steeper early so the first two minutes have teeth.

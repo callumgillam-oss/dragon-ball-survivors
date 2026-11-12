@@ -17,7 +17,7 @@ function botProfile(name) {
 window.simRun = async function (o) {
   o = Object.assign({ stage: 1, dlv: 1, hero: 'goku', skill: 1, maxT: 600, meta: null }, o || {});
   const saveMeta = JSON.stringify(META), saveP = typeof P != 'undefined' ? JSON.stringify(P) : null;
-  if (o.keepMeta) { } else if (o.meta) Object.assign(META, o.meta); else for (const k in META) if (k !== 'zeni' && typeof META[k] === 'number') META[k] = 0;
+  if (!o.keepMeta) { for (const k in META) if (k !== 'zeni' && typeof META[k] === 'number') META[k] = 0; if (o.meta) Object.assign(META, o.meta); }   // presets start from an empty shop
   if (o.profile && saveP) P.unl = botProfile(o.profile);
   DLV = o.dlv; HERO = o.hero; V2.noCut = true; V2.kkFast = true;
   start(o.stage); introEnd();
@@ -31,6 +31,8 @@ window.simRun = async function (o) {
     if (S.mode === 'lvl' || S.mode === 'wish') {
       const bs = [...ov.querySelectorAll('button')].filter(b => !/Reroll|reroll/.test(b.textContent));
       const sc = b => {
+        const lb = /lbPick\((\d)\)/.exec(b.getAttribute('onclick') || '');
+        if (lb) return +lb[1] === 3 ? (S.p.hp < S.p.max * .7 ? 50 : 1) : +lb[1] === 0 ? 10 : 5;   // Limit Break: heal when hurt
         const m = /pick\('(\w+)','(\w+)'(?:,(\d))?/.exec(b.getAttribute('onclick') || ''); if (!m) return 0;
         const [, g, k, r] = m, rr = +(r || 0);
         if (g === 'e') return 100;
@@ -52,7 +54,7 @@ window.simRun = async function (o) {
     const hpF = p.hp / p.max;
     for (const g of S.gem.concat(S.beans || [], S.chests || [], S.balls || [])) {
       const ball = (S.balls || []).includes(g), d = Math.hypot(g.x - p.x, g.y - p.y), w = ball ? d * .25 : g.n ? d * .4 : d;
-      if (w < tb && (d < 420 || ball && hpF > .5 && !S.en.some(e => e.boss))) { tb = w; tgt = g; }   // a player travels for Dragon Balls
+      if (w < tb && (d < 420 || ball && hpF > (window.BOT_BALLS ? .55 : 2) || ball && hpF > .5 && !S.en.some(e => e.boss))) { tb = w; tgt = g; }   // a player travels for Dragon Balls
     }
     for (let k = 0; k < 17; k++) {
       const dx0 = k < 16 ? Math.cos(k / 16 * 6.283) : 0, dy0 = k < 16 ? Math.sin(k / 16 * 6.283) : 0;
@@ -72,6 +74,10 @@ window.simRun = async function (o) {
         for (const z of S.zones) {
           if (z.f) continue; const d = Math.hypot(px - z.x, py - z.y);
           if (d < z.r + 14 && z.t < T + .35) danger += (z.d || 20) * 2;
+        }
+        if (!window.BOT_NOLANE) for (const l of S.lns || []) {   // telegraphed beam lanes (Frieza's Death Beams, etc.): step out of the stripe
+          if (l.on > 0 || l.t > T + .35) continue; const c = Math.cos(l.a), sn = Math.sin(l.a), dx = px - l.x, dy = py - l.y, al = dx * c + dy * sn, pp = Math.abs(-dx * sn + dy * c);
+          if (al > -20 && al < l.len && pp < l.w / 2 + 16) danger += (l.d || 20) * 2;
         }
       }
       let score = -danger;
@@ -98,7 +104,7 @@ window.simRun = async function (o) {
     if (++steps % 3600 === 0) { log.lv.push([+S.t.toFixed(0), p.lv, S.kills, S.en.length]); await new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); }); /* MessageChannel: not throttled in hidden tabs */ }
   }
   GP.x = GP.y = 0;
-  const res = { stage: o.stage, dlv: o.dlv, hero: o.hero, skill: o.skill, result: S.mode, t: +S.t.toFixed(0), lv: S.p.lv, kills: S.kills, ev: log.ev, prog: log.lv, w: JSON.stringify(S.w), evo: Object.keys(S.evo).join(',') };
+  const res = { stage: o.stage, dlv: o.dlv, hero: o.hero, skill: o.skill, result: S.mode, db: S.dbGot || 0, dbSp: S.dbN || 0, revived: !!S.revived, t: +S.t.toFixed(0), lv: S.p.lv, kills: S.kills, ev: log.ev, prog: log.lv, w: JSON.stringify(S.w), evo: Object.keys(S.evo).join(',') };
   if (!o.keepMeta) Object.assign(META, JSON.parse(saveMeta));
   if (o.profile && saveP) { P = JSON.parse(saveP); saveProg(); }
   if (!o.keepMeta) S.mode = 'menu';
@@ -124,11 +130,12 @@ window.campaign = async function (n, o) {
   // the win end card is scheduled 1.9 s after the final boss dies; run it at once (hidden tabs throttle timers)
   const st0 = window.setTimeout; window.setTimeout = (f, ms, ...a) => ms === 1900 ? (queueMicrotask(() => f(...a)), 0) : st0(f, ms, ...a);
   try {
-  window._camp = []; const heroes = ['goku', 'pic', 'gohan'];
+  window._camp = [];
   for (let i = 0; i < n; i++) {
     const before = new Set(Object.keys(P.ach)), stage = HAS('lvl2') ? 2 : 1;
-    const r = await simRun({ stage, dlv: o.dlv, hero: heroes[i % 3], skill: o.skill, maxT: o.maxT, keepMeta: true });
-    if (S.mode == 'play') { S.p.hp = -1; update(1 / 60); }   // hit maxT: end the run so it counts
+    const heroes = ['goku', 'pic', 'gohan', 'vegeta', 'kri'].filter(h => HAS(heroKey(h)));
+    const r = await simRun({ stage, dlv: o.dlv, hero: heroes[i % heroes.length], skill: o.skill, maxT: o.maxT, keepMeta: true });
+    for (let g = 0; g < 3 && S.mode == 'play'; g++) { S.revived = 1; S.p.hp = -1; update(1 / 60); }   // hit maxT: end the run so it counts (no revive)
     while (RV) revealNext();
     let spent = 0;
     for (;;) { const ks = Object.keys(UPG).filter(k => HAS('s:' + k) && META[k] < UPG[k][2]).sort((a, b) => ucost(a, META[a]) - ucost(b, META[b]));
