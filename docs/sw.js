@@ -1,5 +1,5 @@
 // Offline cache: network-first for the page (so updates show up), cache fallback when offline.
-const CACHE = 'dbs-v2.0';
+const CACHE = 'dbs-v2.1';
 const FILES = ['./', './index.html', './v2.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

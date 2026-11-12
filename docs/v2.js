@@ -187,6 +187,124 @@ function impactPass() {
 // Big explosions (Spirit Bomb, boss deaths) get a shockwave and a little camera kick.
 { const _b = boom; boom = function (x, y, r, c) { _b(x, y, r, c); if (r >= 60) { impact(x, y, r * .9, c == '#9df' ? 'cy' : 'or', .45); kick(Math.min(12, r / 12)); } }; }
 
+/* ---------- ability feel pass (visual only; damage untouched) ---------- */
+// Spirit Bomb: a huge blue sphere visibly falls onto its target during the countdown.
+function drawSpiritBomb(z, x, y, k, t) {
+  const R = z.r, sr = R * (.32 + .18 * k), sy = y - (1 - k) * 260;
+  ctx.save(); ctx.strokeStyle = 'rgba(150,220,255,' + (.35 + .45 * k) + ')'; ctx.lineWidth = 2 + 2 * k;
+  ctx.setLineDash([10, 8]); ctx.lineDashOffset = -t * 60; ctx.beginPath(); ctx.arc(x, y, R * (1.25 - .25 * k), 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(120,200,255,' + (.06 + .12 * k) + ')'; ctx.beginPath(); ctx.ellipse(x, y, R, R * .55, 0, 0, 7); ctx.fill(); ctx.restore();
+  LT(); gl('cy', x, sy, sr * 2.6, .55); gl('cy', x, sy, sr * 1.5, .9); gl('wh', x, sy, sr * .9, .95);
+  ctx.strokeStyle = 'rgba(200,240,255,.55)'; ctx.lineWidth = 2;
+  for (let i = 0; i < 6; i++) { const a = t * 3 + i * 1.047, r1 = sr * 2.2, r0 = sr * 1.05; ctx.beginPath(); ctx.moveTo(x + Math.cos(a) * r1, sy + Math.sin(a) * r1); ctx.quadraticCurveTo(x + Math.cos(a + .8) * r1 * .8, sy + Math.sin(a + .8) * r1 * .8, x + Math.cos(a + 1.4) * r0, sy + Math.sin(a + 1.4) * r0); ctx.stroke(); }
+  NM();
+  ctx.strokeStyle = 'rgba(230,250,255,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, sy, sr, 0, 7); ctx.stroke();
+}
+// Enemy attack zones: clear fill that grows to show exactly when it goes off.
+function drawDangerZone(z, x, y, k, t) {
+  const c = z.sl ? '190,100,255' : '255,70,40';
+  ctx.fillStyle = 'rgba(' + c + ',' + (.08 + .05 * Math.sin(t * 24)) + ')'; ctx.beginPath(); ctx.arc(x, y, z.r, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(' + c + ',.26)'; ctx.beginPath(); ctx.arc(x, y, z.r * k, 0, 7); ctx.fill();
+  ctx.strokeStyle = 'rgba(' + c + ',' + (.55 + .35 * Math.sin(t * 30)) + ')'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, z.r, 0, 7); ctx.stroke();
+}
+// Kaioken aura: a living ring of flame that flares on every damage tick.
+function drawKaioken(t) {
+  if (!S.w.aura) return; const E = S.evo.aura, R = (50 + 10 * WL('aura')) * (E ? 1.8 : 1) * AR(), x = W / 2, y = H / 2 + 4;
+  const pulse = Math.max(0, 1 - (V2.auT || 0) / .18), n = GFX == 'low' ? 14 : 26;
+  LT();
+  gl('rd', x, y, R * 1.15, .22 + .25 * pulse);
+  for (let i = 0; i < n; i++) {
+    const a = i / n * 6.283 + Math.sin(t * 2 + i) * .05, fl = .7 + .3 * Math.sin(t * 11 + i * 2.7) + .4 * pulse, px = x + Math.cos(a) * R, py = y + Math.sin(a) * R * .9;
+    const len = (14 + 10 * fl) * (E ? 1.5 : 1);
+    ctx.save(); ctx.translate(px, py); ctx.rotate(Math.cos(a) * .35);
+    const g = ctx.createLinearGradient(0, 0, 0, -len); g.addColorStop(0, E ? 'rgba(255,240,220,.85)' : 'rgba(255,120,60,.8)'); g.addColorStop(.5, 'rgba(255,60,30,.55)'); g.addColorStop(1, 'rgba(200,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-5, 0); ctx.quadraticCurveTo(-4, -len * .6, Math.sin(t * 9 + i) * 3, -len); ctx.quadraticCurveTo(4, -len * .6, 5, 0); ctx.fill(); ctx.restore();
+  }
+  ctx.strokeStyle = 'rgba(255,' + (E ? 200 : 90) + ',60,' + (.35 + .45 * pulse) + ')'; ctx.lineWidth = 2 + 3 * pulse; ctx.beginPath(); ctx.ellipse(x, y, R, R * .9, 0, 0, 7); ctx.stroke();
+  if (GFX != 'low') for (let i = 0; i < 10; i++) { const a = i * 2.4 + t * .3, u = (t * .8 + i * .13) % 1, rr = R * (.4 + .6 * ((i * 37) % 10) / 10);
+    gl('or', x + Math.cos(a) * rr, y + Math.sin(a) * rr * .9 - u * 40, 4, (1 - u) * .7); }
+  NM();
+}
+// Destructo Disc: motion-blur arcs along the orbit plus a crisp saw edge on each disc.
+function drawDiscFx(cx, cy, t) {
+  if (!S.discs || !S.discs.length) return; const p = S.p; LT();
+  for (const d of S.discs) { const dx = d.x - p.x, dy = d.y - p.y, R = Math.hypot(dx, dy), a = Math.atan2(dy, dx);
+    let da = d.a - a; da = Math.atan2(Math.sin(da), Math.cos(da)); const dir = Math.abs(da) > 1.6 ? -1 : 1;
+    for (let i = 1; i <= 5; i++) { const aa = a - dir * i * .09; gl('or', p.x - cx + Math.cos(aa) * R, p.y - cy + Math.sin(aa) * R, d.r * (1.2 - i * .12), .28 - i * .045); }
+    const x = d.x - cx, y = d.y - cy; ctx.save(); ctx.translate(x, y); ctx.rotate(t * 30); ctx.strokeStyle = 'rgba(255,255,230,.95)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); for (let i = 0; i < 12; i++) { const q = i / 12 * 6.283, r = d.r * (i & 1 ? 1.08 : .86); i ? ctx.lineTo(Math.cos(q) * r, Math.sin(q) * r * .8) : ctx.moveTo(Math.cos(q) * r, Math.sin(q) * r * .8); } ctx.closePath(); ctx.stroke(); ctx.restore(); }
+  NM();
+}
+// Short-lived ability flashes: Masenko cone, Solar Flare rays, Ki Blast muzzle.
+function flashFx(o) { (V2.ff || (V2.ff = [])).push(Object.assign({ t: 0 }, o)); }
+function drawFlashFx(cx, cy, t) {
+  if (!V2.ff || !V2.ff.length) return; const px = W / 2, py = H / 2; LT();
+  for (const f of V2.ff) { const k = f.t / f.T;
+    if (f.k == 'cone') { ctx.save(); ctx.translate(px, py); ctx.rotate(f.a); const L = f.len * (.6 + .4 * Math.sqrt(k)), sp = f.sp / 2;
+      const g = ctx.createRadialGradient(0, 0, 4, 0, 0, L); g.addColorStop(0, 'rgba(255,255,220,' + (1 - k) + ')'); g.addColorStop(.5, 'rgba(255,190,60,' + .55 * (1 - k) + ')'); g.addColorStop(1, 'rgba(255,120,20,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, L, -sp, sp); ctx.closePath(); ctx.fill(); ctx.restore(); }
+    else if (f.k == 'rays') { const n = 16, L = Math.max(W, H) * (.3 + .7 * k); ctx.save(); ctx.translate(px, py); ctx.rotate(t * .8);
+      for (let i = 0; i < n; i++) { ctx.rotate(6.283 / n); ctx.fillStyle = 'rgba(255,255,230,' + .5 * (1 - k) + ')'; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(L, -L * .045); ctx.lineTo(L, L * .045); ctx.lineTo(0, 6); ctx.fill(); }
+      ctx.restore(); gl('wh', px, py, 90 * (1 - k) + 30, 1 - k); ctx.strokeStyle = 'rgba(255,255,220,' + (1 - k) + ')'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(px, py, L * .6, 0, 7); ctx.stroke(); }
+    else if (f.k == 'muz') { gl('cy', px + Math.cos(f.a) * 16, py + Math.sin(f.a) * 16, 16 * (1 - k) + 4, 1 - k); }
+  }
+  NM();
+}
+function abilityFx(dt, before) {
+  if (V2.ff) { for (const f of V2.ff) f.t += dt; V2.ff = V2.ff.filter(f => f.t < f.T); }
+  V2.auT = (V2.auT || 0) + dt; if (S.w.aura && S.cd.aura > before.auCd + .1) V2.auT = 0;
+  if (S.sh.length > before.sh) { const s = S.sh[S.sh.length - 1]; flashFx({ k: 'muz', a: Math.atan2(s.vy, s.vx), T: .1 }); }
+  for (const s of S.sh) { const n = s.h.length; if (n > (s._n || 0)) { s._n = n; impact(s.x, s.y, 13, 'cy', .16); } }
+  if (S.mas.length > before.mas) { const s = S.mas[S.mas.length - 1]; flashFx({ k: 'cone', a: Math.atan2(s.vy, s.vx), len: 250 * AR2(), sp: 1.0 * (1 + (AR() - 1) * .5), T: .2 }); }
+  for (const s of S.mas) { const n = s.h.size; if (n > (s._n || 0)) { s._n = n; impact(s.x, s.y, 15, 'or', .16); } }
+  for (const e of S.en) if (e.dd && e.dd !== e._dd) { e._dd = e.dd; impact(e.x, e.y, 16, 'or', .18); }
+  if (S.w.flare && S.cd.flare > before.flCd + 1) { flashFx({ k: 'rays', T: .55 }); sfxPlay('flare'); }
+}
+/* ---------- art pass: boss auras, intro polish, victory beat ---------- */
+// Each boss burns with its own colour; the aura grows as it takes damage (phases read at a glance).
+const BAURA = { rad: '170,70,255', nap: '255,160,50', veg: '110,170,255', rec: '255,130,40', bur: '90,160,255', jei: '255,90,90', gul: '110,240,140', gin: '200,110,255', fr1: '215,120,255', fr2: '215,120,255', fr3: '235,150,255' };
+function bossAura(e, x, y) {
+  const c0 = BAURA[e.k]; if (!c0) return; const t = S.t, r = e.r, hpF = e.hp / e.max, inten = 1 + (1 - hpF) * 1.2 + (e.inv > 0 ? 1 : 0);
+  const c = e.k == 'veg' && hpF < .25 ? '255,225,120' : c0, n = GFX == 'low' ? 8 : 14, R = r * 1.25;
+  LT();
+  const g = ctx.createRadialGradient(x, y - r * .3, r * .3, x, y - r * .3, r * 2.3 * Math.min(1.6, inten)); g.addColorStop(0, 'rgba(' + c + ',' + .28 * Math.min(1.5, inten) + ')'); g.addColorStop(1, 'rgba(' + c + ',0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y - r * .3, r * 2.3 * Math.min(1.6, inten), 0, 7); ctx.fill(); NM();
+  for (let i = 0; i < n; i++) {
+    const a = i / n * 6.283, fl = .65 + .35 * Math.sin(t * 13 + i * 2.1), px = x + Math.cos(a) * R * .85, py = y + Math.sin(a) * R * .45 + r * .2, len = r * (.9 + .7 * fl) * Math.min(1.7, inten);
+    const fg = ctx.createLinearGradient(px, py, px, py - len); fg.addColorStop(0, 'rgba(' + c + ',.75)'); fg.addColorStop(.6, 'rgba(' + c + ',.35)'); fg.addColorStop(1, 'rgba(' + c + ',0)');
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(px - r * .22, py); ctx.quadraticCurveTo(px - r * .18, py - len * .6, px + Math.sin(t * 8 + i) * r * .15, py - len); ctx.quadraticCurveTo(px + r * .18, py - len * .6, px + r * .22, py); ctx.fill();
+  }
+  NM();
+}
+{ const _en = enemy; enemy = function (e, x, y) { if (e.boss) bossAura(e, x, y); _en(e, x, y); }; }
+
+// Intro cutscenes: fade in from black, speed lines while flying, vignette, flash cut into gameplay.
+{ const _di = drawIntro; drawIntro = function () {
+    _di(); const I = S.intro; if (!I) return; const t = I.t, T = INTRO_T[S.stage - 1];
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (S.stage == 1 && t > .2 && t < 2.2) { const a = Math.min(1, (t - .2) / .3) * Math.min(1, (2.2 - t) / .4); ctx.strokeStyle = 'rgba(255,250,235,' + .35 * a + ')'; ctx.lineWidth = 2;
+      for (let i = 0; i < 14; i++) { const y = H * (.12 + .76 * ((i * 53) % 100) / 100), sp = 900 + (i % 4) * 300, x = W - ((t * sp + i * 137) % (W + 300)); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 80 + (i % 3) * 40, y); ctx.stroke(); } }
+    if (V2.ivW != W + H) { V2.ivW = W + H; V2.iv = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .4, W / 2, H / 2, Math.hypot(W, H) * .62); V2.iv.addColorStop(0, 'rgba(0,0,0,0)'); V2.iv.addColorStop(1, 'rgba(10,4,0,.5)'); }
+    ctx.fillStyle = V2.iv; ctx.fillRect(0, 0, W, H);
+    if (t < .5) { ctx.fillStyle = 'rgba(0,0,0,' + (1 - t / .5) + ')'; ctx.fillRect(0, 0, W, H); }
+    if (t > T - .3) { ctx.fillStyle = 'rgba(255,250,235,' + Math.min(1, (t - (T - .3)) / .3) * .85 + ')'; ctx.fillRect(0, 0, W, H); }
+    ctx.restore();
+  }; }
+// Gameplay starts with a quick flash fade (pairs with the intro's flash cut).
+{ const _ie = introEnd; introEnd = function () { const was = S.mode == 'intro'; _ie(); if (was) V2.inF = .45; }; }
+
+// Victory beat when a level's final boss falls.
+function drawVictory(dt) {
+  if (V2.inF > 0) { V2.inF -= 1 / 60; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = 'rgba(255,250,235,' + Math.max(0, V2.inF / .45) * .85 + ')'; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+  if (S.mode != 'win' || V2.winT === undefined) return; V2.winT += 1 / 60; const t = V2.winT;
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = 'rgba(255,250,230,' + Math.max(0, .9 - t * 1.6) + ')'; ctx.fillRect(0, 0, W, H);
+  const a = Math.min(1, Math.max(0, (t - .15) / .25)), sc = 1 + Math.max(0, .35 - t) * 1.2, fs = Math.min(76, W * .16);
+  ctx.globalAlpha = a; ctx.translate(W / 2, H * .38); ctx.scale(sc, sc); ctx.textAlign = 'center'; ctx.lineJoin = 'round';
+  ctx.font = '900 ' + fs + 'px Impact,"Arial Black",sans-serif'; ctx.lineWidth = fs * .22; ctx.strokeStyle = '#5a0e08'; ctx.strokeText('VICTORY!', 0, 0);
+  const g = ctx.createLinearGradient(0, -fs * .8, 0, 0); g.addColorStop(0, '#fff6c0'); g.addColorStop(1, '#ff9a1f'); ctx.fillStyle = g; ctx.fillText('VICTORY!', 0, 0);
+  ctx.restore();
+}
 /* ---------- boss intro cards + game feel ---------- */
 const BOSSCARD = {
   rad: ["RADITZ", "Goku's long-lost brother"], nap: ['NAPPA', 'Elite Saiyan warrior'], veg: ['VEGETA', 'Prince of all Saiyans'],
@@ -226,23 +344,24 @@ function drawLowHp() {
     if (V2.hs > 0) { V2.hs -= dt; return; }
     if (S.bi) { S.bi.t += dt; if (S.bi.t >= S.bi.T) S.bi = null; else dt *= S.bi.t < S.bi.T - .4 ? .25 : .6; }
     const hp0 = S.p.hp;
-    const before = { sh: S.sh.length, orbs: (S.orbs || []).length, str: (S.str || []).length, discs: (S.discs || []).length };
-    bossStun(); _u(dt); updLanes(dt); updImpacts(dt); bossIntroCheck(); fireSounds(before); impactPass();
+    const before = { sh: S.sh.length, orbs: (S.orbs || []).length, str: (S.str || []).length, discs: (S.discs || []).length, mas: S.mas.length, auCd: S.cd.aura || 0, flCd: S.cd.flare || 0 };
+    bossStun(); _u(dt); updLanes(dt); updImpacts(dt); bossIntroCheck(); fireSounds(before); impactPass(); abilityFx(dt, before);
     if (hp0 - S.p.hp > 15) { kick(8); }
     if (S.fx.length > FXCAP()) S.fx.splice(0, S.fx.length - FXCAP());
     if (S.mode == 'play' && !S.en.some(e => e.boss)) MUS.want(S.stage == 2 ? 'namek' : 'stage');
   }; }
-{ const _d = drawExtra; drawExtra = function (cx, cy, t) { drawLanes(cx, cy); _d(cx, cy, t); drawImpacts(cx, cy); }; }
+{ const _d = drawExtra; drawExtra = function (cx, cy, t) { drawLanes(cx, cy); drawKaioken(t); _d(cx, cy, t); drawDiscFx(cx, cy, t); drawFlashFx(cx, cy, t); drawImpacts(cx, cy); }; }
 { const _d = draw; draw = function () {
     _d();
     if (S.mode == 'play' || S.mode == 'pause' || S.mode == 'lvl') { drawLowHp(); drawBossIntro(); }
+    drawVictory();
     // screen shake via a cheap CSS offset (moves the whole frame, HUD included)
     if (V2.shk > .3 && S.mode == 'play') { V2.shk *= .86; cv.style.transform = `translate(${((Math.random() - .5) * V2.shk).toFixed(1)}px,${((Math.random() - .5) * V2.shk).toFixed(1)}px)`; }
     else if (cv.style.transform) { V2.shk = 0; cv.style.transform = ''; }
   }; }
 // Big moments get weight
-{ const _k = killE; killE = function (e) { const was = e.dead; _k(e); if (!was && e.boss) { hitStop(.18); kick(22); sfxPlay('bossdie'); } else if (!was && e.elite) kick(5); }; }
-{ const _s = start; start = function (a) { V2.hs = 0; V2.shk = 0; const r = _s(a); MUS.want('intro'); return r; }; }
+{ const _k = killE; killE = function (e) { const was = e.dead; _k(e); if (!was && e.boss && S.mode == 'win') V2.winT = 0; if (!was && e.boss) { hitStop(.18); kick(22); sfxPlay('bossdie'); } else if (!was && e.elite) kick(5); }; }
+{ const _s = start; start = function (a) { V2.hs = 0; V2.shk = 0; V2.winT = undefined; V2.inF = 0; const r = _s(a); MUS.want('intro'); return r; }; }
 { const _e = endCard; endCard = function (win) {
     if (!win && (META.revive || 0) > 0 && !S.revived && S.p.hp <= 0) { // Zenkai revival
       S.revived = 1; S.p.hp = S.p.max * .5; S.mode = 'play'; show(''); S.inv = 3; S.flash = 1; boom(S.p.x, S.p.y, 160, '#ffe27a');
@@ -310,6 +429,7 @@ function sfxPlay(k) {
     case 'orbfire': [660, 880].forEach((f, i) => tone('triangle', f * r, f * 1.4, .12, .03, n + i * .04)); break;
     case 'thunder': noise(.5, .22, 'highpass', 1200, 300); tone('sawtooth', 70, 40, .4, .08); break;
     case 'disc': tone('sawtooth', 600, 1200, .2, .025); break;
+    case 'flare': tone('sine', 1800, 2600, .35, .05); noise(.4, .08, 'highpass', 6000, 9000); break;
     case 'dash': noise(.35, .1, 'bandpass', 800, 2500, 0, 0, 2); break;
     case 'tele': tone('sine', 1400, 300, .15, .06); noise(.12, .05, 'highpass', 5000); break;
     case 'roar': tone('sawtooth', 90, 55, .9, .1); tone('square', 60, 45, .9, .05); noise(.9, .1, 'lowpass', 900, 150); break;
@@ -331,7 +451,7 @@ sfx = function (k) { if (AC && AC.state != 'running') { AC.resume(); return; } s
 // ---- music: tiny step sequencer (bass, lead, drums) with per-scene patterns ----
 const NOTE = s => 440 * Math.pow(2, (s - 69) / 12);
 const SONGS = {
-  menu: { bpm: 96, root: 57, scale: [0, 3, 5, 7, 10], bass: [0, 0, 7, 7, 5, 5, 3, 3], lead: [12, -1, 10, -1, 7, -1, 10, 12, 15, -1, 14, 12, 10, -1, 7, -1], dr: 'x...x...x...x...', sn: '................', hat: '..x...x...x...x.', vol: .5 },
+    menu: { gen: 1, bpm: 158, root: 62, vol: .62, bars: [[0,0,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]],[5,0,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]],[7,0,[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]],[7,0,[-1,-1,-1,-1,-1,-1,-1,-1,7,-2,9,-2,11,-2,12,14]],[0,0,[12,-2,-1,12,14,-2,16,-2,19,-2,-2,16,14,-2,12,-2]],[7,0,[11,-2,-1,11,12,-2,14,-2,16,-2,-2,-2,-1,-1,7,9]],[9,1,[11,-2,-1,11,12,-2,14,-2,16,-2,19,-2,21,-2,19,-2]],[5,0,[16,-2,-2,14,12,-2,14,-2,16,-2,-2,-2,-2,-2,-1,-1]],[5,0,[7,-2,9,-2,11,-2,12,-2,14,-2,12,-2,11,-2,9,-2]],[7,0,[9,-2,11,-2,12,-2,14,-2,16,-2,14,-2,12,-2,11,-2]],[4,1,[14,-2,16,-2,17,-2,-2,16,14,-2,16,-2,19,-2,-2,-2]],[7,0,[19,-2,21,-2,23,-2,-2,-2,-1,-1,-1,-1,19,-2,21,23]],[5,0,[24,-1,24,-1,26,-2,28,-2,-2,-2,-1,-1,26,-1,24,-1]],[7,0,[26,-2,-2,-1,24,-2,21,-2,23,-2,-2,-2,-1,-1,-1,-1]],[4,1,[21,-1,21,-1,23,-2,26,-2,-2,-2,-1,-1,28,-1,26,-1]],[9,1,[28,-2,-2,-1,26,-2,23,-2,26,-2,-2,-2,-1,-1,19,21]],[5,0,[24,-1,24,-1,26,-2,28,-2,-2,-2,-1,-1,26,-1,24,-1]],[7,0,[26,-2,-2,-1,28,-2,31,-2,33,-2,-2,-2,-1,-1,31,33]],[0,0,[36,-2,-2,-2,-2,-2,35,-2,33,-2,31,-2,33,-2,-2,-2]],[0,0,[36,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1,-1,-1,-1]],[5,0,[24,-1,24,-1,26,-2,28,-2,-2,-2,-1,-1,26,-1,24,-1]],[7,0,[26,-2,-2,-1,24,-2,21,-2,23,-2,-2,-2,-1,-1,-1,-1]],[4,1,[21,-1,21,-1,23,-2,26,-2,-2,-2,-1,-1,28,-1,26,-1]],[9,1,[28,-2,-2,-1,26,-2,23,-2,26,-2,-2,-2,-1,-1,19,21]],[5,0,[24,-1,24,-1,26,-2,28,-2,-2,-2,-1,-1,26,-1,24,-1]],[7,0,[26,-2,-2,-1,28,-2,31,-2,33,-2,-2,-2,-1,-1,31,33]],[0,0,[36,-2,-2,-2,-2,-2,35,-2,33,-2,31,-2,33,-2,-2,-2]],[0,0,[36,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-1,-1,-1,-1]]], tr: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2], sec: ["i","i","i","i","v","v","v","v","v","v","v","v","c","c","c","c","c","c","c","c","c","c","c","c","c","c","c","c"] },
   intro: { bpm: 120, root: 57, bass: [0, 0, 0, 0, 3, 3, 5, 5], lead: [], dr: 'x.......x.......', sn: '........', hat: 'x.x.x.x.x.x.x.x.', vol: .45 },
   stage: { bpm: 138, root: 57, bass: [0, 0, 12, 0, 10, 0, 7, 8], lead: [12, -1, 15, 12, 19, -1, 17, 15, 12, -1, 10, -1, 7, 10, 12, -1], dr: 'x...x...x...x..x', sn: '....x.......x...', hat: '..x...x...x...x.', vol: .42 },
   namek: { bpm: 132, root: 54, bass: [0, 0, 7, 0, 5, 0, 3, 5], lead: [7, -1, 12, -1, 14, 12, 10, -1, 7, -1, 5, 7, 10, -1, -1, -1], dr: 'x.....x.x.......', sn: '....x.......x...', hat: 'x.xxx.xxx.xxx.xx', vol: .42 },
@@ -339,21 +459,50 @@ const SONGS = {
   win: { bpm: 120, root: 60, bass: [0, 0, 5, 5, 7, 7, 0, 0], lead: [12, 16, 19, 24, -1, 19, 24, -1, -1, -1, -1, -1, -1, -1, -1, -1], dr: 'x...x...', sn: '....', hat: '..x...x.', vol: .45, once: 1 },
   lose: { bpm: 80, root: 52, bass: [0, 0, -2, -2, -4, -4, -5, -5], lead: [], dr: 'x.......', sn: '', hat: '', vol: .35, once: 1 }
 };
+
+// ---- structured song engine: chord bars, power-chord stabs, brass lead, rock kit ----
+function genStep(sg, i, t, st, D) {
+  const nb = sg.bars.length, bi = Math.floor(i / 16) % nb, c = i % 16, bar = sg.bars[bi], sec = sg.sec[bi], k = sg.root + sg.tr[bi], r = bar[0], mi = bar[1];
+  const third = mi ? 3 : 4, isC = sec == 'c', isI = sec == 'i';
+  // drums: driving kick, big snare on 2 and 4, 8th hats (16ths in the chorus), crash on every section start
+  if (c % 4 == 0 || (isC && c == 10) || (!isI && c == 6 && bi % 2)) tone('sine', 160, 40, .2, .6, t, D);
+  if (c == 4 || c == 12 || (isI && bi == nb - 1 && c >= 8 && c % 2 == 0) || (isI && bi == 3 && c > 12)) { noise(.16, .26, 'bandpass', 2000, 800, t, D, .7); tone('triangle', 200, 120, .08, .12, t, D); }
+  if (isC ? true : c % 2 == 0) noise(.035, c % 4 == 2 ? .07 : .045, 'highpass', 7500, 0, t, D);
+  if (c == 0 && (sg.sec[(bi + nb - 1) % nb] != sec || bi == 0 || (sg.tr[bi] != sg.tr[(bi + nb - 1) % nb]))) noise(1.1, .16, 'highpass', 4000, 2500, t, D);
+  // bass: chugging 8ths with an octave pop on the off-beat
+  if (c % 2 == 0) { const f = NOTE(k - 24 + r + (c % 4 == 2 && !isI ? 12 : 0)); tone('sawtooth', f, 0, st * 1.7, .07, t, D); tone('triangle', f, 0, st * 1.8, .2, t, D); }
+  // power-chord stabs (root + fifth + octave): syncopated hits, sustained in the intro
+  const stab = isI ? (c == 0) : (c == 0 || c == 3 || c == 6 || c == 10 || (isC && c == 14));
+  if (stab) { const d = isI ? st * 14 : st * 1.6; for (const n of [0, 7, 12]) { const f = NOTE(k - 12 + r + n); tone('sawtooth', f, 0, d, .045, t, D); tone('sawtooth', f * 1.006, 0, d, .03, t, D); } }
+  // soft pad under the verse so it breathes before the chorus hits
+  if (sec == 'v' && c == 0) for (const n of [0, third, 7]) tone('triangle', NOTE(k + r + n), 0, st * 15, .03, t, D);
+  // lead: stacked detuned brass, doubled an octave up in the chorus
+  const L = bar[2][c];
+  if (L >= 0) { let h = 1; while (c + h < 16 && bar[2][c + h] == -2) h++;
+    const d = st * (h + .35), f = NOTE(k + L - (isC ? 12 : 0));
+    tone('sawtooth', f, 0, d, .06, t, D); tone('sawtooth', f * 1.005, 0, d, .045, t, D); tone('square', f * .5, 0, d, .02, t, D);
+    if (isC) { tone('square', f * 2, 0, d, .025, t, D); tone('sawtooth', f * 2 * .997, 0, d, .02, t, D); } }
+}
 const MUS = {
   cur: null, wantK: null, step: 0, next: 0, timer: 0,
   want(k) { this.wantK = k; if (this.cur !== k) { this.cur = k; this.step = 0; if (AC) this.next = AC.currentTime + .05; this.sync(); } },
   sync() { if (!AC || !bus()) return; const on = SET.music && !muted && S && S.mode != 'pause';
-    const v = on ? (SONGS[this.cur] || SONGS.menu).vol * .55 : 0; BUS.mus.gain.setTargetAtTime(v, AC.currentTime, .3); },
+    const v = on ? (SONGS[this.cur] || SONGS.menu).vol * .75 : 0; BUS.mus.gain.setTargetAtTime(v, AC.currentTime, .3); },
   tick() {
     if (!AC || AC.state != 'running' || !bus() || !this.cur) return; this.sync();
     const sg = SONGS[this.cur]; if (!sg) return; const st = 60 / sg.bpm / 4;
     if (this.next < AC.currentTime) this.next = AC.currentTime + .02;
     while (this.next < AC.currentTime + .12) {
       const i = this.step, t = this.next, D = BUS.mus;
+      if (sg.gen) { genStep(sg, i, t, st, D); this.next += st; this.step++; continue; }
       if (sg.once && i >= 64) { this.next += st; this.step++; continue; }
       if (i % 2 == 0) { const b = sg.bass[(i >> 1) % sg.bass.length]; tone('triangle', NOTE(sg.root - 12 + b), 0, st * 1.8, .22, t, D); tone('square', NOTE(sg.root - 12 + b), 0, st * 1.2, .035, t, D); }
-      const L = sg.lead.length ? sg.lead[i % sg.lead.length] : -1;
-      if (L >= 0 && (i >> 4) % 4 != 3) { tone('square', NOTE(sg.root + L), 0, st * 1.6, .045, t, D); tone('triangle', NOTE(sg.root + L + 12), 0, st, .02, t, D); }
+      const LL = sg.lead.length, L = LL ? sg.lead[i % LL] : -1;
+      if (L >= 0 && (sg.brass || (i >> 4) % 4 != 3)) { let h = 1; while (h < 16 && sg.lead[(i + h) % LL] == -2) h++;
+        const d = st * (h + .4), f = NOTE(sg.root + L);
+        if (sg.brass) { tone('sawtooth', f, 0, d, .05, t, D); tone('sawtooth', f * 1.004, 0, d, .035, t, D); tone('square', f * 2, 0, Math.min(d, st * 1.2), .012, t, D); }
+        else { tone('square', f, 0, st * 1.6, .045, t, D); tone('triangle', f * 2, 0, st, .02, t, D); } }
+      if (sg.pad && i % 16 == 0) { const ch = sg.pad[(i >> 4) % sg.pad.length]; for (const n of ch) tone('triangle', NOTE(sg.root - 12 + n), 0, st * 15, .03, t, D); }
       const c = i % 16;
       if (sg.dr[c % sg.dr.length] == 'x') { tone('sine', 150, 42, .18, .5, t, D); }
       if (sg.sn && sg.sn[c % sg.sn.length] == 'x') noise(.12, .18, 'bandpass', 1800, 900, t, D, .8);
