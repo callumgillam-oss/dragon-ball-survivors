@@ -112,6 +112,9 @@ on the field at once. Dragon Radar shortens the timer by up to 40%. All 7 can co
 
 ## 3. Achievements & unlock system (Phase B)
 
+### 3.0 Status
+`[x]` Phase B core built on branch `v3-dev` (`docs/prog.js`): achievements, unlock gates, menus, toasts, reveal, 3.0 wipe. Kill milestones were rescaled after the first bot test (a good run kills ~5,000 enemies). Unlocks earned mid-run apply from the **next** run, as in Vampire Survivors.
+
 ### 3.1 Fresh account (new save)
 - **Heroes:** Goku, Piccolo, Gohan.
 - **Attacks:** Ki Blast, Special Beam Cannon, Masenko, Kamehameha.
@@ -157,6 +160,8 @@ on the field at once. Dragon Radar shortens the timer by up to 40%. All 7 can co
 | S7 | Fastest in the Universe | Defeat Burter and Jeice | **Afterimage Strike** (new) |
 | S8 | Time Stands Still | Defeat Guldo | **Time Freeze** floor pickup (new mechanic) |
 | S9 | Special Fighting Pose | Defeat Captain Ginyu | **Ginyu Force Challenges** (run modifiers, §6.3) |
+| S9a | Emperor of the Universe | Defeat Frieza (first form) | +600 Zeni |
+| S9b | Fearsome Transformation | Defeat Frieza's second form | +900 Zeni |
 | S10 | Namek is Free | Defeat Frieza (Final Form) | **Level 3** + **Limit Break** + shop: Potential Unleashed (5th attack slot) |
 | S11-S16 | (Level 3) | See §8 | |
 | S17-S23 | (Level 4) | See §9 | Ends with **Endless Mode** |
@@ -165,33 +170,33 @@ on the field at once. Dragon Radar shortens the timer by up to 40%. All 7 can co
 | # | Achievement | Requirement | Unlocks |
 |---|---|---|---|
 | M1 | Snake Way | Die for the first time | Shop: **King Kai's Training** (new revive, §7) + Time Chamber events |
-| M2 | Warrior | 500 lifetime kills | **Weighted Training** + **Destructo Disc** |
+| M2 | Warrior | 2,000 lifetime kills | **Weighted Training** + **Destructo Disc** |
 | M3 | Hardened | Survive 5:00 in any run | **Saiyan Armor** + **Solar Flare** |
 | M4 | Power Within | Evolve any attack | **Hyperbolic Chamber** + **Spirit Bomb** + shop: Ki Mastery |
 | M5 | Level Up! | Reach level 20 in a run | Shop: Senzu Stock (rerolls) |
-| M6 | Veteran | 2,500 lifetime kills | **Tri-Beam** (new) |
+| M6 | Veteran | 10,000 lifetime kills | **Tri-Beam** (new) |
 | M7 | Legendary | Transform (3 evolutions in one run) | **Dragon Thunder** |
-| M8 | Eternal Dragon | Make your first wish | New wish: "Bring me back" (one extra life this run) + 500 Zeni |
+| M8 | Eternal Dragon | Make your first wish | Shenron offers a **4th wish choice** + 500 Zeni |
 | M9 | Full Arsenal | Have 4 attacks and 5 passives at once | Shop: **Mafuba Seal** (banish, §6.4) |
 | M10 | Capsule Corp Investor | Earn 5,000 lifetime Zeni | Shop: Hercule Sponsorship, Battle Armor |
 | M11 | Reaching Level 30 | Reach level 30 in a run | **Capsule Vacuum** floor pickup (collects all XP gems) |
-| M12 | Saiyan Army | 10,000 lifetime kills | +1,000 Zeni |
-| M13 | Hero of Earth | Clear Level 1 with all 3 starter heroes | +1,500 Zeni |
-| M14-16 | Slayer tiers | 25k / 50k / 100k kills | Zeni (late-game sink) |
+| M12 | Saiyan Army | 30,000 lifetime kills | +1,000 Zeni |
+| M13 | Hero of Earth | Clear Level 1 with all 3 starter heroes | +1,000 Zeni |
+| M14-16 | Slayer tiers | 75k / 150k / 300k kills | Zeni (late-game sink) |
 
 ### 4.3 Secret (hidden until earned)
 | # | Name | Hint shown | Requirement | Unlocks |
 |---|---|---|---|---|
 | X1 | Yamcha'd | "Even the best fall early." | Die within the first 1:30 | **Wolf Fang Fist** (new) |
-| X2 | It's Over 9000! | "What does the scouter say?" | Deal 9,001+ damage in one hit | **Scouter** HUD toggle (boss power level readout) + 900 Zeni |
-| X3 | Bald Destiny | "A disc for a friend." | 1,500 lifetime Destructo Disc kills | **Krillin playable** + **Scattering Bullet** (new) |
-| X4 | Untouchable | "Not a scratch." | Defeat Raditz without taking damage | +600 Zeni |
-| X5 | Kakarot! | "Never give up." | Defeat Vegeta as Goku while below 10% HP | +800 Zeni |
-| X6 | Senzu Addict | "Korin is worried." | Eat 8 Senzu Beans in one run | +400 Zeni |
-| X7 | Instant Transmission | "Two in a blink." | Grab 2 Dragon Balls within 10 s | +500 Zeni |
+| X2 | It's Over 9000! | "What does the scouter say?" | Deal over 9,000 damage to one boss within 10 seconds | **Scouter** HUD toggle (boss power level readout) + 900 Zeni |
+| X3 | Bald Destiny | "A disc for a friend." | 5,000 lifetime Destructo Disc kills | **Krillin playable** + **Scattering Bullet** (new) |
+| X4 | Untouchable | "Not a scratch." | Defeat Nappa without taking damage during the fight | +500 Zeni |
+| X5 | Kakarot! | "Never give up." | Defeat Vegeta as Goku while below 10% HP | +500 Zeni |
+| X6 | Senzu Addict | "Korin is worried." | Eat 50 Senzu Beans in one run | +300 Zeni |
+| X7 | Instant Transmission | "Two in a blink." | Grab 2 Dragon Balls within 10 s | +300 Zeni |
 | X8 | Prince's Pride | "A rematch." | Defeat Vegeta as Vegeta | Vegeta alt colours (Saiyan-saga armour) |
-| X9 | Body Change! | "Strike a pose." | Beat all 5 Ginyu Force members in one run without dropping below 50% HP | +1,200 Zeni |
-| X10 | Final Flash | "Overkill." | Kill 100 enemies with one Ki Burst | +700 Zeni |
+| X9 | Body Change! | "Strike a pose." | Beat all 5 Ginyu Force members in one run without dropping below 50% HP | +800 Zeni |
+| X10 | Final Flash | "Overkill." | Kill 150 enemies with one Ki Burst | +500 Zeni |
 
 ### 4.4 Expected cadence (target, verified with the bot in Phase E)
 | Runs | What a typical player unlocks |

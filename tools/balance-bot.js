@@ -1,9 +1,24 @@
-// Headless balance bot: plays a first run (no shop upgrades) at accelerated speed and reports milestones.
+// Headless balance bot: plays a run at accelerated speed and reports milestones.
 // Usage in page: await simRun({stage:1, dlv:1, hero:'goku', skill:1, maxT:600})
+//   meta: shop levels to use (default: none).  keepMeta: use and keep the real shop/Zeni (campaigns).
+//   profile: unlock set for the run: 'fresh' | 'l1' | 'l2' | 'all' (3.0 progression; default = the page's own).
+// Unlock-cadence test from a fresh account: await campaign(15) then campSumm().
+const BOT_PROFILES = {
+  fresh: [],
+  l1: ['s1', 's2', 's3', 'm1', 'm2', 'm3', 'm4', 'm5'],                       // a player attempting Vegeta
+  l2: ['s1', 's2', 's3', 's4', 's5', 'm1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9'],   // early Namek
+  all: null
+};
+function botProfile(name) {
+  const ids = BOT_PROFILES[name], u = {};
+  for (const a of ACH) if (ids === null || ids.includes(a.id)) for (const r of a.r) if (!r.startsWith('z:')) u[r] = 1;
+  return u;
+}
 window.simRun = async function (o) {
   o = Object.assign({ stage: 1, dlv: 1, hero: 'goku', skill: 1, maxT: 600, meta: null }, o || {});
-  const saveMeta = JSON.stringify(META);
-  if (o.meta) Object.assign(META, o.meta); else for (const k in META) if (k !== 'zeni' && typeof META[k] === 'number') META[k] = 0;
+  const saveMeta = JSON.stringify(META), saveP = typeof P != 'undefined' ? JSON.stringify(P) : null;
+  if (o.keepMeta) { } else if (o.meta) Object.assign(META, o.meta); else for (const k in META) if (k !== 'zeni' && typeof META[k] === 'number') META[k] = 0;
+  if (o.profile && saveP) P.unl = botProfile(o.profile);
   DLV = o.dlv; HERO = o.hero; V2.noCut = true;
   start(o.stage); introEnd();
   const log = { ev: [], lv: [], hpLow: 1 };
@@ -34,10 +49,11 @@ window.simRun = async function (o) {
     var p = S.p; const sp = 135 * (1 + .13 * S.pe.spd) * (S.ssj ? 1.3 : 1) * (S.slow > 0 ? .45 : 1);
     let bestS = -1e18; var mx = 0, my = 0;
     let tgt = null, tb = 1e9;
-    for (const g of S.gem.concat(S.beans || [], S.chests || [], S.balls || [])) {
-      const d = Math.hypot(g.x - p.x, g.y - p.y); const w = g.n ? d * .4 : d; if (w < tb && d < 420) { tb = w; tgt = g; }
-    }
     const hpF = p.hp / p.max;
+    for (const g of S.gem.concat(S.beans || [], S.chests || [], S.balls || [])) {
+      const ball = (S.balls || []).includes(g), d = Math.hypot(g.x - p.x, g.y - p.y), w = ball ? d * .25 : g.n ? d * .4 : d;
+      if (w < tb && (d < 420 || ball && hpF > .5 && !S.en.some(e => e.boss))) { tb = w; tgt = g; }   // a player travels for Dragon Balls
+    }
     for (let k = 0; k < 17; k++) {
       const dx0 = k < 16 ? Math.cos(k / 16 * 6.283) : 0, dy0 = k < 16 ? Math.sin(k / 16 * 6.283) : 0;
       let danger = 0;
@@ -59,7 +75,7 @@ window.simRun = async function (o) {
         }
       }
       let score = -danger;
-      if (tgt) { const tx = tgt.x - p.x, ty = tgt.y - p.y, tl = Math.hypot(tx, ty) || 1; score += (dx0 * tx + dy0 * ty) / tl * (hpF < .35 && (S.beans || []).includes(tgt) ? 3 : 0.6); }
+      if (tgt) { const tx = tgt.x - p.x, ty = tgt.y - p.y, tl = Math.hypot(tx, ty) || 1; score += (dx0 * tx + dy0 * ty) / tl * (hpF < .35 && (S.beans || []).includes(tgt) ? 3 : (S.balls || []).includes(tgt) ? 2 : 0.6); }
       // stay in fighting range of the nearest boss (a human engages bosses; outrunning them forever isn't playing)
       { let bo = null, bd = 1e9; for (const e of S.en) if (e.boss) { const d = Math.hypot(e.x - p.x, e.y - p.y); if (d < bd) { bd = d; bo = e; } }
         if (bo) { const nx = p.x + dx0 * sp * .5, ny = p.y + dy0 * sp * .5, nd = Math.hypot(bo.x - nx, bo.y - ny); score -= Math.max(0, nd - 260) / 60 + Math.max(0, 130 - nd) / 40; } }
@@ -79,12 +95,13 @@ window.simRun = async function (o) {
     log.hpLow = Math.min(log.hpLow, p.hp / p.max);
     for (const e of S.en) if (e.boss && !seen[e.k]) { seen[e.k] = 1; log.ev.push(['spawn', e.k, +S.t.toFixed(0), +(p.hp / p.max).toFixed(2), p.lv]); }
     for (const k in seen) if (seen[k] === 1 && !S.en.some(e => e.k === k)) { seen[k] = 2; log.ev.push(['kill', k, +S.t.toFixed(0), +(p.hp / p.max).toFixed(2), p.lv]); }
-    if (++steps % 3600 === 0) { log.lv.push([+S.t.toFixed(0), p.lv, S.kills, S.en.length]); await new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); }); // MessageChannel: not throttled in hidden tabs }
+    if (++steps % 3600 === 0) { log.lv.push([+S.t.toFixed(0), p.lv, S.kills, S.en.length]); await new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); }); /* MessageChannel: not throttled in hidden tabs */ }
   }
   GP.x = GP.y = 0;
   const res = { stage: o.stage, dlv: o.dlv, hero: o.hero, skill: o.skill, result: S.mode, t: +S.t.toFixed(0), lv: S.p.lv, kills: S.kills, ev: log.ev, prog: log.lv, w: JSON.stringify(S.w), evo: Object.keys(S.evo).join(',') };
-  Object.assign(META, JSON.parse(saveMeta));
-  S.mode = 'menu';
+  if (!o.keepMeta) Object.assign(META, JSON.parse(saveMeta));
+  if (o.profile && saveP) { P = JSON.parse(saveP); saveProg(); }
+  if (!o.keepMeta) S.mode = 'menu';
   return res;
 };
 window.DMG = {};
@@ -97,3 +114,29 @@ window.batch = async function (n, o) {
   window._done = performance.now() - t0;
 };
 window.summ = () => ({ done: _done, res: _res.map(r => r.result + ' t=' + r.t + ' lv=' + r.lv + ' ' + JSON.stringify(r.ev) + ' evo=' + r.evo + ' dmg=' + JSON.stringify(r.dmg)) });
+
+// ---- 3.0 unlock cadence: play N runs from a fresh account like a player would ----
+// Plays the highest unlocked level, rotates heroes, spends Zeni on the cheapest unlocked upgrade between runs.
+const botWait = ms => new Promise(r => { const t0 = performance.now(), c = new MessageChannel(); c.port1.onmessage = () => performance.now() - t0 > ms ? r() : c.port2.postMessage(0); c.port2.postMessage(0); });
+window.campaign = async function (n, o) {
+  o = Object.assign({ skill: 1, dlv: 1, maxT: 900 }, o || {});
+  P = PROG_NEW(); for (const k in META) META[k] = 0; saveMeta(); saveProg();
+  // the win end card is scheduled 1.9 s after the final boss dies; run it at once (hidden tabs throttle timers)
+  const st0 = window.setTimeout; window.setTimeout = (f, ms, ...a) => ms === 1900 ? (queueMicrotask(() => f(...a)), 0) : st0(f, ms, ...a);
+  try {
+  window._camp = []; const heroes = ['goku', 'pic', 'gohan'];
+  for (let i = 0; i < n; i++) {
+    const before = new Set(Object.keys(P.ach)), stage = HAS('lvl2') ? 2 : 1;
+    const r = await simRun({ stage, dlv: o.dlv, hero: heroes[i % 3], skill: o.skill, maxT: o.maxT, keepMeta: true });
+    if (S.mode == 'play') { S.p.hp = -1; update(1 / 60); }   // hit maxT: end the run so it counts
+    while (RV) revealNext();
+    let spent = 0;
+    for (;;) { const ks = Object.keys(UPG).filter(k => HAS('s:' + k) && META[k] < UPG[k][2]).sort((a, b) => ucost(a, META[a]) - ucost(b, META[b]));
+      if (!ks.length || ucost(ks[0], META[ks[0]]) > META.zeni) break; const c = ucost(ks[0], META[ks[0]]); buyU(ks[0]); spent += c; }
+    const got = Object.keys(P.ach).filter(id => !before.has(id));
+    _camp.push({ run: i + 1, hero: r.hero, stage, result: r.result, t: r.t, kills: r.kills, bosses: r.ev.filter(e => e[0] == 'kill').map(e => e[1]).join(','), got: got.map(id => ACH_BY[id].n), spent, zeni: META.zeni });
+  }
+  } finally { window.setTimeout = st0; }
+  S.mode = 'menu'; menu();
+};
+window.campSumm = () => _camp.map(c => `#${c.run} L${c.stage} ${c.hero} ${c.result} ${fmt(c.t)} k=${c.kills} [${c.bosses}] +${c.got.length}: ${c.got.join(', ')} | spent ${c.spent}`);

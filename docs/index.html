@@ -1322,7 +1322,7 @@ function startWish(){
  S.mode='wish';S.wishPend=0;S.shT=performance.now()/1000;S.flash=0;S.ban=null;sfx('ban');
  const c=[];for(const k in S.w)if(S.w[k]>0&&!S.myth[k])c.push(['w',k]);
  if(!c.length)for(const k in S.w)if(S.w[k]>0)c.push(['w',k]);
- c.sort(()=>Math.random()-.5);const o=c.slice(0,3);
+ c.sort(()=>Math.random()-.5);const o=c.slice(0,(typeof RU=='function'&&RU('wish4'))?4:3);
  if(!o.length){S.mode='play';S.p.hp=S.p.max;S.flash=.5;return}
  ov.style.background='rgba(6,22,16,.25)';ov.style.alignItems='flex-end';
  show(`<div class="card"><h2>Shenron ascends an attack!</h2><p><small>Choose an attack: it gains <b>+${MYTHLV} power levels</b> and a Mythic effect.</small></p>`+o.map(([g,k])=>{
@@ -2408,7 +2408,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
