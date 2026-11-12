@@ -44,6 +44,7 @@ let P = PROG_NEW(), PROG_READY = false;
 function loadProg() { P = PROG_NEW(); try { Object.assign(P, JSON.parse(store.getItem('dbs_prog') || '{}')); } catch (e) { } U2 = HAS('lvl2'); }
 function saveProg() { if (PROG_READY) try { store.setItem('dbs_prog', JSON.stringify(P)); } catch (e) { } }
 const HAS = u => BASE_UNL.has(u) || !!P.unl[u];
+const heroKey = h => h == 'kri' ? 'h:krillin' : 'h:' + h;
 // unlocks are snapshotted at run start: what you earn mid-run arrives next run
 const RU = u => S && S.U ? !!S.U[u] : HAS(u);
 function snapUnl() { const o = {}; for (const u of BASE_UNL) o[u] = 1; for (const u in P.unl) if (P.unl[u]) o[u] = 1; return o; }
@@ -240,7 +241,7 @@ function colScreen() {
 }
 
 /* ---------- menu: buttons, locked heroes, locked level ---------- */
-const LOCKED_HEROES = [['h:vegeta', 'Vegeta', 'Defeat Vegeta'], ['h:krillin', 'Krillin', 'Secret']];
+const LOCKED_HEROES = [['h:vegeta', 'Vegeta', 'Defeat Vegeta', 'vegeta'], ['h:krillin', 'Krillin', 'Secret', 'kri']];
 { const _m = menu; menu = function () {
     _m(); if (!PROG_READY) return;
     if (V2.welcome3) { welcome3(); return; }
@@ -250,9 +251,10 @@ const LOCKED_HEROES = [['h:vegeta', 'Vegeta', 'Defeat Vegeta'], ['h:krillin', 'K
     const html = `<div class="mrow"><button onclick="achScreen()">🏆 Achievements <small>${done}/${ACH.length}</small></button><button onclick="colScreen()">📖 Collection</button></div>`;
     if (sb) sb.insertAdjacentHTML('afterend', html); else c.insertAdjacentHTML('beforeend', html);
     const hs = c.querySelector('.heroes');
-    if (hs) for (const [u, n, req] of LOCKED_HEROES) {
-      const a = achFor(u), sec = a && a.c == 'secret' && !achDone(a);
-      hs.insertAdjacentHTML('beforeend', `<button class="hb lk" disabled><span class="hq">?</span><b>${sec ? '???' : n}</b><small>${HAS(u) ? 'Coming in a later build' : '🔒 ' + req}</small></button>`);
+    if (hs) for (const [u, n, req, h] of LOCKED_HEROES) {
+      const a = achFor(u), sec = a && a.c == 'secret' && !achDone(a), H3 = typeof HERO3 != 'undefined' && HERO3[h];
+      if (HAS(u) && H3) hs.insertAdjacentHTML('beforeend', `<button class="hb${HERO == h ? ' sel' : ''}" onclick="setHero('${h}')"><canvas class="hc" data-h="${h}" width="128" height="128"></canvas><b>${n}</b><small>${H3.d}</small></button>`);
+      else hs.insertAdjacentHTML('beforeend', `<button class="hb lk" disabled><span class="hq">?</span><b>${sec ? '???' : n}</b><small>${HAS(u) ? 'Coming in a later build' : '🔒 ' + req}</small></button>`);
     }
     if (hs) { const sel = hs.querySelector('.hb.sel'); hs.classList.add('cmp');
       if (sel) hs.insertAdjacentHTML('afterend', `<p class="hdesc"><b>${sel.querySelector('b').textContent}</b> · ${sel.querySelector('small').textContent}</p>`); }
@@ -298,11 +300,11 @@ function wipeIfOld() {
 function progBoot() {
   const wiped = wipeIfOld();
   loadProg(); PROG_READY = true;
-  if (!HAS('h:' + HERO)) HERO = 'goku';
+  if (!HAS(heroKey(HERO))) HERO = 'goku';
   if (wiped && svWelcomeOn) { svWelcomeOn = false; menu(); }   // a 2.x saved run was on screen
   else if (S.mode == 'menu') menu();
 }
-{ const _rp = reloadPersisted; reloadPersisted = function () { _rp(); if (PROG_READY) { wipeIfOld(); loadProg(); if (!HAS('h:' + HERO)) HERO = 'goku'; } }; }
+{ const _rp = reloadPersisted; reloadPersisted = function () { _rp(); if (PROG_READY) { wipeIfOld(); loadProg(); if (!HAS(heroKey(HERO))) HERO = 'goku'; } }; }
 // a 2.x backup code only restores settings in 3.0
 { const _bp = bkParse; bkParse = function (s) { const d = _bp(s); if (d && d.dbs_v !== '3') for (const k of Object.keys(d)) if (!PROG_KEEP.test(k)) delete d[k]; return d; }; }
 store.hydrate(() => progBoot());

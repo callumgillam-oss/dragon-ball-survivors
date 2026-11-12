@@ -182,7 +182,7 @@ V2.ssjT = -1;
 const SSJ_T = 3.2;
 function drawSSJCut() {
   const t = V2.ssjT; if (t < 0) return;
-  const hero = S.hero, col = hero == 'pic' ? '255,150,60' : '255,220,70', name = hero == 'pic' ? 'ORANGE PICCOLO' : hero == 'gohan' ? 'SUPER SAIYAN 2' : 'SUPER SAIYAN';
+  const hero = S.hero, XF = typeof XFORM != 'undefined' && XFORM[hero], col = XF ? XF[1] : hero == 'pic' ? '255,150,60' : '255,220,70', name = XF ? XF[0] : hero == 'pic' ? 'ORANGE PICCOLO' : hero == 'gohan' ? 'SUPER SAIYAN 2' : 'SUPER SAIYAN';
   const px = W / 2, py = H / 2, k = Math.min(1, t / 2.2);
   ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   // darken the world and letterbox

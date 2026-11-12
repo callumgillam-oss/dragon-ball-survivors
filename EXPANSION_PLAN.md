@@ -243,6 +243,12 @@ plus 2 new passives with 2 attacks each for Levels 3-4. **Total: 20 attacks, 10 
 | **Infinite Energy** (L3) | **Shining Sword Attack** | **Android Barrier** |
 | **Majin Mark** (L4) | **Ghost Kamikaze** | **Candy Beam** |
 
+### 5.0 Status
+`[x]` Phase C built on `v3-dev`: `docs/w3.js` (six attacks, evolutions, Mythic effects, icons) and `docs/heroes3.js` (Vegeta, Krillin).
+Level-5 crowd damage per second was bot-measured against the old attacks and tuned into the same band (Kamehameha ~1,650, Hellzone ~950):
+Galick ~1,860, Tri-Beam ~1,720, Afterimage ~1,170, Scattering ~1,020, Explosive Wave ~930 (plus knockback), Wolf Fang ~880 (also strong on bosses).
+Still to do: Vegeta's Saiyan-saga alt colours (secret X8 reward) land with the cosmetics in Phase D.
+
 ### 5.2 New attacks (Levels 1-2)
 Each one gets a distinct shape on screen so it doesn't overlap an existing attack.
 
