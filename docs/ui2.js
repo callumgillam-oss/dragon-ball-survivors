@@ -147,6 +147,76 @@ function drawChamberPointer() {
 }
 { const _d = draw; draw = function () { _d(); drawChamberPointer(); }; }
 
+/* ---------- Dragon Balls: notice + pointer (same treatment as Time Chambers) ---------- */
+{ const _sb = spawnBall; spawnBall = function () { const n0 = S.dbN; _sb(); if (S.dbN > n0 && S.mode == 'play') { ban(S.dbN == 1 ? 'A DRAGON BALL APPEARS!' : 'DRAGON BALL ' + S.dbN + ' HAS APPEARED!'); sfxPlay('ball'); } }; }
+function edgePointer(wx, wy, label, glow, fill, icon) {
+  const p = S.p, x = wx - p.x + W / 2, y = wy - p.y + H / 2;
+  if (x > -40 && y > -40 && x < W + 40 && y < H + 40) return;
+  const a = Math.atan2(y - H / 2, x - W / 2), ex = Math.max(78, Math.min(W - 78, W / 2 + Math.cos(a) * 1000)), ey = Math.max(ST + 130, Math.min(H - 70, H / 2 + Math.sin(a) * 1000)), d = Math.round(Math.hypot(wx - p.x, wy - p.y) / 10);
+  LT(); gl(glow, ex, ey, 26, .5 + .2 * Math.sin(S.t * 6)); NM();
+  ctx.save(); ctx.translate(ex, ey); ctx.save(); ctx.rotate(a); ctx.fillStyle = fill; ctx.strokeStyle = 'rgba(30,10,0,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-8, -12); ctx.lineTo(-3, 0); ctx.lineTo(-8, 12); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+  if (icon) ctx.drawImage(icon, -9, -9, 18, 18);
+  ctx.font = 'bold 10px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.strokeText(label + ' ' + d + 'm', 0, 26); ctx.fillStyle = fill; ctx.fillText(label + ' ' + d + 'm', 0, 26);
+  ctx.restore();
+}
+function drawBallPointers() {
+  if (S.mode != 'play' || !S.balls) return; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  for (const b of S.balls) edgePointer(b.x, b.y, 'DRAGON BALL', 'or', '#ffd27a', BALLS[b.n - 1]);
+  ctx.restore();
+}
+{ const _d = draw; draw = function () { _d(); drawBallPointers(); }; }
+
+/* ---------- Shenron summoning cutscene ---------- */
+// Plays when the 7th Dragon Ball is collected, before the wish choices:
+// storm rolls in -> the seven balls circle you and pulse -> a pillar of light tears into the sky -> flash -> Shenron rises.
+const SHC_T = 5.2, SHC_RISE = 3.0;
+{ const _sw = startWish; startWish = function () {
+    if (V2.noCut || V2.shc) return _sw();
+    S.wishPend = 0; S.mode = 'shcut'; S.ban = null; V2.shc = { t0: performance.now() / 1000 }; show('');
+    MUS.want('boss'); sfxPlay('summon');
+  }; }
+function shcEnd() { const t0 = V2.shc.t0; V2.shc = { done: 1 }; S.mode = 'play'; S.wishPend = 1; startWish(); S.shT = t0 + SHC_RISE; V2.shc = null; }
+function drawShenronCut() {
+  if (S.mode != 'shcut' || !V2.shc || V2.shc.done) return;
+  const now = performance.now() / 1000, t = now - V2.shc.t0, px = W / 2, py = H / 2, FL = FLM();
+  if (t >= SHC_T) { shcEnd(); return; }
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  // storm sky darkening
+  const dk = Math.min(1, t / 1.2); ctx.fillStyle = 'rgba(4,14,30,' + .78 * dk + ')'; ctx.fillRect(0, 0, W, H);
+  const bh = H * .1 * Math.min(1, t * 2); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, bh); ctx.fillRect(0, H - bh, W, bh);
+  // the seven balls fly out and orbit, glowing harder as they spin faster
+  const fly = Math.min(1, t / .9), ease = 1 - Math.pow(1 - fly, 3), spin = t * (1.2 + Math.max(0, t - 1) * 2.2), R = 78 * ease, lift = Math.min(1, Math.max(0, (t - 1.6) / 1)) * 26;
+  const pulse = .55 + .45 * Math.sin(t * (6 + t * 4));
+  LT(); gl('or', px, py - lift, 140 * ease, .35 + .3 * pulse * Math.min(1, t)); NM();
+  for (let i = 0; i < 7; i++) { const a = spin + i / 7 * 6.283, bx = px + Math.cos(a) * R, by = py - lift + Math.sin(a) * R * .55;
+    LT(); gl('or', bx, by, 22 + 10 * pulse, .5 + .4 * pulse); NM(); ctx.drawImage(BALLS[i], bx - 13, by - 13, 26, 26); }
+  // pillar of light into the sky
+  if (t > 1.9) { const k = Math.min(1, (t - 1.9) / .35), w = (26 + 18 * Math.sin(now * 40)) * k;
+    LT(); const g = ctx.createLinearGradient(px - w, 0, px + w, 0); g.addColorStop(0, 'rgba(255,220,120,0)'); g.addColorStop(.35, 'rgba(255,220,120,.7)'); g.addColorStop(.5, 'rgba(255,255,240,1)'); g.addColorStop(.65, 'rgba(255,220,120,.7)'); g.addColorStop(1, 'rgba(255,220,120,0)');
+    ctx.fillStyle = g; ctx.fillRect(px - w, 0, w * 2, py - lift); gl('wh', px, py - lift, 60 * k, .9); NM();
+    if (((now * 10) | 0) % 4 == 0) { ctx.strokeStyle = 'rgba(210,240,255,.9)'; ctx.lineWidth = 2.2; let lx = Math.random() * W, ly = 0; ctx.beginPath(); ctx.moveTo(lx, ly); for (let j = 0; j < 8; j++) { lx += (Math.random() - .5) * 60; ly += H * .08; ctx.lineTo(lx, ly); } ctx.stroke(); } }
+  // white flash, then Shenron rises (reusing the game's own Shenron art)
+  if (t > SHC_RISE) { S.shT = V2.shc.t0 + SHC_RISE; drawShenron(); }
+  if (t > SHC_RISE - .35 && t < SHC_RISE + .5) { const f = 1 - Math.abs(t - SHC_RISE) / .5; ctx.fillStyle = 'rgba(255,255,240,' + Math.max(0, f) * FL + ')'; ctx.fillRect(0, 0, W, H); }
+  // titles
+  const title = (txt, y, fs, a, c1, c2) => { ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.font = '900 ' + fs + 'px Impact,"Arial Black",sans-serif'; ctx.lineWidth = fs * .2; ctx.strokeStyle = '#0a2a14'; ctx.strokeText(txt, px, y); const g = ctx.createLinearGradient(0, y - fs, 0, y); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillText(txt, px, y); ctx.globalAlpha = 1; };
+  if (t > .9 && t < 2.9) title('ARISE, ETERNAL DRAGON!', H * .2, Math.min(34, W * .07), Math.min(1, (t - .9) / .3) * Math.min(1, (2.9 - t) / .3), '#fff6c0', '#ffb21f');
+  if (t > 3.5) title('SHENRON', H * .86, Math.min(64, W * .14), Math.min(1, (t - 3.5) / .4), '#d8ffe0', '#3ad06a');
+  ctx.restore();
+  if (t > 2 && t < 3.2) kick(6);
+}
+{ const _d = draw; draw = function () { _d(); drawShenronCut(); }; }
+{ const _s = start; start = function (a) { V2.shc = null; return _s(a); }; }
+// summoning sound: rumble that swells, chime arpeggio, thunder crack, dragon roar
+{ const _sp = sfxPlay; sfxPlay = function (k) {
+    if (k != 'summon') return _sp(k);
+    if (muted || !SET.sfx || !AC || AC.state != 'running' || !bus()) return; const n = AC.currentTime;
+    noise(3, .14, 'lowpass', 120, 400); tone('sine', 45, 70, 3, .25);
+    [523, 659, 784, 1047, 1319, 1568, 2093].forEach((f, i) => tone('triangle', f, f, .5, .04, n + .2 + i * .12));
+    noise(.8, .35, 'highpass', 800, 200, n + 1.9); tone('sawtooth', 90, 40, .6, .1, n + 1.9);
+    tone('sawtooth', 70, 45, 1.6, .12, n + 3.0); tone('square', 55, 40, 1.6, .06, n + 3.0); noise(1.6, .12, 'lowpass', 900, 150, n + 3.0);
+  }; }
+
 /* ---------- reduced flashing: soften the full-screen white-outs added in 2.0 ---------- */
 { const _dv = drawVictory; drawVictory = function () { if (FLM() < 1 && V2.inF > 0) V2.inF = Math.min(V2.inF, .15); _dv(); }; }
 

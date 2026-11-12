@@ -4,7 +4,7 @@ window.simRun = async function (o) {
   o = Object.assign({ stage: 1, dlv: 1, hero: 'goku', skill: 1, maxT: 600, meta: null }, o || {});
   const saveMeta = JSON.stringify(META);
   if (o.meta) Object.assign(META, o.meta); else for (const k in META) if (k !== 'zeni' && typeof META[k] === 'number') META[k] = 0;
-  DLV = o.dlv; HERO = o.hero;
+  DLV = o.dlv; HERO = o.hero; V2.noCut = true;
   start(o.stage); introEnd();
   const log = { ev: [], lv: [], hpLow: 1 };
   const seen = {};
