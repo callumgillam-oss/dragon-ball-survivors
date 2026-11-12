@@ -126,14 +126,28 @@ const store=(()=>{
 const cv=document.getElementById('c'),ctx=cv.getContext('2d'),$=id=>document.getElementById(id);
 let W,H,ST=0,SI=0,SB=0,ZM=1;
 let DPR=1,DPRCAP=2,fEma=16;
-// Landscape phones are short: zoom the world out so you can see roughly as far vertically as in portrait.
-function rs(){const vw=innerWidth,vh=innerHeight;ZM=(vw>vh&&vh<560)?Math.max(.62,vh/560):1;
- DPR=Math.min(DPRCAP,window.devicePixelRatio||1)*ZM;W=vw/ZM;H=vh/ZM;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+/* ===== v2.0: one world view for every device =====
+   Every screen shows the SAME amount of world (about 480x900 worth of area, never less than 440 on the short side),
+   then scales it to fit. A big monitor just shows it bigger, so spawns, pace and XP are identical on phone, tablet and PC. */
+const VIEW_AREA=480*900,VIEW_MIN=440;
+// Graphics quality: render-resolution caps per level. 'auto' starts high and only steps down if frames are slow.
+const GFX_NAMES={auto:'Auto',high:'High',med:'Medium',low:'Low'},GFX_CAP={high:3,med:2,low:1.25};
+let GFX='auto';try{const g=store.getItem('dbs_gfx');if(g&&GFX_NAMES[g])GFX=g}catch(e){}
+DPRCAP=GFX=='auto'?2.5:GFX_CAP[GFX];
+let rsPend=true;
+// Resizing a canvas wipes it, so only ever resize at the START of a frame, right before drawing (no black flicker).
+function rs(){rsPend=true}
+function rsApply(){rsPend=false;const vw=innerWidth,vh=innerHeight;
+ ZM=Math.min(Math.sqrt(vw*vh/VIEW_AREA),Math.min(vw,vh)/VIEW_MIN);
+ DPR=Math.min(DPRCAP,window.devicePixelRatio||1)*ZM;W=vw/ZM;H=vh/ZM;
+ const cw=Math.round(vw*Math.min(DPRCAP,window.devicePixelRatio||1)),ch=Math.round(vh*Math.min(DPRCAP,window.devicePixelRatio||1));
+ if(cv.width!==cw||cv.height!==ch){cv.width=cw;cv.height=ch}
+ DPR=cw/W;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
  const cs=getComputedStyle($('probe')),px=k=>parseFloat(cs[k])||0;
  ST=px('paddingTop')/ZM;SI=Math.max(px('paddingLeft'),px('paddingRight'))/ZM;SB=px('paddingBottom')/ZM;
  document.documentElement.classList.toggle('land',vw>vh)}
 addEventListener('resize',rs);addEventListener('orientationchange',()=>{rs();setTimeout(rs,300);setTimeout(rs,800)});
-if(window.visualViewport)visualViewport.addEventListener('resize',rs);rs();
+if(window.visualViewport)visualViewport.addEventListener('resize',rs);rsApply();
 const hash=(x,y)=>{let h=Math.imul(x,374761393)+Math.imul(y,668265263);h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295};
 const el=(x,y,a,b)=>{ctx.beginPath();ctx.ellipse(x,y,a,b,0,0,7);ctx.fill()};
 const keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=1);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
@@ -255,12 +269,12 @@ function update(dt){
  else{const l=Math.hypot(mx,my);if(l){mx/=l;my/=l}}
  if(GP.x||GP.y){mx=GP.x;my=GP.y}
  const sp=135*(1+.13*S.pe.spd+UPL('spd')*META.spd)*(S.ssj?1.3:1)*(S.slow>0?.45:1);p.x+=mx*sp*dt;p.y+=my*sp*dt;p.mag=Math.hypot(mx,my);S.mvx=mx;S.mvy=my;p.atk=Math.max(0,(p.atk||0)-dt);if(mx&&!(p.atk>0))p.face=mx>0?1:-1;
- p.hp=Math.min(p.max,p.hp+(.2+.9*S.pe.sen+heroRegen())*dt);
+ p.hp=Math.min(p.max,p.hp+(.12+.9*S.pe.sen+heroRegen())*dt);
 
  // spawning
  S.spawn-=dt;
  if(S.spawn<=0&&S.en.length<(S.stage==2?125:230)){
-  S.spawn=Math.max(.1,.75-S.t/420)/ramp();const n=Math.max(1,Math.round((1+Math.floor(S.t/75))*(S.stage==2?.6:1)));
+  S.spawn=Math.max(.1,.66-S.t/440)/ramp();const n=Math.max(1,Math.round((1+Math.floor(S.t/70))*(S.stage==2?.6:1)));
   for(let i=0;i<n;i++)spawnE(pickE());
  }
  
@@ -337,7 +351,7 @@ function update(dt){
   if(dx*dx+dy*dy>far*far){let a=Math.random()*6.283;if(Math.hypot(S.mvx||0,S.mvy||0)>.3)a=Math.atan2(S.mvy,S.mvx)+(Math.random()-.5)*1.6;e.x=p.x+Math.cos(a)*R;e.y=p.y+Math.sin(a)*R}}}
  for(const b of S.eb){b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;if(Math.hypot(b.x-p.x,b.y-p.y)<14){hurtP(b.dm||10);b.l=0}}
  // gems
- const mag=70+6*p.lv+30*S.pe.rad;
+ const mag=(70+6*p.lv+30*S.pe.rad)*(1+.1*(META.magnet||0));
  for(const g of S.gem){const dx=p.x-g.x,dy=p.y-g.y,d=Math.hypot(dx,dy);
   if(d<mag){g.x+=dx/d*320*dt;g.y+=dy/d*320*dt}
   if(d<14){g.got=1;addXp(g.v)}}
@@ -464,7 +478,7 @@ function gokuC(c,x,y,face,t,mv){
 }
 function enemy(e,x,y){
  const r=e.r,f=e.fl>0||(e.fz>0&&Math.floor(S.t*14)%2);
- ctx.fillStyle='rgba(40,20,5,.32)';el(x,y+(e.boss?r*1.1:13),e.boss?r:9,e.boss?r*.35:3.2);
+ if(GFX!='low'||e.boss){ctx.fillStyle='rgba(40,20,5,.32)';el(x,y+(e.boss?r*1.1:13),e.boss?r:9,e.boss?r*.35:3.2)}
  if(e.elite){LT();gl('or',x,y,r*2.4,.55+.15*Math.sin(S.t*8));NM()}
  if(e.boss){if(B2[e.k])bossArt(ctx,x,y,r,S.t,e);else if(B3[e.k])bossArt3(ctx,x,y,r,S.t,e);else fig(ctx,x,y,r,S.t,FIG[e.k],e);if(f){LT();gl('wh',x,y,r*1.6,.55);NM()}
   if(e.k=='bur'&&e.bs==1){const ex=e.dx||0,ey=e.dy||0;ctx.save();ctx.strokeStyle='rgba(255,60,40,'+(.25+.25*Math.sin(S.t*40))+')';ctx.lineWidth=r*1.2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+ex*230,y+ey*230);ctx.stroke();ctx.restore();
@@ -1830,7 +1844,11 @@ function beanDrop(e){const p=S.p;let c=(S.stage==2?.035:.012)+(1-p.hp/p.max)*.05
  if(e.elite||e.boss)c=1;else if(S.t-(S.lastBean||0)>40&&p.hp<p.max*.7)c=1;
  if(Math.random()<c){S.lastBean=S.t;if(S.beans.length>=10)S.beans.shift();return true}return false}
 let adT=0;
-function adapt(dt){if(S.mode!='play')return;fEma+=(dt*1000-fEma)*.05;adT+=dt;if(adT<2)return;adT=0;if(fEma>26&&DPRCAP>1){DPRCAP=Math.max(1,DPRCAP-.25);rs()}}
+// v2.0 auto quality: ignore the first seconds of a run (asset warm-up is always slow), need sustained slowness,
+// step down gently, never below 1.25x, and apply the change at the start of the next frame.
+let playT=0;
+function adapt(dt){if(S.mode!='play'){fEma=16;adT=0;playT=0;return}playT+=dt;if(GFX!='auto'||playT<6)return;fEma+=(dt*1000-fEma)*.04;adT+=dt;if(adT<3)return;adT=0;
+ if(fEma>24&&DPRCAP>1.25){DPRCAP=Math.max(1.25,+(Math.min(DPRCAP,window.devicePixelRatio||1)-.25).toFixed(2));rs()}}
 let last=0;
 
 // ===== v13: intro cutscenes (Nimbus flight-in for level 1, pod crash-landing for level 2) =====
@@ -1937,7 +1955,7 @@ function drawIntro(){
  c.restore()}
 function introEnd(){if(S.mode!='intro')return;S.mode='play';joy=null;ban(STAGES[S.stage].open)}
 
-function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;if(S.mode=='play')update(dt);else if(S.mode=='intro'){S.intro.t+=dt;if(S.intro.t>=INTRO_T[S.stage-1])introEnd()}else if(S.mode=='win'){S.fx.forEach(f=>{f.l-=dt;if(!f.ring){f.x+=f.vx*dt;f.y+=f.vy*dt}});S.fx=S.fx.filter(f=>f.l>0);S.flash-=dt}draw();adapt(dt);requestAnimationFrame(loop)}
+function loop(ts){if(rsPend)rsApply();const dt=Math.min(.05,(ts-last)/1000||0);last=ts;if(S.mode=='play')update(dt);else if(S.mode=='intro'){S.intro.t+=dt;if(S.intro.t>=INTRO_T[S.stage-1])introEnd()}else if(S.mode=='win'){S.fx.forEach(f=>{f.l-=dt;if(!f.ring){f.x+=f.vx*dt;f.y+=f.vy*dt}});S.fx=S.fx.filter(f=>f.l>0);S.flash-=dt}draw();adapt(dt);requestAnimationFrame(loop)}
 
 /* ===== v8: level-up rarity ===== */
 const RAR=[{n:'Common',m:1,w:0},{n:'Uncommon',m:1.25,w:22},{n:'Rare',m:1.5,w:8},{n:'Epic',m:2,w:3},{n:'Legendary',m:2.6,w:1},{n:'Mythic',m:3,w:0}];
@@ -2107,14 +2125,14 @@ function updNew(dt){
   else{S.cd.hell=(E?1.9:Math.max(2.1,3.5-.28*L))*cm();p.atk=p.ad=.45;p.face=ts[0].x>p.x?1:-1;
    let n=2+(L>>1)+PX();if(E)n=Math.ceil(n*1.7);
    const d=(10+4*WL('hell'))*dm()*(E?1.3*WB.hellE:1),bn=(E?2:0)+(MY('hell')?2:0),R=(42+4*WL('hell'))*AR2()*(E?1.25:1),a0=Math.random()*6.283;
-   for(let i=0;i<n;i++){const a=a0+i/n*6.283;S.orbs.push({x:p.x,y:p.y,vx:Math.cos(a)*200,vy:Math.sin(a)*200,l:3.6,d,R,bn,last:null})}}}}
+   for(let i=0;i<n;i++){const a=a0+i/n*6.283;S.orbs.push({x:p.x,y:p.y,vx:Math.cos(a)*330,vy:Math.sin(a)*330,l:3.2,d,R,bn,last:null,age:0})}}}}
  for(const o of S.orbs){o.l-=dt;
   let b=null,bd=620;for(const e of S.en){if(e.dead||e===o.last)continue;const d=Math.hypot(e.x-o.x,e.y-o.y);if(d<bd){bd=d;b=e}}
-  const sp=Math.max(190,Math.hypot(o.vx,o.vy));
-  if(b){const a=Math.atan2(o.vy,o.vx);let da=Math.atan2(b.y-o.y,b.x-o.x)-a;da=Math.atan2(Math.sin(da),Math.cos(da));const tr=(bd<150?9:5)*dt,na=a+Math.max(-tr,Math.min(tr,da));o.vx=Math.cos(na)*sp;o.vy=Math.sin(na)*sp}
+  o.age=(o.age||0)+dt;const sp0=Math.hypot(o.vx,o.vy),sp=o.age<.16?Math.max(120,sp0*(1-3.5*dt)):Math.min(620,Math.max(260,sp0)+900*dt);
+  if(b&&o.age>=.12){const a=Math.atan2(o.vy,o.vx);let da=Math.atan2(b.y-o.y,b.x-o.x)-a;da=Math.atan2(Math.sin(da),Math.cos(da));const tr=(bd<160?16:8)*dt,na=a+Math.max(-tr,Math.min(tr,da));o.vx=Math.cos(na)*sp;o.vy=Math.sin(na)*sp}
   o.x+=o.vx*dt;o.y+=o.vy*dt;
   for(const e of S.en){if(e.dead||e===o.last)continue;
-   if(Math.hypot(e.x-o.x,e.y-o.y)<e.r+8){hitE(e,o.d);splash(o.x,o.y,o.R,o.d*.6,e);pop(o.x,o.y,o.R,'#e9a8ff');o.last=e;if(o.bn-->0)o.l=Math.max(o.l,1.6);else o.l=0;break}}}
+   if(Math.hypot(e.x-o.x,e.y-o.y)<e.r+8){hitE(e,o.d);splash(o.x,o.y,o.R,o.d*.6,e);pop(o.x,o.y,o.R,'#e9a8ff');orbHit(o.x,o.y,o.R);o.last=e;o.age=.12;if(o.bn-->0)o.l=Math.max(o.l,1.6);else o.l=0;break}}}
  S.orbs=S.orbs.filter(o=>o.l>0);
  // Dragon Thunder: telegraphed lightning
  if(W_.thunder){S.cd.thunder-=dt;if(S.cd.thunder<=0){const L=W_.thunder,E=ev.thunder,ts=near(30,600);
@@ -2149,7 +2167,7 @@ function drawNew(cx,cy,t){
  for(const s of S.mas){const x=s.x-cx,y=s.y-cy,L=Math.hypot(s.vx,s.vy)||1;
   ctx.strokeStyle='rgba(255,140,30,.6)';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s.vx/L*18,y-s.vy/L*18);ctx.stroke();
   ctx.strokeStyle='rgba(255,240,160,.95)';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s.vx/L*12,y-s.vy/L*12);ctx.stroke();gl('or',x,y,9,.8)}
- for(const o of S.orbs){const x=o.x-cx,y=o.y-cy,L=Math.hypot(o.vx,o.vy)||1;for(let i=3;i>=1;i--)gl('pu',x-o.vx/L*i*7,y-o.vy/L*i*7,11-i*2,.35);gl('pu',x,y,16,.7);gl('wh',x,y,7,.95)}
+ for(const o of S.orbs){const x=o.x-cx,y=o.y-cy,L=Math.hypot(o.vx,o.vy)||1,tl=Math.min(16,L/32);for(let i=6;i>=1;i--)gl('pu',x-o.vx/L*i*tl,y-o.vy/L*i*tl,13-i*1.5,.42-.05*i);gl('pu',x,y,20,.85);gl('wh',x,y,9,1)}
  for(const s of S.str){const x=s.x-cx,y=s.y-cy;
   if(!s.f){const k=1-s.t/s.T;ctx.strokeStyle='rgba(255,240,120,'+(.35+.4*k)+')';ctx.lineWidth=2+k*2;ctx.beginPath();ctx.arc(x,y,s.R*(.55+.45*k),0,7);ctx.stroke();gl('or',x,y,s.R*k,.35)}
   else{const k=Math.max(0,s.l/.25);gl('wh',x,y,s.R*1.5,k*.8);ctx.beginPath();ctx.moveTo(x+(Math.random()-.5)*10,y-H);const sg=9;for(let i=1;i<=sg;i++){const u=i/sg;ctx.lineTo(x+(i==sg?0:(Math.random()-.5)*34*(1-u)),y-H*(1-u))}
@@ -2389,6 +2407,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
+</script><script src="v2.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
