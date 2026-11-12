@@ -79,7 +79,7 @@ window.simRun = async function (o) {
     log.hpLow = Math.min(log.hpLow, p.hp / p.max);
     for (const e of S.en) if (e.boss && !seen[e.k]) { seen[e.k] = 1; log.ev.push(['spawn', e.k, +S.t.toFixed(0), +(p.hp / p.max).toFixed(2), p.lv]); }
     for (const k in seen) if (seen[k] === 1 && !S.en.some(e => e.k === k)) { seen[k] = 2; log.ev.push(['kill', k, +S.t.toFixed(0), +(p.hp / p.max).toFixed(2), p.lv]); }
-    if (++steps % 3600 === 0) { log.lv.push([+S.t.toFixed(0), p.lv, S.kills, S.en.length]); await new Promise(r => setTimeout(r, 0)); }
+    if (++steps % 3600 === 0) { log.lv.push([+S.t.toFixed(0), p.lv, S.kills, S.en.length]); await new Promise(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); }); // MessageChannel: not throttled in hidden tabs }
   }
   GP.x = GP.y = 0;
   const res = { stage: o.stage, dlv: o.dlv, hero: o.hero, skill: o.skill, result: S.mode, t: +S.t.toFixed(0), lv: S.p.lv, kills: S.kills, ev: log.ev, prog: log.lv, w: JSON.stringify(S.w), evo: Object.keys(S.evo).join(',') };
