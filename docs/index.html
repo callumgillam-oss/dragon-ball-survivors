@@ -138,6 +138,8 @@ let rsPend=true;
 // Resizing a canvas wipes it, so only ever resize at the START of a frame, right before drawing (no black flicker).
 function rs(){rsPend=true}
 function rsApply(){rsPend=false;const vw=innerWidth,vh=innerHeight;
+ // iOS can report a 0x0 viewport for a moment when the app returns from the background: keep the last good size and retry
+ if(!(vw>0&&vh>0)){rsPend=true;if(!(W>0&&H>0)){W=VIEW_MIN;H=VIEW_MIN;ZM=1}return}
  ZM=Math.min(Math.sqrt(vw*vh/VIEW_AREA),Math.min(vw,vh)/VIEW_MIN);
  DPR=Math.min(DPRCAP,window.devicePixelRatio||1)*ZM;W=vw/ZM;H=vh/ZM;
  const cw=Math.round(vw*Math.min(DPRCAP,window.devicePixelRatio||1)),ch=Math.round(vh*Math.min(DPRCAP,window.devicePixelRatio||1));
@@ -2406,7 +2408,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
