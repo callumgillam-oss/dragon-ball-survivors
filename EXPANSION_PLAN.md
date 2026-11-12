@@ -247,7 +247,7 @@ plus 2 new passives with 2 attacks each for Levels 3-4. **Total: 20 attacks, 10 
 `[x]` Phase C built on `v3-dev`: `docs/w3.js` (six attacks, evolutions, Mythic effects, icons) and `docs/heroes3.js` (Vegeta, Krillin).
 Level-5 crowd damage per second was bot-measured against the old attacks and tuned into the same band (Kamehameha ~1,650, Hellzone ~950):
 Galick ~1,860, Tri-Beam ~1,720, Afterimage ~1,170, Scattering ~1,020, Explosive Wave ~930 (plus knockback), Wolf Fang ~880 (also strong on bosses).
-Still to do: Vegeta's Saiyan-saga alt colours (secret X8 reward) land with the cosmetics in Phase D.
+Vegeta's Saiyan-saga alt colours (secret X8 reward) landed in Phase D: shoulder pads, scouter, darker suit; toggled from the menu under his card.
 
 ### 5.2 New attacks (Levels 1-2)
 Each one gets a distinct shape on screen so it doesn't overlap an existing attack.
@@ -261,7 +261,7 @@ Each one gets a distinct shape on screen so it doesn't overlap an existing attac
 | **Afterimage Strike** | While moving you leave afterimages that explode after 1 s. **Rewards kiting** | Images per second, blast size | **Instant Transmission Strike** (Weighted Training): afterimages also teleport-strike the nearest enemy |
 | **Scattering Bullet** (Krillin) | A ki orb rises, then bursts into shards that rain over a wide area | Shards, burst area | **Scattering Barrage** (Dragon Radar): shards pull XP gems toward you |
 
-### 5.3 Playable Vegeta  `[ ]`
+### 5.3 Playable Vegeta  `[x]`
 - **Unlock:** defeat Vegeta. He's offered as the next hero on the end card.
 - **Starter:** Galick Gun.
 - **Passive "Saiyan Pride":** +20% damage to bosses and elites. Each boss you defeat heals 20% HP.
@@ -273,7 +273,7 @@ Each one gets a distinct shape on screen so it doesn't overlap an existing attac
   the Saiyan-saga look (shoulder pads, scouter, brown/olive armour). The Prince's Pride secret (X8) unlocks
   the Saiyan-saga look as an alternate colour scheme.
 
-### 5.4 Krillin (secret)  `[ ]`
+### 5.4 Krillin (secret)  `[x]`
 - **Unlock:** Bald Destiny (1,500 Destructo Disc kills).
 - **Starter:** Destructo Disc.
 - **Passive "Lucky Monk":** +1 reroll per run, treasure chests give +1 choice, a bit more rarity luck.
@@ -284,33 +284,43 @@ Each one gets a distinct shape on screen so it doesn't overlap an existing attac
 
 ## 6. New systems tied to bosses (Phase D)
 
-### 6.1 Time Freeze pickup (Guldo)  `[ ]`
+### 6.0 Status
+`[x]` Phase D built on `v3-dev`: `docs/sys3.js` (§6 systems, Scouter readout, Vegeta's outfit toggle) and `docs/cut3.js` (§7 King Kai cutscene).
+Decisions made while building (easy to change in Phase E):
+- **Ginyu Pose** is a 1.25× game-speed multiplier (everything, including you and your attacks, moves faster).
+- **Limit Break** boosts apply to your whole build, not a single chosen attack: +4% damage, +3% area (cap +60%), −2% cooldowns (cap −20%), or +5 max HP with a full heal. It replaces the old "full heal when everything is maxed". It can be toggled off in Settings.
+- **Pickups:** elites drop one 25% of the time, other enemies 1 in 3,000; at most 3 on the map. Bot: about 2 per short run.
+- **Scouter:** a green power-level tag above each boss on screen (turns gold over 9,000). Toggle in Settings.
+- **Challenge achievements:** each challenge has "clear Level 1" (+400) and "clear Level 2" (+800), plus all three on Level 2 (+2,500). Levels 3-4 add theirs later.
+- The shop now has 13 rows and needs a short scroll on phones; look at that in the Phase E shop pass.
+
+### 6.1 Time Freeze pickup (Guldo)  `[x]`
 A rare floor item (from elites or chests): freezes every non-boss enemy for 5 s and slows bosses by 50%.
 
-### 6.2 Capsule Vacuum pickup (Level 30)  `[ ]`
+### 6.2 Capsule Vacuum pickup (Level 30)  `[x]`
 A rare floor item: pulls every XP gem on the map to you.
 
-### 6.3 Ginyu Force Challenges (Ginyu)  `[ ]`
+### 6.3 Ginyu Force Challenges (Ginyu)  `[x]`
 Optional toggles on the level select. Stack them for bigger Zeni payouts:
 - **Ginyu Pose (Hyper):** everything moves 25% faster, including you. +40% Zeni.
 - **Recoome's Time Limit (Hurry):** bosses arrive 30% sooner. +30% Zeni.
 - **100x Gravity (Curse):** enemies +40% HP and +15% speed. +60% Zeni.
 - Each challenge gets its own "clear Level X with this on" achievements, giving longer-term goals.
 
-### 6.4 Mafuba Seal (banish)  `[ ]`
+### 6.4 Mafuba Seal (banish)  `[x]`
 Shop item, 3 levels: +1 seal per run per level. On a level-up card, **Seal** removes that choice from the pool
 for the rest of the run. Lets players aim for a build without hoping for luck.
 
-### 6.5 Limit Break (Frieza)  `[ ]`
+### 6.5 Limit Break (Frieza)  `[x]`
 When everything you own is maxed and your slots are full, level-ups offer small permanent stacking
 boosts (+4% damage, +3% area, −2% cooldown, +5 HP) to a chosen attack. Required for Endless. Toggle in settings.
 
-### 6.6 Potential Unleashed (Frieza → shop)  `[ ]`
+### 6.6 Potential Unleashed (Frieza → shop)  `[x]`
 An expensive shop item (~3,000 Zeni): **5th attack slot.** A big Zeni sink that makes Levels 3-4 feel different.
 
 ---
 
-## 7. King Kai's Training: revive cutscene  `[ ]`
+## 7. King Kai's Training: revive cutscene  `[x]`
 - **Replaces** Zenkai Revival in the shop (anyone who owns it keeps it as King Kai's Training).
 - **Unlock:** Snake Way achievement (first death). **Price:** 1,200 Zeni (unchanged). **(?)**
 - **Effect:** once per run, on death:
@@ -322,6 +332,7 @@ An expensive shop item (~3,000 Zeni): **5th attack slot.** A big Zeni sink that 
   4. "**REVIVED!**" flash. You're back where you fell with **full HP, +1 level-up** (and its choice screen),
      3 s of invulnerability, and nearby non-boss enemies blown away.
 - Tap to skip after you've seen it once.
+- Built as an ~8 s cutscene: halo, Snake Way sprint, three montage panels (x10 gravity push-ups, catch the monkey, gravity sprint) with King Kai watching, then REVIVED!. Revive kills non-bosses within 240 and pushes back the rest.
 - Rebalance check: full HP plus a level is much stronger than 50% HP. If the bot shows it trivialises
   Level 1, the price goes up to ~1,800.
 

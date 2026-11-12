@@ -216,7 +216,7 @@ function achScreen() {
       ${hid ? '' : `<div class="arw">${a.r.map(u => `<span>${unlIcon(u)}${unlName(u)}</span>`).join('')}</div>`}</div></div>`;
   }).join('') + '</div>';
   show(`<div class="card dbz achs"><div class="dhead"><span class="db4"></span><h2>Achievements</h2><div class="zeni">${done} / ${ACH.length}</div></div>
-    <div class="achsc">${sec('story', 'Story')}${sec('mile', 'Milestones')}${sec('secret', 'Secrets')}</div><button class="go" onclick="menu()">Back</button></div>`);
+    <div class="achsc">${sec('story', 'Story')}${sec('mile', 'Milestones')}${sec('secret', 'Secrets')}${ACH.some(a => a.c == 'chal') ? sec('chal', 'Ginyu Force Challenges') : ''}</div><button class="go" onclick="menu()">Back</button></div>`);
 }
 // every attack and passive, with its evolution partner; future attacks listed as locked
 const COL_W = ['blast', 'kame', 'sbc', 'masenko', 'aura', 'disc', 'flare', 'bomb', 'hell', 'thunder', 'galick', 'wave', 'tri', 'wolf', 'after', 'scatter'];

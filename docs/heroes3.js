@@ -49,6 +49,11 @@ function head3(c, x, y, s, mood, ssj, rot, P, kind) {
     c.strokeStyle = OL; c.lineWidth = 2; c.beginPath(); c.ellipse(ex, ey, 3.25, eyeH + .1, q * (fi ? .14 : .05), 3.3, 6.12); c.stroke();
     const by = V ? [-1.6, 2.6] : fi ? [-.7, 1.8] : sm ? [-.4, -.3] : [.2, .9];
     c.fillStyle = K ? '#3a2a20' : HT[2]; c.lineWidth = .8; c.beginPath(); c.moveTo(q * 9.4, by[0] - .6); c.lineTo(q * 9.4, by[0] + .9); c.quadraticCurveTo(q * 5.8, by[1] + 1.4, q * 2, by[1] + .9); c.lineTo(q * 2.2, by[1] - .9); c.quadraticCurveTo(q * 5.8, by[0] - .8, q * 9.4, by[0] - .6); c.closePath(); c.fill(); c.stroke(); }
+  if (V && PAL.sv) { // scouter: ear piece + green lens
+    c.fillStyle = '#d8d8e0'; c.beginPath(); c.ellipse(-12.2, 3.6, 2.6, 3.6, 0, 0, 7); c.fill(); c.lineWidth = 1.1; c.stroke();
+    c.beginPath(); c.moveTo(-12.4, .2); c.lineTo(-8.6, -.6); c.lineWidth = 1.4; c.stroke();
+    c.fillStyle = 'rgba(70,230,110,.6)'; c.beginPath(); c.moveTo(-8.8, -.8); c.lineTo(-1.6, .4); c.lineTo(-1.8, 7.2); c.lineTo(-9.2, 6.2); c.closePath(); c.fill(); c.lineWidth = 1; c.stroke();
+    c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(-7.4, .6, 2.2, 1); c.strokeStyle = OL; }
   if (!K) { c.strokeStyle = 'rgba(150,80,55,.85)'; c.lineWidth = .9; c.beginPath(); c.moveTo(-.4, 7.6); c.lineTo(.8, 8.3); c.stroke(); }
   c.strokeStyle = OL; c.lineWidth = 1.3;
   if (yl) { c.beginPath(); c.ellipse(0, 10.9, 3.3, 2.5, 0, 0, 7); c.fillStyle = '#7a1414'; c.fill(); c.stroke(); c.save(); c.clip(); c.fillStyle = '#fff'; c.fillRect(-3.3, 8.3, 6.6, 1.5); c.restore(); }
@@ -61,7 +66,7 @@ function head3(c, x, y, s, mood, ssj, rot, P, kind) {
 /* ---------- art: Vegeta's body (Namek-era armour: no shoulder pads, no scouter) ---------- */
 function vegBody(c, P, ssj) {
   const o = P.l || 0, b = P.b || 0, tw = P.t || 0, sq = P.sq || 1;
-  const SU = tones('#2c3f9c'), AR = tones('#f8f8f4', '#6a6a8a'), GD = tones('#e8c24a', '#6a4a10'), WH = tones('#ffffff', '#7a7a9a'), SK = ['#fff0dc', '#fcd6ae', '#e0a078'];
+  const SV = !!PAL.sv, SU = tones(SV ? '#1f2c66' : '#2c3f9c'), AR = tones('#f8f8f4', '#6a6a8a'), GD = SV ? tones('#c99a52', '#5a3a14') : tones('#e8c24a', '#6a4a10'), WH = tones('#ffffff', '#7a7a9a'), SK = ['#fff0dc', '#fcd6ae', '#e0a078'];
   const sx = y => o * (1 - .45 * Math.max(0, Math.min(1, (y + 5) / 14)));
   c.save(); c.lineJoin = 'round'; c.lineCap = 'round'; c.strokeStyle = OL; c.lineWidth = 1.5;
   c.translate(0, 24); c.scale(.96 * (1 + (1 - sq) * .55), .96 * sq); c.translate(0, -24);
@@ -84,6 +89,9 @@ function vegBody(c, P, ssj) {
   for (const q of [-1, 1]) hpoly(c, [[q * 5.6 + sx(-5), -6.6 + b], [q * 10.4 + sx(-5), -6.4 + b], [q * 11.2 + sx(-4), -3.2 + b], [q * 6.4 + sx(-4), -3.6 + b]], GD, { lw: 1.1 });
   hpoly(c, [[-3 + sx(-5), -9 + b], [3 + sx(-5), -9 + b], [3.4 + sx(-5), -4.4 + b], [-3.4 + sx(-5), -4.4 + b]], SK, { ns: 1 });
   arm(1);
+  if (SV) for (const q of [-1, 1]) { // Saiyan-saga armour: big flared shoulder pads
+    hpoly(c, [[q * 5.6 + sx(-6), -8.2 + b], [q * 12.4 + sx(-7), -10.6 + b], [q * 18.2 + sx(-6), -7.4 + b], [q * 18.4 + sx(-3), -1.2 + b], [q * 13.6 + sx(-2), .6 + b], [q * 8.6 + sx(-3), -2.8 + b]], GD, { lw: 1.2 });
+    c.strokeStyle = 'rgba(70,40,10,.55)'; c.lineWidth = .9; c.beginPath(); c.moveTo(q * 8.4 + sx(-6), -6.6 + b); c.lineTo(q * 16.6 + sx(-4), -3.2 + b); c.stroke(); c.strokeStyle = OL; }
   head3(c, o * .85 + (P.hx || 0), -13.2 + b + (P.hy || 0), .86, P.mo ? 'yell' : P.fi ? 'fight' : 'idle', ssj, P.hd || 0, P, 'veg');
   c.restore();
 }
@@ -99,10 +107,12 @@ function vegBody(c, P, ssj) {
     return _gb(c, P, ssj); }; }
 PALS.veg = { or: '#2c3f9c', od: '#1c2a70', bl: '#ffffff', bd: '#c8c8d8', sk: '#fbdcb8', sl: '#2c3f9c', veg: 1 };
 PALS.kri = Object.assign({}, PALS.goku, { kri: 1 });
+PALS.vegS = Object.assign({}, PALS.veg, { sv: 1 });   // Saiyan-saga armour (secret X8 "Prince's Pride")
+const vegAlt = () => typeof P != 'undefined' && P.skin && P.skin.vegeta == 'saiyan' && HAS('alt:vegeta');
 // sheets are painted the first time they are needed (each is a 2048x1024 canvas)
 const XS = {};
 const XSH = {
-  vegeta: ssj => { const k = 'v' + (ssj ? 1 : 0); if (!XS[k]) { XS[k] = mk(2048, 1024); paintSheet(XS[k], PALS.veg, ssj ? 1 : 0); } return XS[k]; },
+  vegeta: ssj => { const sv = vegAlt(), k = 'v' + (sv ? 's' : '') + (ssj ? 1 : 0); if (!XS[k]) { XS[k] = mk(2048, 1024); paintSheet(XS[k], sv ? PALS.vegS : PALS.veg, ssj ? 1 : 0); } return XS[k]; },
   kri: () => { if (!XS.k) { XS.k = mk(2048, 1024); paintSheet(XS.k, PALS.kri, 0); } return XS.k; }
 };
 

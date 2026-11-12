@@ -19,7 +19,7 @@ window.simRun = async function (o) {
   const saveMeta = JSON.stringify(META), saveP = typeof P != 'undefined' ? JSON.stringify(P) : null;
   if (o.keepMeta) { } else if (o.meta) Object.assign(META, o.meta); else for (const k in META) if (k !== 'zeni' && typeof META[k] === 'number') META[k] = 0;
   if (o.profile && saveP) P.unl = botProfile(o.profile);
-  DLV = o.dlv; HERO = o.hero; V2.noCut = true;
+  DLV = o.dlv; HERO = o.hero; V2.noCut = true; V2.kkFast = true;
   start(o.stage); introEnd();
   const log = { ev: [], lv: [], hpLow: 1 };
   const seen = {};
