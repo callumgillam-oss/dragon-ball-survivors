@@ -7,15 +7,16 @@
 
 const HERO3 = {
   vegeta: { n: 'Vegeta', u: 'h:vegeta', w: 'galick', d: 'Saiyan Pride: +20% damage to bosses and elites, heals 20% HP per boss defeated. Galick Gun fires 20% faster.' },
+  trunks: { n: 'Trunks', u: 'h:trunks', w: 'sword', d: 'Hope of the Future: +30% damage to enemies at full health. Shining Sword Attack strikes 15% faster.' },
   kri: { n: 'Krillin', u: 'h:krillin', w: 'disc', d: 'Lucky Monk: +1 reroll per run, treasure chests give an extra level, better luck on rarities.' }
 };
 // transformation name + aura colour (used by FORM(), the SSJ cutscene and the aura)
-const XFORM = { vegeta: ['SUPER SAIYAN', '255,220,70'], kri: ['POTENTIAL UNLOCKED', '235,245,255'] };
+const XFORM = { trunks: ['SUPER SAIYAN', '255,220,70'], vegeta: ['SUPER SAIYAN', '255,220,70'], kri: ['POTENTIAL UNLOCKED', '235,245,255'] };
 
 /* ---------- art: heads ---------- */
 function head3(c, x, y, s, mood, ssj, rot, P, kind) {
-  P = P || {}; const V = kind == 'veg', K = kind == 'kri', yl = mood == 'yell', sm = mood == 'smile' && !V, fi = mood == 'fight' || yl || V, hs = P.hs || 0;
-  const HT = ssj && V ? ['#fffbc8', '#ffd93c', '#d8960c'] : ['#646ba0', '#2a2c3a', '#111118'], SKt = ['#fff0dc', '#fcd6ae', '#e3a07a'];
+  P = P || {}; const V = kind == 'veg', K = kind == 'kri', T = kind == 'tru', yl = mood == 'yell', sm = mood == 'smile' && !V, fi = mood == 'fight' || yl || V, hs = P.hs || 0;
+  const HT = ssj && (V || T) ? ['#fffbc8', '#ffd93c', '#d8960c'] : T ? ['#eadcf8', '#b8a0d8', '#76609e'] : ['#646ba0', '#2a2c3a', '#111118'], SKt = ['#fff0dc', '#fcd6ae', '#e3a07a'];
   c.save(); c.translate(x, y); c.rotate(rot || 0); c.scale(s, s); c.lineJoin = 'round'; c.lineCap = 'round'; c.strokeStyle = OL; c.lineWidth = 1.5;
   if (V) { // tall flame of hair swept straight up
     c.save(); c.transform(1, 0, hs * .012, 1, 0, 0); c.translate(0, 4); c.scale(.93, 1.13); c.translate(0, -4);
@@ -23,6 +24,11 @@ function head3(c, x, y, s, mood, ssj, rot, P, kind) {
     hairShine(c, [[-2, -26], [-1.5, -35], [1, -27]], HT[0], .65); hairShine(c, [[-11, -18], [-12.5, -24], [-8, -20]], HT[0], .5); hairShine(c, [[8, -22], [10.5, -28], [11, -20]], HT[0], .4);
     strand(c, [[-5, -10], [-7, -22]], 'rgba(0,0,0,.45)'); strand(c, [[4, -10], [6, -21]], 'rgba(0,0,0,.45)'); strand(c, [[-11, -6], [-15, -13]], 'rgba(0,0,0,.4)'); strand(c, [[11, -6], [15, -13]], 'rgba(0,0,0,.4)');
     c.restore();
+  }
+  if (T) {   // Trunks: a full head of hair behind the face (spiky gold as a Super Saiyan)
+    hpoly(c, ssj ? [[-11, 5], [-14, -5], [-18, -11], [-12.5, -13.5], [-14, -21], [-7.5, -19], [-5, -27.5], [-.5, -20.5], [4, -28], [6.4, -20], [11.6, -23.5], [11.4, -15], [17, -12.5], [13.4, -5], [11, 5]]
+      : [[-12, 7], [-13.4, -5], [-10.6, -13.6], [-4.4, -17.4], [4.4, -17.4], [10.6, -13.6], [13.4, -5], [12, 7], [9.4, 3], [-9.4, 3]], HT);
+    hairShine(c, ssj ? [[-2, -20], [-1, -26], [1.4, -20]] : [[-6, -14], [-1, -16], [-4, -12]], HT[0], .6);
   }
   for (const q of [-1, 1]) { hell(c, q * 11.6, 4.6, 2.4, 3.1, ['#fde0c2', '#f6c49c', '#d8946e']); c.strokeStyle = 'rgba(150,70,50,.6)'; c.lineWidth = .8; c.beginPath(); c.arc(q * 11.8, 4.6, 1, -1.2, 1.2); c.stroke(); c.strokeStyle = OL; }
   c.beginPath(); c.moveTo(-11.3, -1); c.bezierCurveTo(-12, 6, -8.4, 12.4, 0, 12.8); c.bezierCurveTo(8.4, 12.4, 12, 6, 11.3, -1);
@@ -38,9 +44,13 @@ function head3(c, x, y, s, mood, ssj, rot, P, kind) {
     hpoly(c, [[-12, 2], [-12.6, -7], [-8, -12.5], [0, -14], [8, -12.5], [12.6, -7], [12, 2], [10.4, -2.5], [7.6, -7.6], [3.6, -8.4], [0, -3], [-3.6, -8.4], [-7.6, -7.6], [-10.4, -2.5]], HT);
     hairShine(c, [[-8, -10.5], [-3.6, -12.4], [-6.4, -8.4]], HT[0], .5);
   }
+  if (T) {   // centre-parted fringe
+    for (const q of [-1, 1]) hpoly(c, ssj ? [[q * .4, -12.6], [q * 6, -13], [q * 11.8, -7], [q * 12, 1], [q * 9.6, -3], [q * 7.4, -1.6], [q * 5.4, -6], [q * 2, -5.4]]
+      : [[q * .4, -13], [q * 6.4, -12.6], [q * 11.6, -8], [q * 12.2, 2.4], [q * 9.8, -2.6], [q * 7.4, -.8], [q * 5.6, -5.6], [q * 1.6, -6.4]], HT);
+  }
   if (!K) { c.fillStyle = 'rgba(70,30,20,.22)'; c.beginPath(); c.ellipse(0, -.4, 9.6, 1.6, 0, 0, 3.1416); c.fill(); }
   // eyes (Vegeta: narrower, always scowling)
-  const eyeH = V ? 2.2 : sm ? 2.3 : fi ? 2.55 : 3, IR = ssj && V ? ['#8cf2e8', '#13a4a6', '#08555e'] : ['#5a6285', '#1a1a26', '#06060a'];
+  const eyeH = V ? 2.2 : sm ? 2.3 : fi ? 2.55 : 3, IR = ssj && (V || T) ? ['#8cf2e8', '#13a4a6', '#08555e'] : T ? ['#a8d8ff', '#3a7ad8', '#0a1a40'] : ['#5a6285', '#1a1a26', '#06060a'];
   for (const q of [-1, 1]) { const ex = q * 5, ey = 4.7 + (fi ? .2 : 0);
     c.save(); c.beginPath(); c.ellipse(ex, ey, 3.15, eyeH, q * (fi ? .14 : .05), 0, 7); c.fillStyle = '#fffdf4'; c.fill(); c.lineWidth = .9; c.stroke(); c.clip();
     const ig = c.createRadialGradient(ex + .6, ey - .7, .3, ex + .8, ey + .2, 3.1); ig.addColorStop(0, IR[0]); ig.addColorStop(.5, IR[1]); ig.addColorStop(1, IR[2]);
@@ -96,23 +106,62 @@ function vegBody(c, P, ssj) {
   c.restore();
 }
 
+/* ---------- art: Future Trunks (jacket over a tank top, sword on his back) ---------- */
+function truBody(c, P, ssj) {
+  const o = P.l || 0, b = P.b || 0, sq = P.sq || 1;
+  const JK = tones('#3e5e9e'), TK = tones('#2a2a34'), PN = tones('#5c606e'), BT = tones('#d9a444', '#5a3a10'), BLT = tones('#6a4a2a'), SK = ['#fff0dc', '#fcd6ae', '#e0a078'];
+  const sx = y => o * (1 - .45 * Math.max(0, Math.min(1, (y + 5) / 14)));
+  c.save(); c.lineJoin = 'round'; c.lineCap = 'round'; c.strokeStyle = OL; c.lineWidth = 1.5;
+  c.translate(0, 24); c.scale(.96 * (1 + (1 - sq) * .55), .96 * sq); c.translate(0, -24);
+  // sword across the back: the hilt shows over his right shoulder
+  c.save(); c.translate(3 + o, 3 + b); c.rotate(.88);
+  hpoly(c, [[-2.3, -6], [2.3, -6], [2.3, 15], [0, 17], [-2.3, 15]], tones('#5a3a22'), { lw: 1.2 });
+  hpoly(c, [[-5.4, -7], [5.4, -7], [5.4, -5], [-5.4, -5]], tones('#e8c040', '#6a4a10'), { lw: 1 });
+  hpoly(c, [[-1.6, -16], [1.6, -16], [1.6, -7], [-1.6, -7]], tones('#3a2a1a'), { lw: 1 }); hell(c, 0, -16.6, 1.9, 1.9, tones('#e8c040', '#6a4a10'));
+  c.restore();
+  const arm = i => { const sh = [(i ? 9.4 : -9.4) + o, -3.2 + b], h = P.h[i], el = ik(sh[0], sh[1], h[0], h[1], 5.8, 5.8, P.ed ? P.ed[i] : 1), ang = Math.atan2(h[1] - el[1], h[0] - el[0]);
+    hlimb(c, [sh, el], 6.4, JK); hlimb(c, [el, h], 4.6, SK);
+    const wb = [el[0] + (h[0] - el[0]) * .66, el[1] + (h[1] - el[1]) * .66], we = [el[0] + (h[0] - el[0]) * .86, el[1] + (h[1] - el[1]) * .86]; hlimb(c, [wb, we], 5.4, TK);
+    fist(c, h[0] + Math.cos(ang) * .6, h[1] + Math.sin(ang) * .6, ang, 2.9, SK); };
+  arm(0);
+  for (let i = 0; i < 2; i++) { const f = P.ft[i], ax = f[0], ay = f[1], fa = f[2] || 0, hip = [(i ? 4 : -4) + o * .45, 9 + b], kn = ik(hip[0], hip[1], ax, ay - 2.4, 6.9, 6.9, -1);
+    hlimb(c, [hip, kn, [ax, ay - 2.4]], 8.6, PN);
+    c.save(); c.translate(ax, ay); c.rotate(fa); c.lineWidth = 1.6; c.strokeStyle = OL;
+    hpoly(c, [[-4.4, -7.6], [4.2, -7.6], [4.7, -1], [6.8, 2.1], [-6, 2.5], [-4.9, -1]], BT);
+    c.fillStyle = '#3a2410'; c.beginPath(); c.moveTo(-6.6, 2); c.lineTo(7.4, 1.6); c.lineTo(7.4, 2.8); c.lineTo(-6.6, 3.2); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(-3.4, -5.6, 1.5, 5.4); c.restore(); }
+  // tank top, open jacket, belt
+  hpoly(c, [[-9.4 + sx(-5), -5 + b], [9.4 + sx(-5), -5 + b], [8.6 + sx(3), 3 + b], [9.4 + sx(9), 9.8 + b], [-9.4 + sx(9), 9.8 + b], [-8.6 + sx(3), 3 + b]], TK);
+  for (const q of [-1, 1]) hpoly(c, [[q * 9.8 + sx(-5), -5.6 + b], [q * 3.4 + sx(-5), -5.6 + b], [q * 2.6 + sx(9), 9.6 + b], [q * 9.6 + sx(9), 9.6 + b], [q * 9 + sx(3), 3 + b]], JK, { lw: 1.3 });
+  hpoly(c, [[-9.8 + sx(6), 6.6 + b], [9.8 + sx(6), 6.6 + b], [10 + sx(9), 9.8 + b], [-10 + sx(9), 9.8 + b]], BLT, { lw: 1.1 });
+  c.fillStyle = '#f4f4f4'; c.beginPath(); c.ellipse(-6.6 + sx(-3), -2.4 + b, 1.8, 1.4, 0, 0, 7); c.fill(); c.lineWidth = .8; c.stroke(); c.lineWidth = 1.5;   // Capsule Corp patch
+  hpoly(c, [[-3 + sx(-5), -9 + b], [3 + sx(-5), -9 + b], [3.4 + sx(-5), -4.4 + b], [-3.4 + sx(-5), -4.4 + b]], SK, { ns: 1 });
+  arm(1);
+  head3(c, o * .85 + (P.hx || 0), -13.2 + b + (P.hy || 0), .86, P.mo ? 'yell' : P.fi ? 'fight' : 'idle', ssj, P.hd || 0, P, 'tru');
+  c.restore();
+}
+
 // route the shared hero painter to the new heroes
 { const _gh = gokuHead; gokuHead = function (c, x, y, s, mood, ssj, rot, P) {
     if (PAL.kri) return head3(c, x, y, s, mood, 0, rot, P, 'kri');
     if (PAL.veg) return head3(c, x, y, s, mood, ssj, rot, P, 'veg');
+    if (PAL.tru) return head3(c, x, y, s, mood, ssj, rot, P, 'tru');
     return _gh(c, x, y, s, mood, ssj, rot, P); }; }
 { const _gb = gokuBody; gokuBody = function (c, P, ssj) {
     if (PAL.veg) return vegBody(c, P, ssj);
+    if (PAL.tru) return truBody(c, P, ssj);
     if (PAL.kri) { c.save(); c.translate(0, 24); c.scale(.9, .9); c.translate(0, -24); _gb(c, P, 0); c.restore(); return; }   // shorter than Goku
     return _gb(c, P, ssj); }; }
 PALS.veg = { or: '#2c3f9c', od: '#1c2a70', bl: '#ffffff', bd: '#c8c8d8', sk: '#fbdcb8', sl: '#2c3f9c', veg: 1 };
 PALS.kri = Object.assign({}, PALS.goku, { kri: 1 });
-PALS.vegS = Object.assign({}, PALS.veg, { sv: 1 });   // Saiyan-saga armour (secret X8 "Prince's Pride")
+PALS.vegS = Object.assign({}, PALS.veg, { sv: 1 });
+PALS.tru = Object.assign({}, PALS.goku, { tru: 1 });   // Saiyan-saga armour (secret X8 "Prince's Pride")
 const vegAlt = () => typeof P != 'undefined' && P.skin && P.skin.vegeta == 'saiyan' && HAS('alt:vegeta');
 // sheets are painted the first time they are needed (each is a 2048x1024 canvas)
 const XS = {};
 const XSH = {
   vegeta: ssj => { const sv = vegAlt(), k = 'v' + (sv ? 's' : '') + (ssj ? 1 : 0); if (!XS[k]) { XS[k] = mk(2048, 1024); paintSheet(XS[k], sv ? PALS.vegS : PALS.veg, ssj ? 1 : 0); } return XS[k]; },
+  trunks: ssj => { const k = 't' + (ssj ? 1 : 0); if (!XS[k]) { XS[k] = mk(2048, 1024); paintSheet(XS[k], PALS.tru, ssj ? 1 : 0); } return XS[k]; },
   kri: () => { if (!XS.k) { XS.k = mk(2048, 1024); paintSheet(XS.k, PALS.kri, 0); } return XS.k; }
 };
 
@@ -126,6 +175,8 @@ const XSH = {
 { const _h = hitE; hitE = function (e, d) { if (S.hero == 'vegeta' && (e.boss || e.elite)) d *= 1.2; return _h(e, d); }; }
 { const _k = killE; killE = function (e) { const was = e.dead; _k(e);
     if (!was && e.dead && e.boss && S.hero == 'vegeta' && S.p.hp > 0) { S.p.hp = Math.min(S.p.max, S.p.hp + S.p.max * .2); if (S.nums.length < 40) S.nums.push({ x: S.p.x, y: S.p.y - 26, v: '+HP', l: .9, c: '#7dff8a' }); } }; }
+// Trunks: Hope of the Future
+{ const _h = hitE; hitE = function (e, d) { if (S.hero == 'trunks' && !e.dead && e.hp >= e.max * .999) d *= 1.3; return _h(e, d); }; }
 // Krillin: Lucky Monk
 { const _r = rollRar; rollRar = function (luck, minR) { return _r(luck || (S.hero == 'kri' && Math.random() < .3), minR); }; }
 { const _ue = updExtra; updExtra = function (dt) { const open = S.hero == 'kri' ? S.chests.filter(c => !c.got) : null; _ue(dt);
@@ -135,14 +186,14 @@ const XSH = {
 
 // Ki Burst: Vegeta's Big Bang Attack (one huge blast on the strongest enemy), Krillin's Solar Flare (blind everything)
 { const _uf = ultFire; ultFire = function () {
-    const h = S.hero; if (h != 'vegeta' && h != 'kri') return _uf();
+    const h = S.hero; if (h != 'vegeta' && h != 'kri' && h != 'trunks') return _uf();
     if (!RU('kiburst') || S.mode != 'play' || (S.ult || 0) < 100) return;
     S.ultK0 = P.kills; S.ultT = S.t; S.ult = 0; S.inv = 1.4; sfx('ban'); sfxPlay('ult'); kick(16);
     const p = S.p, d = (90 + 8 * p.lv) * dm();
-    if (h == 'vegeta') {
+    if (h == 'vegeta' || h == 'trunks') {
       let tg = null, best = -1; for (const e of S.en) if (!e.dead && onScr(e)) { const sc = (e.boss ? 1e9 : 0) + e.hp; if (sc > best) { best = sc; tg = e; } }
-      S.bb = { x: p.x, y: p.y, sx: p.x, sy: p.y, tx: tg ? tg.x : p.x + (p.face || 1) * 200, ty: tg ? tg.y : p.y, e: tg, t: 0, T: .4, d };
-      p.atk = p.ad = .6; if (tg) p.face = tg.x > p.x ? 1 : -1; ban('BIG BANG ATTACK!');
+      S.bb = { x: p.x, y: p.y, sx: p.x, sy: p.y, tx: tg ? tg.x : p.x + (p.face || 1) * 200, ty: tg ? tg.y : p.y, e: tg, t: 0, T: .4, d, c: h == 'trunks' ? 'or' : 'cy' };
+      p.atk = p.ad = .6; if (tg) p.face = tg.x > p.x ? 1 : -1; ban(h == 'trunks' ? 'BURNING ATTACK!' : 'BIG BANG ATTACK!');
     } else {
       S.flash = Math.max(S.flash, .35);
       for (const e of S.en) if (!e.dead && onScr(e)) { hitE(e, d * .8); e.st = Math.max(e.st || 0, e.boss ? .8 : 2.5); e.mk = 5; }
@@ -156,10 +207,12 @@ const XSH = {
     if (k >= 1) { const R = 170 * AR();
       if (b.e && !b.e.dead) hitE(b.e, b.d * 3.5);
       for (const e of S.en) if (!e.dead && e !== b.e && Math.hypot(e.x - b.x, e.y - b.y) < R + e.r) { hitE(e, b.d * 1.2); shove(e, b.x, b.y, 50); }
-      boom(b.x, b.y, R, '#bfe0ff'); S.bb = null; } }; }
+      boom(b.x, b.y, R, b.c == 'or' ? '#ffc070' : '#bfe0ff'); S.bb = null; } }; }
 { const _d = drawNew; drawNew = function (cx, cy, t) { _d(cx, cy, t); const b = S.bb; if (!b) return;
-    const x = b.x - cx, y = b.y - cy; LT(); gl('cy', x, y, 46, .8); gl('cy', x, y, 26, 1); gl('wh', x, y, 14, 1);
-    for (let i = 1; i <= 5; i++) gl('cy', x - (b.tx - b.sx) * .04 * i, y - (b.ty - b.sy) * .04 * i, 20 - i * 3, .4 - i * .06); NM(); }; }
+    const x = b.x - cx, y = b.y - cy, C = b.c || 'cy'; LT(); gl(C, x, y, 46, .8); gl(C, x, y, 26, 1); gl('wh', x, y, 14, 1);
+    for (let i = 1; i <= 5; i++) gl(C, x - (b.tx - b.sx) * .04 * i, y - (b.ty - b.sy) * .04 * i, 20 - i * 3, .4 - i * .06); NM(); }; }
 
 /* ---------- menu: unlocked heroes become selectable ---------- */
 { const _sh = setHero; setHero = function (h) { if (HERO3[h] && !HAS(HERO3[h].u)) return; return _sh(h); }; }
+
+LOCKED_HEROES.splice(1, 0, ['h:trunks', 'Trunks', 'Defeat Dr. Gero', 'trunks']);

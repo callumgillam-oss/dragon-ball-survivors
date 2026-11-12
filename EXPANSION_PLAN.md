@@ -367,6 +367,23 @@ An expensive shop item (~3,000 Zeni): **5th attack slot.** A big Zeni sink that 
 ---
 
 ## 8. Level 3: Android & Cell Saga (Phase F)
+
+### 8.0 Status
+`[x]` Built on `v3-dev`: `docs/lv3.js` (stage, mobs, bosses, art, map, intro, ring, achievements), `docs/w4.js`
+(Infinite Energy, Shining Sword Attack, Android Barrier), Future Trunks in `docs/heroes3.js`.
+Changes from the plan while building (easy to revisit):
+- **Infinite Energy** is +6% damage and +12% Ki Burst charge per level, and at level 5 the Ki Burst refills by itself.
+  "Attack duration and projectile speed" can't be applied to every attack without rewriting each one.
+- **Mobs:** battle drones (melee), gunner drones (about 1 in 10, ranged), bio-larvae from 2:00, Cell Juniors from 4:00.
+  Swarm events are a drone ring at 1:00, then larvae rings. The city is a little less crowded than the Wasteland.
+- **Boss hand-offs:** each boss waits until the one before is down (+15 s, never more than 75 s late), like Frieza.
+- **Perfect Cell's self-destruct:** at 10% HP he stops for 10 s. Kill him (secret achievement) or take a blast for half
+  your max HP, after which he comes back at 30% HP and powered up.
+- **Extra achievements:** City in Ruins (survive 10:00, +800), three secrets (Perfect Timing, Behind You!, Twin
+  Takedown), and Ginyu Challenge clears for Level 3. S16 grants the Fusion Dance flag; the system itself is Phase G.
+- **Balance (bot, Hard, fully bought shop):** Perfect Cell beaten in 6 of 8 runs, finishing at 8:45-11:27. Not yet
+  tested with a partial shop; that waits for the shop price pass. Notes: a bot never walks behind Android 19, so his
+  absorb is harder for it than for a player; Trunks is the slowest boss-killer for the bot because his sword is short-range.
 - **Map:** ruined city and highlands (grey rubble, broken roads, cliff islands). For the finale the
   **Cell Games ring** appears around you. The ring has edges you can't cross, so the arena tightens.
 - **Length:** ~9:00 to the final boss.

@@ -33,7 +33,8 @@ const PK3 = {
 function pk3Drop(e) {
   const opts = Object.keys(PK3).filter(k => RU(PK3[k].u));
   if (!opts.length || S.pk3.length >= 3 || e.boss) return;
-  if (Math.random() < (e.elite ? .25 : 1 / 3000)) S.pk3.push({ x: e.x, y: e.y, k: opts[Math.random() * opts.length | 0], t: 0 });
+  const v2 = RU('vac2');   // Imperfect Cell: vacuums turn up more often
+  if (Math.random() < (e.elite ? (v2 ? .35 : .25) : v2 ? 1 / 2000 : 1 / 3000)) { const k = v2 && opts.includes('vac') && Math.random() < .65 ? 'vac' : opts[Math.random() * opts.length | 0]; S.pk3.push({ x: e.x, y: e.y, k, t: 0 }); }
 }
 { const _k = killE; killE = function (e) { const was = e.dead; _k(e); if (!was && e.dead && S.mode == 'play' && S.pk3) pk3Drop(e); }; }
 function pk3Get(q) {
