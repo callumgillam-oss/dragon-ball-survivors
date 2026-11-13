@@ -161,7 +161,7 @@ function edgePointer(wx, wy, label, glow, fill, icon) {
 }
 function drawBallPointers() {
   if (S.mode != 'play' || !S.balls) return; ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  for (const b of S.balls) edgePointer(b.x, b.y, 'DRAGON BALL', 'or', '#ffd27a', BALLS[b.n - 1]);
+  for (const b of S.balls) edgePointer(b.x, b.y, S.set2 == 1 ? 'NAMEKIAN BALL' : 'DRAGON BALL', 'or', '#ffd27a', BALLS[b.n - 1]);
   ctx.restore();
 }
 { const _d = draw; draw = function () { _d(); drawBallPointers(); }; }
@@ -200,8 +200,8 @@ function drawShenronCut() {
   if (t > SHC_RISE - .35 && t < SHC_RISE + .5) { const f = 1 - Math.abs(t - SHC_RISE) / .5; ctx.fillStyle = 'rgba(255,255,240,' + Math.max(0, f) * FL + ')'; ctx.fillRect(0, 0, W, H); }
   // titles
   const title = (txt, y, fs, a, c1, c2) => { ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.font = '900 ' + fs + 'px Impact,"Arial Black",sans-serif'; ctx.lineWidth = fs * .2; ctx.strokeStyle = '#0a2a14'; ctx.strokeText(txt, px, y); const g = ctx.createLinearGradient(0, y - fs, 0, y); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillText(txt, px, y); ctx.globalAlpha = 1; };
-  if (t > .9 && t < 2.9) title('ARISE, ETERNAL DRAGON!', H * .2, Math.min(34, W * .07), Math.min(1, (t - .9) / .3) * Math.min(1, (2.9 - t) / .3), '#fff6c0', '#ffb21f');
-  if (t > 3.5) title('SHENRON', H * .86, Math.min(64, W * .14), Math.min(1, (t - 3.5) / .4), '#d8ffe0', '#3ad06a');
+  if (t > .9 && t < 2.9) title(S.set2 == 1 ? 'ARISE, PORUNGA!' : 'ARISE, ETERNAL DRAGON!', H * .2, Math.min(34, W * .07), Math.min(1, (t - .9) / .3) * Math.min(1, (2.9 - t) / .3), '#fff6c0', '#ffb21f');
+  if (t > 3.5) title(S.set2 == 1 ? 'PORUNGA' : 'SHENRON', H * .86, Math.min(64, W * .14), Math.min(1, (t - 3.5) / .4), '#d8ffe0', '#3ad06a');
   ctx.restore();
   if (t > 2 && t < 3.2) kick(6);
 }

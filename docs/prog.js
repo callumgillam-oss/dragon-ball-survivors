@@ -65,7 +65,7 @@ const ACH = [
   { id: 's9', c: 'story', n: 'Special Fighting Pose', d: 'Defeat Captain Ginyu', r: ['ginyu'], t: () => P.bk.gin },
   { id: 's9a', c: 'story', n: 'Emperor of the Universe', d: 'Defeat Frieza (first form)', r: ['z:600'], t: () => P.bk.fr1 },
   { id: 's9b', c: 'story', n: 'Fearsome Transformation', d: "Defeat Frieza's second form", r: ['z:900'], t: () => P.bk.fr2 },
-  { id: 's10', c: 'story', n: 'Namek is Free', d: "Defeat Frieza's Final Form", r: ['lvl3', 'limitbreak', 's:slot'], t: () => P.bk.fr3 },
+  { id: 's10', c: 'story', n: 'Namek is Free', d: "Defeat Frieza's Final Form", r: ['lvl3', 'limitbreak', 's:slot', 'nballs'], t: () => P.bk.fr3 },
 
   { id: 'm1', c: 'mile', n: 'Snake Way', d: 'Fall in battle for the first time', r: ['s:revive', 'chambers'], ev: 'death' },
   { id: 'm2', c: 'mile', n: 'Warrior', d: 'Defeat 2,000 enemies in total', r: ['p:spd', 'w:disc'], pg: () => [kills(), 2000] },

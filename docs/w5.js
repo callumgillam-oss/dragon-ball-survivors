@@ -44,33 +44,64 @@ const MMK = () => (S.pe && S.pe.mm) || 0;
 { const _s = spawnE; spawnE = function (k) { const n0 = S.en.length; const r = _s(k); const m = S.ps && S.ps.mm;
     if (m && S.en.length > n0) { const e = S.en[S.en.length - 1]; if (!e.boss) e.spd *= 1 + .05 * m; } return r; }; }
 
-/* ---------- Fusion Dance ---------- */
+/* ---------- Fusion Dance (EXPANSION_PLAN.md §9.1, §9.5) ----------
+   Two evolved attacks fuse into one and free a slot. Wishes carry over: each wish on a parent (or on the
+   fused attack itself) raises the fusion a tier. Tier 0 = Fusion, 1 = one wish, 2 = two wishes. */
 const FUSE = {
-  fkame: { n: 'Final Kamehameha', d: "Goku and Vegeta's ultimate: a colossal gold-and-blue beam that tears through everything.", a: 'kame', b: 'galick', u: 'fusion' },
-  fskame: { n: 'Father-Son Kamehameha', d: 'Twin beams side by side, fired fast and hard.', a: 'kame', b: 'masenko', u: 'fusion' },
-  mlight: { n: "Mentor's Light", d: 'Piccolo and Gohan together: four spiral beams sweep around you.', a: 'sbc', b: 'masenko', u: 'fusion' },
-  tks: { n: 'Twin Kienzan Storm', d: 'Eight giant discs spiral out and back, slicing everything in their path.', a: 'disc', b: 'scatter', u: 'fusion2' },
-  dsb: { n: 'Dragon Spirit Bomb', d: 'A giant Spirit Bomb crashes down, then lightning rains around it.', a: 'bomb', b: 'thunder', u: 'fusion2' }
+  fkame: { n: 'Final Kamehameha', d: "Goku and Vegeta's ultimate: a colossal gold-and-blue beam.", d1: 'The beam sweeps across the crowd and grows wider.', d2: 'Two extra beams fan out, and the blast ends in a shockwave around you.', a: 'kame', b: 'galick', u: 'fusion' },
+  fskame: { n: 'Father-Son Kamehameha', d: 'Twin beams side by side, fired fast and hard.', d1: 'Three beams instead of two.', d2: 'The beams converge and detonate on your target.', a: 'kame', b: 'masenko', u: 'fusion' },
+  mlight: { n: "Mentor's Light", d: 'Piccolo and Gohan together: four spiral beams sweep around you.', d1: 'Six spiral beams.', d2: 'Each volley also releases a stunning pulse around you.', a: 'sbc', b: 'masenko', u: 'fusion' },
+  tks: { n: 'Twin Kienzan Storm', d: 'Eight giant discs spiral out and back, slicing everything.', d1: 'Twelve discs.', d2: 'A second, wider ring of discs spins the other way.', a: 'disc', b: 'scatter', u: 'fusion2' },
+  dsb: { n: 'Dragon Spirit Bomb', d: 'A giant Spirit Bomb crashes down, then lightning rains around it.', d1: 'Two bombs on two crowds.', d2: 'One colossal bomb and a storm of chaining lightning.', a: 'bomb', b: 'thunder', u: 'fusion2' },
+  kwf: { n: 'Kaioken Wolf Fang Barrage', d: 'Burning dash strikes rip through the nearest enemies, inside a Kaioken aura.', d1: 'More targets, and every combo heals you.', d2: 'Every strike explodes in flame.', a: 'aura', b: 'wolf', u: 'fusion3' },
+  sgp: { n: 'Sweet Ghost Parade', d: 'Pink ghosts turn whatever they touch into candy. Bosses take damage over time.', d1: 'Twice the ghosts, and candy heals you more often.', d2: 'A giant candy ghost sweeps the screen every few seconds.', a: 'ghost', b: 'candy', u: 'fusion3' },
+  htc: { n: 'Hellzone Tri-Cage', d: 'Three ki orbs form a cage over a crowd; damage ramps inside, then the orbs detonate.', d1: 'Two cages at once.', d2: 'Cages drag enemies to the centre and the detonation is far bigger.', a: 'hell', b: 'tri', u: 'fusion3' }
 };
-for (const k in FUSE) INFO[k] = ['🤝 ' + FUSE[k].n, FUSE[k].d];
-Object.assign(BP, { fin: ['rgba(40,130,255,', 'rgba(255,220,90,', 'or'], fs: ['rgba(30,120,255,', 'rgba(170,230,255,', 'cy'] });
+const FT = k => (S.ft && S.ft[k]) || 0, FTM = [1, 1.35, 1.8], FTN = ['', ' ★', ' ★★'], FTW = ['the base version', 'the one-wish version', 'the two-wish version'];
+const fname = k => '🤝 ' + FUSE[k].n + FTN[FT(k)];
+const fdesc = k => { const f = FUSE[k], t = FT(k); return f.d + (t >= 1 ? ' ' + f.d1 : '') + (t >= 2 ? ' ' + f.d2 : ''); };
+for (const k in FUSE) { INFO[k] = ['🤝 ' + FUSE[k].n, FUSE[k].d]; MYTH[k] = 'raises this fusion a tier'; }
+const fsync = k => { INFO[k][0] = fname(k); INFO[k][1] = fdesc(k); };
+{ const _in = init; init = function () { _in(); for (const k in FUSE) INFO[k] = ['🤝 ' + FUSE[k].n, FUSE[k].d]; }; }
+Object.assign(BP, { fin: ['rgba(40,130,255,', 'rgba(255,220,90,', 'or'], fin2: ['rgba(255,255,255,', 'rgba(255,236,150,', 'wh'], fs: ['rgba(30,120,255,', 'rgba(170,230,255,', 'cy'] });
 const fuseReady = () => Object.keys(FUSE).filter(id => { const f = FUSE[id]; return RU(f.u) && !(S.w[id] > 0) && S.evo[f.a] && S.evo[f.b] && S.w[f.a] >= 5 && S.w[f.b] >= 5; });
+const wishOn = k => !!(S.myth && S.myth[k]);
 function pickFuse(id) {
   if (S.mode != 'lvl') return; const f = FUSE[id]; if (!f || !fuseReady().includes(id)) return;
-  S.w[f.a] = 0; S.w[f.b] = 0; S.fz[f.a] = S.fz[f.b] = 1; S.w[id] = 5; S.cd[id] = .6;
+  const tier = Math.min(2, (wishOn(f.a) ? 1 : 0) + (wishOn(f.b) ? 1 : 0));
+  (S.ft || (S.ft = {}))[id] = tier;
+  S.rm[id] = Math.min(MCAP, (S.rm[f.a] || 0) + (S.rm[f.b] || 0)); S.rn[id] = 0; S.rw[id] = S.rm[id];   // wish power carries over
+  S.myth[id] = tier >= 2 ? 1 : 0;
+  S.w[f.a] = 0; S.w[f.b] = 0; S.fz[f.a] = S.fz[f.b] = 1; S.w[id] = 5; S.cd[id] = .6; fsync(id);
   if (f.a == 'disc' || f.b == 'disc') S.discs = [];
-  S.fuN = (S.fuN || 0) + 1; P.fus = (P.fus || 0) + 1; try { saveProg(); } catch (e) { }
-  S.flash = Math.max(S.flash, .8); boom(S.p.x, S.p.y, 170, '#ffe27a'); ban('FUSION HA! ' + f.n.toUpperCase() + '!'); sfxPlay('ult');
+  S.fuN = (S.fuN || 0) + 1; P.fus = (P.fus || 0) + 1; (P.fusR || (P.fusR = {}))[id] = Math.max(P.fusR[id] || 0, tier + 1); try { saveProg(); } catch (e) { }
+  S.flash = Math.max(S.flash, .8); boom(S.p.x, S.p.y, 170, '#ffe27a'); ban('FUSION HA! ' + (f.n + FTN[tier]).toUpperCase() + '!'); sfxPlay('ult');
   if (S.luckN > 0) S.luckN--; S.pend--; lvlUp();
 }
 { const _op = offerPool; offerPool = function () { return _op().filter(([g, k]) => !(S.fz && S.fz[k]) && !FUSE[k]); }; }
 { const _lv = lvlUp; lvlUp = function () {
     _lv(); const fr = S.pend > 0 ? fuseReady() : []; if (!fr.length) return;
-    const html = fr.slice(0, 2).map(id => { const f = FUSE[id]; return `<button class="up evo fuse" onclick="pickFuse('${id}')"><img class="ic" src="${iurl(id)}"><div><b>🤝 FUSION: ${f.n}</b><br><small>${INFO[f.a][0].replace('★ ', '')} + ${INFO[f.b][0].replace('★ ', '')} → one attack (frees a slot). ${f.d}</small></div></button>`; }).join('');
+    const html = fr.slice(0, 2).map(id => { const f = FUSE[id], t = Math.min(2, (wishOn(f.a) ? 1 : 0) + (wishOn(f.b) ? 1 : 0));
+      return `<button class="up evo fuse" onclick="pickFuse('${id}')"><img class="ic" src="${iurl(id)}"><div><b>🤝 FUSION: ${f.n}${FTN[t]}</b><br><small>${INFO[f.a][0].replace('★ ', '')} + ${INFO[f.b][0].replace('★ ', '')} → one attack (frees a slot). ${f.d}${t ? ` <b class="fw">${t == 2 ? 'Both wishes carry over: two-wish version!' : 'Your wish carries over: one-wish version!'}</b>` : ''}</small></div></button>`; }).join('');
     if (S.mode == 'lvl') { const h = ov.querySelector('.card h2'); if (h) h.insertAdjacentHTML('afterend', html); }
     else { S.mode = 'lvl'; show(`<div class="card"><h2>Power up! Level ${S.p.lv}</h2>${html}<button onclick="S.pend=0;S.mode='play';show('')">Not now</button></div>`); }
   }; }
-{ const _b = beamDmg; beamDmg = function (b, e) { if (b.fz && e.boss) return Math.min(b.d * .6, e.max * .012); return _b(b, e); }; }
+{ const _b = beamDmg; beamDmg = function (b, e) { if (b.fz && e.boss) return Math.min(b.d * .6, e.max * .012 * (b.tm || 1)); return _b(b, e); }; }
+// wishing on a fused attack raises its tier; wishing on a parent shows what it does to the fusion
+{ const _m = mythic; mythic = function (g, k) {
+    if (!FUSE[k]) return _m(g, k);
+    const t = Math.min(2, FT(k) + 1); (S.ft || (S.ft = {}))[k] = t; const r = _m(g, k); S.myth[k] = t >= 2 ? 1 : 0; fsync(k);
+    ban(FUSE[k].n.toUpperCase() + ': ' + (t == 2 ? 'TWO-WISH VERSION!' : 'ONE-WISH VERSION!')); (P.fusR || (P.fusR = {}))[k] = Math.max(P.fusR[k] || 0, t + 1); try { saveProg(); } catch (e) { }
+    return r; }; }
+{ const _sw = startWish; startWish = function () {
+    _sw(); if (S.mode != 'wish') return;
+    for (const b of ov.querySelectorAll('button.up')) { const m = /mythic\('w','(\w+)'\)/.exec(b.getAttribute('onclick') || ''); if (!m) continue; const k = m[1], tx = b.querySelector('div'); if (!tx) continue;
+      let note = '';
+      if (FUSE[k]) note = `🤝 Becomes ${FTW[Math.min(2, FT(k) + 1)]}: ${FT(k) ? FUSE[k].d2 : FUSE[k].d1}`;
+      else for (const id in FUSE) { const f = FUSE[id]; if ((f.a != k && f.b != k) || !RU(f.u) || S.w[id] > 0) continue; const o = f.a == k ? f.b : f.a; if (!(S.w[o] > 0)) continue;
+        const t = Math.min(2, 1 + (wishOn(o) ? 1 : 0)); note = `🤝 Fused with ${INFO[o][0].replace('★ ', '')} it becomes ${FUSE[id].n}${FTN[t]} (${FTW[t]})`; break; }
+      if (note) tx.insertAdjacentHTML('beforeend', `<br><small class="fw">${note}</small>`); }
+  }; }
 
 /* ---------- Gotenks ---------- */
 HERO3.gotenks = { n: 'Gotenks', u: 'h:gotenks', w: 'ghost', d: 'Show-Off: +15% damage while above 70% HP. Ghost Kamikaze fires 15% faster.' };
@@ -127,30 +158,77 @@ function updW5(dt) {
   S.ch4 = arr5('ch4').filter(c => c.l > 0);
   for (const b of arr5('cbm')) b.l -= dt; S.cbm = arr5('cbm').filter(b => b.l > 0);
   for (const b of arr5('cpop')) b.l -= dt; S.cpop = arr5('cpop').filter(b => b.l > 0);
-  // ---- fused attacks ----
-  const fd = k => (MY(k) ? 1.25 : 1);
-  if (W_.fkame) { S.cd.fkame -= dt; if (S.cd.fkame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fkame = .2; else { S.cd.fkame = 2.8 * cm();
-      const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x); p.atk = p.ad = .9; p.face = Math.cos(a) > 0 ? 1 : -1;
-      S.beams.push({ a, t: 1.1, T: 1.1, w: 130 * AR(), len: 1200, d: (70 + 10 * WL('fkame')) * dm() * fd('fkame'), h: new Set(), pal: 'fin', kb: 30, clr: 1, fz: 1, tk: .22 }); sfxPlay('beam'); kick(6); } } }
-  if (W_.fskame) { S.cd.fskame -= dt; if (S.cd.fskame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fskame = .2; else { S.cd.fskame = 2.2 * cm();
-      const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x); p.atk = p.ad = .7; p.face = Math.cos(a) > 0 ? 1 : -1;
-      for (const o of [-.11, .11]) S.beams.push({ a: a + o, t: .85, T: .85, w: 76 * AR(), len: 1050, d: (52 + 8 * WL('fskame')) * dm() * fd('fskame'), h: new Set(), pal: 'fs', kb: 22, fz: 1, tk: .22 }); sfxPlay('beam'); } } }
-  if (W_.mlight) { S.cd.mlight -= dt; if (S.cd.mlight <= 0) { S.cd.mlight = 2.4 * cm(); const a0 = Math.random() * 6.283; p.atk = p.ad = .6;
-      for (let i = 0; i < 4; i++) S.beams.push({ a: a0 + i * 1.5708, t: 1.15, T: 1.15, w: 54 * AR(), len: 900, d: (40 + 7 * WL('mlight')) * dm() * fd('mlight'), h: new Set(), pal: 'sbc', kb: 10, fz: 1, tk: .22, rot: 1.3 }); sfxPlay('beam'); } }
+  // ---- fused attacks (damage x1 / x1.35 / x1.8 by tier, plus each tier's extra trick) ----
+  const fm = k => FTM[FT(k)];
+  const beam = o => S.beams.push(Object.assign({ h: new Set(), fz: 1, tk: .22 }, o));
+  if (W_.fkame) { S.cd.fkame -= dt; if (S.cd.fkame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fkame = .2; else { const T = FT('fkame'); S.cd.fkame = 2.8 * cm();
+      const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (70 + 10 * WL('fkame')) * dm() * fm('fkame'); p.atk = p.ad = .9; p.face = Math.cos(a) > 0 ? 1 : -1;
+      beam({ a: T ? a - .25 : a, t: 1.1, T: 1.1, w: 130 * AR() * (T ? 1.2 : 1), len: 1200, d, pal: T == 2 ? 'fin2' : 'fin', kb: 30, clr: 1, rot: T ? .45 : 0, tm: fm('fkame') });
+      if (T == 2) { for (const o of [-.5, .5]) beam({ a: a + o, t: .9, T: .9, w: 70 * AR(), len: 1000, d: d * .6, pal: 'fin', kb: 20, tm: 1 }); S.fsw = { t: 1.1, d: d * 1.5 }; }
+      sfxPlay('beam'); kick(6); } } }
+  if (S.fsw) { S.fsw.t -= dt; if (S.fsw.t <= 0) { const R = 260 * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) { hitE(e, e.boss ? Math.min(S.fsw.d, e.max * .02) : S.fsw.d); shove(e, p.x, p.y, 70); } boom(p.x, p.y, R, '#fff2b0'); kick(12); S.fsw = null; } }
+  if (W_.fskame) { S.cd.fskame -= dt; if (S.cd.fskame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fskame = .2; else { const T = FT('fskame'); S.cd.fskame = 2.2 * cm();
+      const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (52 + 8 * WL('fskame')) * dm() * fm('fskame'); p.atk = p.ad = .7; p.face = Math.cos(a) > 0 ? 1 : -1;
+      for (const o of T ? [-.16, 0, .16] : [-.11, .11]) beam({ a: a + o, t: .85, T: .85, w: 76 * AR(), len: 1050, d, pal: 'fs', kb: 22, tm: fm('fskame'), rot: T == 2 ? -o * .25 : 0 });
+      if (T == 2) arr5('dsb').push({ x: ts[0].x, y: ts[0].y, t: .35, T: .9, R: 130 * AR(), d: d * 2.5, fs: 1 });
+      sfxPlay('beam'); } } }
+  if (W_.mlight) { S.cd.mlight -= dt; if (S.cd.mlight <= 0) { const T = FT('mlight'), n = T ? 6 : 4; S.cd.mlight = 2.4 * cm(); const a0 = Math.random() * 6.283, d = (40 + 7 * WL('mlight')) * dm() * fm('mlight'); p.atk = p.ad = .6;
+      for (let i = 0; i < n; i++) beam({ a: a0 + i * 6.283 / n, t: 1.15, T: 1.15, w: 54 * AR(), len: 900, d, pal: 'sbc', kb: 10, rot: 1.3, tm: fm('mlight') });
+      if (T == 2) { const R = 170 * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) { hitE(e, e.boss ? Math.min(d * 1.5, e.max * .006) : d * 1.5); if (!e.boss) e.st = Math.max(e.st || 0, .7); } S.fpl = { t: .45, R }; }
+      sfxPlay('beam'); } }
+  if (S.fpl) { S.fpl.t -= dt; if (S.fpl.t <= 0) S.fpl = null; }
   for (const b of S.beams) { if (!b.fz) continue; b.tk -= dt; if (b.tk <= 0) { b.tk = .22; b.h.clear(); } if (b.rot) b.a += b.rot * dt; }
-  if (W_.tks) { const n = 8, ph = (S.t % 2.4) / 2.4, R = (80 + 220 * Math.sin(ph * Math.PI)) * AR2(), d = (24 + 5 * WL('tks')) * dm() * fd('tks');
-    S.tkd = []; for (let i = 0; i < n; i++) { const a = S.t * 2.2 + i / n * 6.283 * (i % 2 ? 1 : 1), rr = R * (i % 2 ? .78 : 1), x = p.x + Math.cos(a * (i % 2 ? -1 : 1)) * rr, y = p.y + Math.sin(a * (i % 2 ? -1 : 1)) * rr; S.tkd.push({ x, y });
-      for (const e of S.en) { if (e.dead || (e.tkc || 0) > S.t || Math.hypot(e.x - x, e.y - y) > 24 * AR2() + e.r) continue; e.tkc = S.t + .3; hitE(e, e.boss ? Math.min(d, e.max * .006) : d); } } }
-  if (W_.dsb) { S.cd.dsb -= dt; if (S.cd.dsb <= 0) { const ts = near(6, 700); if (!ts.length) S.cd.dsb = .3; else { S.cd.dsb = 4.2 * cm();
-      let cx = 0, cy = 0; for (const e of ts) { cx += e.x; cy += e.y; } cx /= ts.length; cy /= ts.length;
-      S.dsb.push({ x: cx, y: cy, t: 0, T: .9, R: 150 * AR(), d: (160 + 20 * WL('dsb')) * dm() * fd('dsb') }); sfxPlay('charge'); } } }
+  if (W_.tks) { const T = FT('tks'), n = T ? 12 : 8, ph = (S.t % 2.4) / 2.4, R = (80 + 220 * Math.sin(ph * Math.PI)) * AR2(), d = (24 + 5 * WL('tks')) * dm() * fm('tks');
+    S.tkd = []; const disc = (x, y, big) => { S.tkd.push({ x, y, big });
+      for (const e of S.en) { if (e.dead || (e.tkc || 0) > S.t || Math.hypot(e.x - x, e.y - y) > 24 * AR2() * (big ? 1.4 : 1) + e.r) continue; e.tkc = S.t + .3; hitE(e, e.boss ? Math.min(d, e.max * .006) : d); } };
+    for (let i = 0; i < n; i++) { const a = S.t * 2.2 * (i % 2 ? -1 : 1) + i / n * 6.283, rr = R * (i % 2 ? .78 : 1); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr); }
+    if (T == 2) for (let i = 0; i < 6; i++) { const a = -S.t * 1.4 + i / 6 * 6.283, rr = 340 * AR2(); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 1); } }
+  if (W_.dsb) { S.cd.dsb -= dt; if (S.cd.dsb <= 0) { const ts = near(12, 700); if (!ts.length) S.cd.dsb = .3; else { const T = FT('dsb'); S.cd.dsb = 4.2 * cm();
+      const d = (160 + 20 * WL('dsb')) * dm() * fm('dsb'), grp = T == 1 && ts.length > 6 ? [ts.slice(0, 6), ts.slice(6)] : [ts.slice(0, 6)];
+      for (const g of grp) { let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
+        S.dsb.push({ x: cx, y: cy, t: 0, T: .9, R: 150 * AR() * (T == 2 ? 1.6 : 1), d: d * (T == 2 ? 1.4 : 1), ln: T == 2 ? 14 : 6 }); }
+      sfxPlay('charge'); } } }
   for (const b of arr5('dsb')) { b.t += dt; if (b.t >= b.T && !b.hit) { b.hit = 1;
       for (const e of S.en) if (!e.dead && Math.hypot(e.x - b.x, e.y - b.y) < b.R + e.r) { hitE(e, e.boss ? Math.min(b.d, e.max * .03) : b.d); shove(e, b.x, b.y, 40); }
-      boom(b.x, b.y, b.R, '#bfe0ff'); aFlash(.5); kick(10);
-      for (let i = 0; i < 6; i++) { const a = Math.random() * 6.283, r = b.R * (.4 + Math.random() * 1.1); S.dsl.push({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, t: -.12 * i, d: b.d * .35 }); } } }
+      boom(b.x, b.y, b.R, b.fs ? '#d8f0ff' : '#bfe0ff'); aFlash(.5); kick(10);
+      if (!b.fs) for (let i = 0; i < (b.ln || 6); i++) { const a = Math.random() * 6.283, r = b.R * (.4 + Math.random() * 1.1); S.dsl.push({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, t: -.12 * i, d: b.d * .35 }); } } }
   S.dsb = arr5('dsb').filter(b => b.t < b.T + .5);
   for (const l of arr5('dsl')) { const was = l.t; l.t += dt; if (was < 0 && l.t >= 0) { for (const e of S.en) if (!e.dead && Math.hypot(e.x - l.x, e.y - l.y) < 55 + e.r) hitE(e, e.boss ? Math.min(l.d, e.max * .01) : l.d); sfxPlay('thunder'); } }
   S.dsl = arr5('dsl').filter(l => l.t < .3);
+  // Kaioken Wolf Fang Barrage: a burning aura plus dash strikes on the nearest enemies
+  if (W_.kwf) { const T = FT('kwf'), d = (22 + 5 * WL('kwf')) * dm() * fm('kwf'), R = 85 * AR();
+    S.cd.kwfa = (S.cd.kwfa || 0) - dt; if (S.cd.kwfa <= 0) { S.cd.kwfa = .3; for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) hitE(e, d * .25); }
+    S.cd.kwf = (S.cd.kwf ?? 1) - dt; if (S.cd.kwf <= 0) { const ts = near(T == 2 ? 12 : T ? 9 : 6, 380); if (!ts.length) S.cd.kwf = .2; else { S.cd.kwf = 1.5 * cm(); p.atk = p.ad = .4;
+        for (const [i, e] of ts.entries()) { arr5('kws').push({ x0: p.x, y0: p.y, x1: e.x, y1: e.y, t: -i * .04, l: .28 });
+          hitE(e, e.boss ? Math.min(d * 2, e.max * .008) : d * 2); if (T == 2) { for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < 50 * AR2() + o.r) hitE(o, d); boom(e.x, e.y, 50 * AR2(), '#ff8a3a'); } }
+        if (T) p.hp = Math.min(p.max, p.hp + 1 + ts.length * .3); sfxPlay('dash'); } } }
+  for (const s of arr5('kws')) s.t += dt; S.kws = arr5('kws').filter(s => s.t < s.l);
+  // Sweet Ghost Parade: candy ghosts (and at two wishes, a giant one that sweeps the screen)
+  const candyHit = (e, d, heal) => { if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: d * .5 }); hitE(e, e.boss ? Math.min(d, e.max * .006) : d); return; }
+    e.hp = 0; killE(e); S.cpop.push({ x: e.x, y: e.y, l: .5, c: Math.random() < .5 ? '#ff7ac8' : '#ffd23a' }); if (Math.random() < heal) S.ch4.push({ x: e.x, y: e.y, l: 12 }); };
+  if (W_.sgp) { const T = FT('sgp'), cap = T ? 12 : 7; S.cd.sgp = (S.cd.sgp ?? .5) - dt;
+    if (S.cd.sgp <= 0 && arr5('sg').length < cap) { S.cd.sgp = (T ? .45 : .8) * cm(); const a = Math.random() * 6.283; S.sg.push({ x: p.x + Math.cos(a) * 18, y: p.y + Math.sin(a) * 18, t: 0, l: 5, s: Math.random() * 6, a }); }
+    if (T == 2) { S.cd.sgb = (S.cd.sgb ?? 4) - dt; if (S.cd.sgb <= 0) { S.cd.sgb = 6 * cm(); const a = Math.random() * 6.283; S.sgb = { x: p.x - Math.cos(a) * 520, y: p.y - Math.sin(a) * 520, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, t: 2.5 }; } } }
+  for (const g of arr5('sg')) { g.t += dt; g.l -= dt;
+    if (!g.e || g.e.dead) { let b = null, bd = 520; for (const e of S.en) { if (e.dead || !onScr(e)) continue; const dd = Math.hypot(e.x - g.x, e.y - g.y); if (dd < bd) { bd = dd; b = e; } } g.e = b; }
+    if (g.e) { const dx = g.e.x - g.x, dy = g.e.y - g.y, dd = Math.hypot(dx, dy) || 1; g.a = Math.atan2(dy, dx); g.x += dx / dd * 170 * dt; g.y += dy / dd * 170 * dt;
+      if (dd < g.e.r + 8) { g.l = 0; candyHit(g.e, (16 + 4 * WL('sgp')) * dm() * fm('sgp'), FT('sgp') ? .08 : .04); } }
+    else { g.x += Math.cos(g.t * 2 + g.s) * 40 * dt; g.y += Math.sin(g.t * 1.6 + g.s) * 40 * dt; } }
+  S.sg = arr5('sg').filter(g => g.l > 0);
+  if (S.sgb) { const b = S.sgb; b.t -= dt; b.x += b.vx * dt; b.y += b.vy * dt; const d = (16 + 4 * WL('sgp')) * dm() * fm('sgp') * 2;
+    for (const e of S.en) if (!e.dead && onScr(e) && Math.hypot(e.x - b.x, e.y - b.y) < 90 + e.r && !(e.sgbH > S.t)) { e.sgbH = S.t + 1; candyHit(e, d, .08); }
+    if (b.t <= 0) S.sgb = null; }
+  // Hellzone Tri-Cage: triangle cages on crowds, ramping damage, then detonation
+  if (W_.htc) { const T = FT('htc'), d = (12 + 3 * WL('htc')) * dm() * fm('htc'); S.cd.htc = (S.cd.htc ?? .5) - dt;
+    if (S.cd.htc <= 0) { const ts = near(14, 650); if (!ts.length) S.cd.htc = .3; else { S.cd.htc = 2.6 * cm();
+        for (const g of T ? [ts.slice(0, 7), ts.slice(7)] : [ts]) { if (!g.length) continue; let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
+          arr5('cage').push({ x: cx, y: cy, R: 120 * AR2() * (T == 2 ? 1.2 : 1), t: 0, T: 3, tk: 0, d, pull: T == 2, big: T == 2 ? 2.4 : 1.4, a0: Math.random() * 6.283 }); }
+        sfxPlay('orb'); } } }
+  for (const c of arr5('cage')) { c.t += dt; c.tk -= dt;
+    if (c.tk <= 0) { c.tk = .25; const ramp = 1 + c.t; for (const e of S.en) { if (e.dead) continue; const dx = c.x - e.x, dy = c.y - e.y, dd = Math.hypot(dx, dy) || 1; if (dd > c.R) continue;
+        hitE(e, e.boss ? Math.min(c.d * ramp, e.max * .004) : c.d * ramp); if (c.pull && !e.boss) { e.x += dx / dd * Math.min(dd, 18); e.y += dy / dd * Math.min(dd, 18); } } }
+    if (c.t >= c.T && !c.done) { c.done = 1; const R = c.R * (c.pull ? 1.3 : 1); for (const e of S.en) if (!e.dead && Math.hypot(e.x - c.x, e.y - c.y) < R + e.r) hitE(e, e.boss ? Math.min(c.d * 6 * c.big, e.max * .02) : c.d * 6 * c.big); boom(c.x, c.y, R, '#d8a0ff'); kick(6); } }
+  S.cage = arr5('cage').filter(c => !c.done);
   // Galactic Donut (Gotenks' Ki Burst)
   const G = S.gdn; if (G) { G.t += dt; const k = Math.min(1, G.t / G.T), R = G.R * (1 - .8 * k);
     for (const e of S.en) { if (e.dead) continue; const dx = G.x - e.x, dy = G.y - e.y, d = Math.hypot(dx, dy) || 1; if (d > G.R + e.r) continue;
@@ -160,11 +238,11 @@ function updW5(dt) {
 { const _u = updNew; updNew = function (dt) { _u(dt); updW5(dt); }; }
 
 /* ---------- drawing ---------- */
-function ghostShape(c, x, y, s, t, sd, a, mini) {
+function ghostShape(c, x, y, s, t, sd, a, mini, pk) {
   c.save(); c.translate(x, y); c.scale(s, s); const fl = Math.cos(a) < 0 ? -1 : 1; c.scale(fl, 1);
   LT(); gl('wh', 0, 0, 18, .45); NM();
   c.lineJoin = 'round'; c.lineWidth = 1.4; c.strokeStyle = 'rgba(70,60,110,.9)';
-  const g = c.createRadialGradient(-3, -5, 1, 0, 0, 12); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#c8c0ec'); c.fillStyle = g;
+  const g = c.createRadialGradient(-3, -5, 1, 0, 0, 12); g.addColorStop(0, pk ? '#fff0f8' : '#ffffff'); g.addColorStop(1, pk ? '#ff8ad0' : '#c8c0ec'); c.fillStyle = g;
   c.beginPath(); c.arc(0, -2, 8, Math.PI, 0); c.lineTo(8, 4);
   for (let i = 0; i < 4; i++) { const xx = 8 - (i + 1) * 4, w = Math.sin(t * 9 + sd + i) * 2; c.quadraticCurveTo(xx + 2, 8 + w, xx, 4); }
   c.closePath(); c.fill(); c.stroke();
@@ -188,7 +266,7 @@ function drawW5(cx, cy, t) {
   // Twin Kienzan Storm discs
   if (S.w.tks) for (const d of S.tkd || []) { const x = d.x - cx, y = d.y - cy; LT(); gl('or', x, y, 30, .55); NM();
     ctx.save(); ctx.translate(x, y); ctx.rotate(t * 20); ctx.fillStyle = 'rgba(255,230,120,.85)'; ctx.strokeStyle = 'rgba(255,255,230,.95)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, 0, 22 * AR2(), 6, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    ctx.beginPath(); ctx.ellipse(0, 0, 22 * AR2() * (d.big ? 1.4 : 1), d.big ? 8 : 6, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.restore(); }
   // Dragon Spirit Bomb
   for (const b of S.dsb || []) { const x = b.x - cx, y = b.y - cy, k = Math.min(1, b.t / b.T);
     if (!b.hit) { const yy = y - (1 - k) * 340, r = b.R * (.55 + .2 * k); LT(); gl('cy', x, yy, r * 1.5, .55); gl('wh', x, yy, r * .7, .7); NM();
@@ -197,6 +275,22 @@ function drawW5(cx, cy, t) {
   for (const l of S.dsl || []) { if (l.t < 0) continue; const x = l.x - cx, y = l.y - cy, a = 1 - l.t / .3;
     ctx.save(); ctx.strokeStyle = `rgba(200,240,255,${a})`; ctx.lineWidth = 3; ctx.beginPath(); let px = x + (Math.random() - .5) * 30, py = y - 220; ctx.moveTo(px, py);
     for (let i = 0; i < 6; i++) { px = x + (Math.random() - .5) * 26 * (1 - i / 6); py += 220 / 6; ctx.lineTo(px, py); } ctx.stroke(); ctx.restore(); LT(); gl('cy', x, y, 40, a * .8); NM(); }
+  // Kaioken Wolf Fang Barrage: burning aura + flaming dash streaks
+  if (S.w.kwf) { const R = 85 * AR(); LT(); gl('rd', W / 2, H / 2, R * 1.2, .35 + .08 * Math.sin(t * 14)); NM();
+    ctx.save(); ctx.strokeStyle = `rgba(255,90,40,${.45 + .2 * Math.sin(t * 9)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(W / 2, H / 2, R, 0, 7); ctx.stroke(); ctx.restore(); }
+  for (const k of S.kws || []) { if (k.t < 0) continue; const a = 1 - k.t / k.l; ctx.save(); ctx.lineCap = 'round';
+    ctx.strokeStyle = `rgba(255,120,40,${.8 * a})`; ctx.lineWidth = 9 * a + 2; ctx.beginPath(); ctx.moveTo(k.x0 - cx, k.y0 - cy); ctx.lineTo(k.x1 - cx, k.y1 - cy); ctx.stroke();
+    ctx.strokeStyle = `rgba(255,240,200,${a})`; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore(); LT(); gl('or', k.x1 - cx, k.y1 - cy, 22, a); NM(); }
+  // Sweet Ghost Parade: pink ghosts, and the giant one
+  for (const g of S.sg || []) ghostShape(ctx, g.x - cx, g.y - cy, 1.2, t, g.s, g.a, 0, 1);
+  if (S.sgb) { const b = S.sgb; ctx.save(); ctx.globalAlpha = Math.min(1, b.t * 2); ghostShape(ctx, b.x - cx, b.y - cy, 5.5, t, 0, Math.atan2(b.vy, b.vx), 0, 1); ctx.restore(); }
+  // Hellzone Tri-Cage: three orbs joined by crackling lines, glowing hotter as the damage ramps
+  for (const c of S.cage || []) { const x = c.x - cx, y = c.y - cy, k = Math.min(1, c.t / c.T), rot = c.a0 + c.t * (c.pull ? 1.4 : .6), pts = [0, 1, 2].map(i => [x + Math.cos(rot + i * 2.094) * c.R, y + Math.sin(rot + i * 2.094) * c.R]);
+    ctx.save(); ctx.fillStyle = `rgba(170,90,255,${.08 + .14 * k})`; ctx.beginPath(); pts.forEach(([a, b], i) => i ? ctx.lineTo(a, b) : ctx.moveTo(a, b)); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = `rgba(220,170,255,${.6 + .3 * Math.sin(t * 30)})`; ctx.lineWidth = 2 + 2 * k; ctx.stroke(); ctx.restore();
+    LT(); for (const [a, b] of pts) { gl('pu', a, b, 16 + 10 * k, .8); gl('wh', a, b, 6, .9); } NM(); }
+  // Mentor's Light two-wish pulse
+  if (S.fpl) { const u = 1 - S.fpl.t / .45; ctx.save(); ctx.strokeStyle = `rgba(255,220,120,${1 - u})`; ctx.lineWidth = 8 * (1 - u) + 2; ctx.beginPath(); ctx.arc(W / 2, H / 2, S.fpl.R * u, 0, 7); ctx.stroke(); ctx.restore(); }
   // Galactic Donut
   const G = S.gdn; if (G) { const k = Math.min(1, G.t / G.T), R = G.R * (1 - .8 * k), x = G.x - cx, y = G.y - cy;
     ctx.save(); ctx.lineWidth = 16 + 10 * k; ctx.strokeStyle = 'rgba(255,230,140,.55)'; ctx.beginPath(); ctx.arc(x, y, R, 0, 7); ctx.stroke();
@@ -216,9 +310,15 @@ function drawIcon5(c, k) {
     c.fillStyle = '#ff7ac8'; for (const q of [-1, 1]) { c.beginPath(); c.moveTo(30 + q * 8, 22); c.lineTo(30 + q * 16, 15); c.lineTo(30 + q * 16, 29); c.closePath(); c.fill(); c.stroke(); }
     c.fillStyle = g(27, 19, 12, '#ffd8ee', '#ff5ab8'); c.beginPath(); c.ellipse(30, 22, 10, 8, 0, 0, 7); c.fill(); c.stroke(); c.fillStyle = 'rgba(255,255,255,.8)'; c.fillRect(25, 17, 7, 2.4); }
   else if (FUSE[k]) {
-    const col = { fkame: ['#ffd23a', '#2a80ff'], fskame: ['#8ad8ff', '#2a80ff'], mlight: ['#ffd23a', '#b04aff'], tks: ['#ffe27a', '#ff9a1f'], dsb: ['#d8f0ff', '#3a8aff'] }[k];
+    const col = { fkame: ['#ffd23a', '#2a80ff'], fskame: ['#8ad8ff', '#2a80ff'], mlight: ['#ffd23a', '#b04aff'], tks: ['#ffe27a', '#ff9a1f'], dsb: ['#d8f0ff', '#3a8aff'], kwf: ['#ffd23a', '#ff4a1a'], sgp: ['#ffd8ee', '#ff5ab8'], htc: ['#e8c8ff', '#9a4aff'] }[k];
     c.fillStyle = g(24, 24, 22, '#4a2a6a', '#1a0a2a'); c.beginPath(); c.arc(24, 24, 21, 0, 7); c.fill(); c.strokeStyle = '#ffd23a'; c.lineWidth = 2.4; c.stroke();
     if (k == 'tks') { for (const [x, y, r] of [[18, 20, -.4], [30, 30, .5]]) { c.save(); c.translate(x, y); c.rotate(r); c.fillStyle = col[0]; c.strokeStyle = OL; c.lineWidth = 1.6; c.beginPath(); c.ellipse(0, 0, 13, 4, 0, 0, 7); c.fill(); c.stroke(); c.restore(); } }
+    else if (k == 'kwf') { c.strokeStyle = col[1]; c.lineWidth = 4; for (const o of [-8, 0, 8]) { c.beginPath(); c.moveTo(10, 30 + o); c.lineTo(36, 18 + o); c.stroke(); }
+      c.strokeStyle = col[0]; c.lineWidth = 1.6; for (const o of [-8, 0, 8]) { c.beginPath(); c.moveTo(12, 29 + o); c.lineTo(34, 19 + o); c.stroke(); } }
+    else if (k == 'sgp') { ghostShape(c, 24, 24, 1.3, 0, 0, 0, 0, 1); c.fillStyle = col[1]; c.beginPath(); c.ellipse(34, 34, 5, 3.6, 0, 0, 7); c.fill(); }
+    else if (k == 'htc') { const pts = [0, 1, 2].map(i => [24 + Math.cos(-1.5708 + i * 2.094) * 14, 25 + Math.sin(-1.5708 + i * 2.094) * 14]);
+      c.fillStyle = 'rgba(170,90,255,.35)'; c.strokeStyle = col[0]; c.lineWidth = 2; c.beginPath(); pts.forEach(([a, b], i) => i ? c.lineTo(a, b) : c.moveTo(a, b)); c.closePath(); c.fill(); c.stroke();
+      for (const [a, b] of pts) { c.fillStyle = g(a, b, 6, '#ffffff', col[1]); c.beginPath(); c.arc(a, b, 5, 0, 7); c.fill(); } }
     else if (k == 'dsb') { c.fillStyle = g(22, 20, 15, '#ffffff', col[1]); c.beginPath(); c.arc(24, 22, 13, 0, 7); c.fill(); c.strokeStyle = OL; c.lineWidth = 1.6; c.stroke();
       c.strokeStyle = '#fff6a0'; c.lineWidth = 2; c.beginPath(); c.moveTo(10, 30); c.lineTo(14, 36); c.lineTo(11, 38); c.lineTo(15, 44); c.moveTo(38, 30); c.lineTo(34, 36); c.lineTo(37, 38); c.lineTo(33, 44); c.stroke(); }
     else { c.save(); c.translate(24, 24); c.rotate(-.6); const n = k == 'fskame' ? 2 : 1;
@@ -319,13 +419,14 @@ for (const h of ['goku', 'pic', 'gohan', 'vegeta', 'trunks', 'kri', 'gotenks']) 
 { const _m = mythic; mythic = function (g, k) { const r = _m(g, k); if (RU('wishh')) { S.p.max += 10; S.p.hp = S.p.max; if (S.nums.length < 40) S.nums.push({ x: S.p.x, y: S.p.y - 30, v: 'FULL HEAL', l: 1, c: '#7dff8a' }); } return r; }; }
 
 /* ---------- milestones for fusions ---------- */
-Object.assign(UNL_NAME, { 'w:ghost': 'Ghost Kamikaze' });
+Object.assign(UNL_NAME, { 'w:ghost': 'Ghost Kamikaze', fusion3: '3 more Fusion Dance recipes (Kaioken Wolf Fang, Sweet Ghost Parade, Hellzone Tri-Cage)' }); UNL_ICON.fusion3 = '🤝';
 for (const a of [
-  { id: 'm19', c: 'mile', n: 'Dance Partners', d: 'Perform a Fusion Dance', r: ['z:600'], pg: () => [Math.min(1, P.fus || 0), 1] },
+  { id: 'm19', c: 'mile', n: 'Dance Partners', d: 'Perform a Fusion Dance', r: ['fusion3', 'z:600'], pg: () => [Math.min(1, P.fus || 0), 1] },
   { id: 'm20', c: 'mile', n: 'Fusion Master', d: 'Perform 10 Fusion Dances in total', r: ['z:1500'], pg: () => [P.fus || 0, 10] }
 ]) { a.t = a.t || (() => a.pg()[0] >= a.pg()[1]); ACH.push(a); ACH_BY[a.id] = a; }
 
 document.head.insertAdjacentHTML('beforeend', `<style>
 .up.fuse{background:linear-gradient(135deg,#4a2a7a,#2a1a4a);border-color:#ffd23a}
 .up.fuse b{color:#ffe27a}
+.fw{color:#9affc0}
 </style>`);

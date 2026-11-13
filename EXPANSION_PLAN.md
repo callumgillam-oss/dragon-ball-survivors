@@ -316,7 +316,7 @@ Each one gets a distinct shape on screen so it doesn't overlap an existing attac
 `[x]` Phase D built on `v3-dev`: `docs/sys3.js` (§6 systems, Scouter readout, Vegeta's outfit toggle) and `docs/cut3.js` (§7 King Kai cutscene).
 Decisions made while building (easy to change in Phase E):
 - **Ginyu Pose** is a 1.25× game-speed multiplier (everything, including you and your attacks, moves faster).
-- **Limit Break** boosts apply to your whole build, not a single chosen attack: +4% damage, +3% area (cap +60%), −2% cooldowns (cap −20%), or +5 max HP with a full heal. It replaces the old "full heal when everything is maxed". It can be toggled off in Settings.
+- **Limit Break** boosts apply to your whole build, not a single chosen attack: +4% damage, +3% area (cap +60%), +2% movement speed (cap +20%), or +5 max HP with a full heal. (Phase G2: the −2% cooldown option was removed; see the cooldown cap in §9.5.) It replaces the old "full heal when everything is maxed". It can be toggled off in Settings.
 - **Pickups:** elites drop one 25% of the time, other enemies 1 in 3,000; at most 3 on the map. Bot: about 2 per short run.
 - **Scouter:** a green power-level tag above each boss on screen (turns gold over 9,000). Toggle in Settings.
 - **Challenge achievements:** each challenge has "clear Level 1" (+400) and "clear Level 2" (+800), plus all three on Level 2 (+2,500). Levels 3-4 add theirs later.
@@ -509,6 +509,44 @@ return on each map, each 20-minute loop makes bosses 1.5x tougher, mob health ho
 
 ---
 
+## 9.5 Phase G2: Wish-powered fusions, Namekian Dragon Balls, hero carousel (your 2026-11-13 ideas)
+`[x]` Built on `v3-dev`: `docs/ui4.js` (carousel), `docs/dball5.js` (Namekian balls, Porunga, wish/fusion
+achievements), fusion tiers and the three new recipes in `docs/w5.js`. Notes from building:
+- Wish power carries into a fusion too: the fused attack keeps both parents' +5 wish power levels (capped at +10).
+- Tier damage is x1 / x1.35 / x1.8 on top of that, plus each tier's extra trick. Fused hits on bosses stay capped
+  per hit (the cap rises with the tier), so a two-wish fusion is a crowd-wiper and a strong, not instant, boss-killer.
+- The first Fusion Dance (Dance Partners) unlocks the last three recipes. New milestones: Porunga's Gift, Wish Upon a
+  Fusion, Ultimate Fusion, Fusion Collector (all 8).
+- **Cooldown cap (your call):** all cooldown reduction combined (Hyperbolic Chamber, Super Saiyan, Gohan's passive)
+  can never make cooldowns shorter than 55% of normal. Hyperbolic Chamber itself tops out at −40% and its card says so.
+  Limit Break no longer offers cooldowns; it offers +2% movement speed instead.
+- **Updates no longer mix old and new files:** the service worker now always checks with the server (a cheap
+  "not modified" when nothing changed). Before, the browser's own cache could serve an old file next to new ones.
+  This is how the old summoning titles ("Arise, eternal dragon!") showed up for Porunga.
+- One pointer per off-screen Dragon Ball (the old small arrow was removed); it reads "Namekian ball" for the second set.
+- First set: the first ball appears at 0:30 (was 0:45), then every 26 s (was 34 s), about 20% closer, and only balls
+  6-7 are guarded (was 5-7). Namekian balls are slower, farther, and balls 5-7 are guarded.
+- **Hero carousel:** the hero row becomes a swipeable carousel. The selected hero is large and plays their idle
+  animation, neighbours are smaller on either side, and locked heroes appear as silhouettes with what unlocks them.
+  Arrows, swipe, tap on a neighbour, and the left/right keys all work.
+- **Wishes carry into fusions.** A fusion only appears once both attacks are evolved (already true). Each fused attack
+  has three tiers:
+  1. **Fusion:** the base fused attack.
+  2. **One wish:** one parent had Shenron's/Porunga's wish, or you wish on the fused attack. Bigger and stronger,
+     plus one new trick.
+  3. **Two wishes:** both parents were wished on, or you wish on a one-wish fusion. The showpiece version with its
+     own look and a signature effect.
+  Wishing on an attack shows what it does to its fusion ("Final Kamehameha becomes the one-wish version"). Each tier
+  is the same attack escalating, not a separate attack, so every recipe stays on one balance curve.
+- **More recipes (8):** Final Kamehameha, Father-Son Kamehameha, Mentor's Light (Perfect Cell); Twin Kienzan Storm,
+  Dragon Spirit Bomb (Fat Buu); Kaioken Wolf Fang Barrage, Sweet Ghost Parade, Hellzone Tri-Cage (first Fusion Dance).
+- **Namekian Dragon Balls** (unlocked by beating Level 2): once you've used Shenron's wish in a run, a second set of
+  seven stone-carved Namekian balls starts appearing, and **Porunga** grants a second wish. Two wishes per run at most.
+- **The first set is easier to collect** (sooner, more often, closer, guards only on the last two). Boss tuning in
+  Phase H assumes a good run gets one wish on Levels 1-2 and two on Levels 3-4.
+- **Pacing (Phase H):** the shop shouldn't be finished until a player has had at least a couple of Level 4 runs.
+  New achievements (fusion tiers, Porunga, wish combos) are spread across the four levels.
+
 ## 10. Shop after the expansion (balance target)
 | Item | Status | Unlocked by |
 |---|---|---|
@@ -557,6 +595,7 @@ return on each map, each 20-minute loop makes bosses 1.5x tougher, mob health ho
 | **E** | **Balance pass, Levels 1-2**: bot runs with unlock profiles, cadence check, fun pass | Checkpoint with you |
 | **F** | §8 Level 3, Infinite Energy, Trunks, 2 attacks | |
 | **G** | §9 Level 4, Majin Mark, Gotenks, 2 attacks, Fusion, Endless, transformation cutscenes (§9.0) | Frieza's and SS cutscene upgrades can land in Phase D |
+| **G2** | §9.5 wish-powered fusion tiers, Namekian Dragon Balls + Porunga, hero carousel | Your 2026-11-13 ideas |
 | **H** | Full test, balance and feel pass across everything, then ship 3.0 | |
 
 ---

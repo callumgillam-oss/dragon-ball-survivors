@@ -19,7 +19,7 @@ if (SET.scouter === undefined) SET.scouter = true;
 /* ---------- per-run state ---------- */
 { const _in = init; init = function () {
     _in();
-    S.pk3 = []; S.tfT = 0; S.ban3 = {}; S.lb = { d: 0, a: 0, c: 0, h: 0 }; S.gc = {};
+    S.pk3 = []; S.tfT = 0; S.ban3 = {}; S.lb = { d: 0, a: 0, s: 0, h: 0 }; S.gc = {};
     S.seal = RU('s:seal') ? META.seal | 0 : 0;
     LIM.w = 4 + (RU('s:slot') && META.slot ? 1 : 0);
   }; }
@@ -143,10 +143,12 @@ function sealPick(k) {
 const LB = [
   { k: 'd', n: 'Power', d: '+4% damage', ic: '💥', f: () => { S.wishDmg = (S.wishDmg || 0) + .04; } },
   { k: 'a', n: 'Reach', d: '+3% area', ic: '🌀', f: () => { S.pe.area += .25; S.lb.a += .25; }, cap: () => S.lb.a >= 5 },
-  { k: 'c', n: 'Speed', d: '-2% cooldowns', ic: '⏩', f: () => { S.pe.cdr += 2 / 9; S.lb.c += 2 / 9; }, cap: () => S.lb.c >= 2.2 },
+  { k: 's', n: 'Swiftness', d: '+2% movement speed', ic: '💨', f: () => { S.pe.spd += 2 / 13; S.lb.s += 2 / 13; }, cap: () => S.lb.s >= 20 / 13 - .01 },   // no cooldowns here: they're capped globally
   { k: 'h', n: 'Vitality', d: '+5 max HP and a full heal', ic: '❤️', f: () => { S.p.max += 5; S.p.hp = S.p.max; } }
 ];
-{ const _ap = addPow; addPow = function (g, k, r) { _ap(g, k, r); if (g == 'ps' && S.lb && (k == 'area' || k == 'cdr')) S.pe[k] += k == 'area' ? S.lb.a : S.lb.c; }; }
+{ const _ap = addPow; addPow = function (g, k, r) { _ap(g, k, r); if (g == 'ps' && S.lb && (k == 'area' || k == 'spd')) S.pe[k] += k == 'area' ? S.lb.a : S.lb.s; }; }
+// Hyperbolic Chamber shows its -40% cap
+{ const _bt = bonusText; bonusText = function (g, k, r) { const t = _bt(g, k, r); if (g == 'ps' && k == 'cdr') return t + (S.pe.cdr >= PCAP.cdr - .01 ? ' (already at the -40% cap)' : ' (max -40%)'); return t; }; }
 function lbReady() {
   if (!RU('limitbreak') || !SET.lb || S.pend <= 0) return false;
   if (Object.keys(EVO).some(k => S.w[k] >= 5 && !S.evo[k] && S.ps[EVO[k][2]] > 0)) return false;

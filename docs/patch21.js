@@ -53,7 +53,7 @@ function guardBall(b) {
 { const _ub = updBalls; updBalls = function (dt) {
     _ub(dt);
     if (S.mode != 'play' || !S.balls) return;
-    for (const b of S.balls) if (b.n >= 5 && !b.gd && Math.hypot(b.x - S.p.x, b.y - S.p.y) < 560) { b.gd = 1; guardBall(b); }
+    for (const b of S.balls) if (b.n >= (S.set2 == 1 ? 5 : 6) && !b.gd && Math.hypot(b.x - S.p.x, b.y - S.p.y) < 560) { b.gd = 1; guardBall(b); }
   }; }
 
 /* ---------- 3) refundable Capsule Corp upgrades ---------- */

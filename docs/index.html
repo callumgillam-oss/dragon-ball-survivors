@@ -191,7 +191,7 @@ function init(){
  S={t:0,mode:'menu',p:{x:0,y:0,hp:100+UPL('hp')*META.hp,max:100+UPL('hp')*META.hp,lv:1,xp:0,nx:6,face:1},
   w:{blast:1,kame:0,aura:0,flare:0,disc:0,bomb:0,masenko:0,hell:0,thunder:0},ps:{zen:0,spd:0,sen:0,cdr:0,arm:0,rad:0,area:0,amt:0},pe:{zen:0,spd:0,sen:0,cdr:0,arm:0,rad:0,area:0,amt:0},myth:{},rw:{},pn:{},pm:{},rn:{},rm:{},pity:0,luckN:0,offer:null,
   cd:{blast:0,kame:1,aura:0,flare:6,disc:0,bomb:4,masenko:0,hell:1,thunder:2},en:[],mas:[],orbs:[],str:[],arcs:[],fields:[],rb:[],rbq:[],sh:[],eb:[],gem:[],beams:[],fx:[],zones:[],discs:[],evo:{},da:0,chests:[],beans:[],eliteT:35,nums:[],
-  ult:25,inv:0,ultQ:[],ultR:[],shr:null,rr:1+META.rr,kills:0,spawn:0,flash:0,hurt:0,pend:0,ban:null,b1:0,b2:0,balls:[],dbN:0,dbGot:0,dbT:45,wishDmg:0,wishPend:0,hero:HERO};if(HERO=='pic'){S.w.blast=0;S.w.sbc=1;S.cd.sbc=.8}if(HERO=='gohan'){S.w.blast=0;S.w.masenko=1;S.cd.masenko=.8}
+  ult:25,inv:0,ultQ:[],ultR:[],shr:null,rr:1+META.rr,kills:0,spawn:0,flash:0,hurt:0,pend:0,ban:null,b1:0,b2:0,balls:[],dbN:0,dbGot:0,dbT:30,wishDmg:0,wishPend:0,hero:HERO};if(HERO=='pic'){S.w.blast=0;S.w.sbc=1;S.cd.sbc=.8}if(HERO=='gohan'){S.w.blast=0;S.w.masenko=1;S.cd.masenko=.8}
 }
 // ---- weapon balance (v13): per-weapon damage multipliers; 1 = untouched. Tune here. ----
 const WB={blast:.8,masenko:.8,disc:.8,flare:.8,kameE:.8,sbcE:.8,aura:.8,hellE:.8,thunderE:.8};
@@ -614,7 +614,8 @@ const EVO={
  flare:['Taiyoken Burst','Screen-wide flash that stuns and damages.','arm']};
 const BASE={};for(const k in EVO)BASE[k]=INFO[k][0];
 function resetNames(){for(const k in EVO)INFO[k][0]=BASE[k]}
-const cm=()=>(1-.09*S.pe.cdr)*(S.ssj?.85:1)*(S.hero=='gohan'&&S.p.hp<S.p.max*.35?.75:1);
+// cooldown multiplier: everything combined can never make cooldowns shorter than 55% of normal (3.0 cap)
+const CD_FLOOR=.55,cm=()=>Math.max(CD_FLOOR,(1-.09*S.pe.cdr)*(S.ssj?.85:1)*(S.hero=='gohan'&&S.p.hp<S.p.max*.35?.75:1));
 function pickE(){const t=S.t;if(S.stage==2)return'fs';if(t>90&&Math.random()<Math.min(.3,(t-90)/500+.1))return'cj';return t>45&&Math.random()<Math.min(.45,(t-45)/400+.1)?'blue':'sai'}
 function updExtra(dt){
  const p=S.p,W_=S.w,ev=S.evo;
@@ -1297,7 +1298,7 @@ const BALLS=(()=>{
   // thin rim-light arc, bottom-right
   x.strokeStyle='rgba(255,226,160,.8)';x.lineWidth=4.4;x.beginPath();x.arc(C,C,R-8,.28,1.02);x.stroke();
   return c})})();
-function spawnBall(){const a=Math.random()*6.283,d=1100+Math.random()*400+60*S.dbN,p=S.p;S.balls.push({x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d,n:++S.dbN});if(S.dbN==1)ban('A DRAGON BALL APPEARS!')}
+function spawnBall(){const a=Math.random()*6.283,d=(S.set2==1?1100:900)+Math.random()*(S.set2==1?400:350)+(S.set2==1?60:45)*S.dbN,p=S.p;S.balls.push({x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d,n:++S.dbN});if(S.dbN==1)ban('A DRAGON BALL APPEARS!')}
 function ballGot(b){
  const p=S.p;S.dbGot++;S.flash=Math.max(S.flash,.45);sfx('lvl');boom(b.x,b.y,90,'#ffb030');
  p.hp=Math.min(p.max,p.hp+p.max*.12);
@@ -1313,7 +1314,7 @@ const WISHES={
  senzu:['Senzu bean harvest','Four Senzu Beans appear beside you.']};
 function updBalls(dt){
  const p=S.p;
- if(S.dbN<7&&S.balls.length<3){S.dbT-=dt;if(S.dbT<=0){S.dbT=34*(1-.042*S.pe.rad);spawnBall()}}
+ if(S.dbN<7&&S.balls.length<3){S.dbT-=dt;if(S.dbT<=0){S.dbT=(S.set2==1?32:26)*(1-.042*S.pe.rad);spawnBall()}}
  for(const b of S.balls)if(Math.hypot(b.x-p.x,b.y-p.y)<28){b.got=1;ballGot(b)}
  S.balls=S.balls.filter(b=>!b.got);
  if(S.wishPend&&S.mode=='play')startWish();
@@ -1401,9 +1402,8 @@ function drawBalls(cx,cy,t){
  for(const b of S.balls){const x=b.x-cx,y=b.y-cy,on=x>-30&&y>-30&&x<W+30&&y<H+30;
   if(on){LT();const pg=ctx.createLinearGradient(0,y-190,0,y);pg.addColorStop(0,'rgba(255,190,70,0)');pg.addColorStop(1,'rgba(255,200,90,'+(.38+.1*Math.sin(t*5))+')');ctx.fillStyle=pg;ctx.fillRect(x-9,y-190,18,190);gl('or',x,y,40,.6+.2*Math.sin(t*5));NM();ctx.fillStyle='rgba(40,20,5,.3)';el(x,y+14,10,3);ctx.drawImage(BALLS[b.n-1],x-14,y-18+Math.sin(t*3)*3,28,28);
    LT();for(let i=0;i<3;i++){const a=t*2+i*2.1;gl('wh',x+Math.cos(a)*19,y-4+Math.sin(a)*19,4,.7)}NM()}
-  else{const a=Math.atan2(y-H/2,x-W/2),ex=Math.max(28,Math.min(W-28,W/2+Math.cos(a)*1000)),ey=Math.max(ST+130,Math.min(H-28,H/2+Math.sin(a)*1000));
-   ctx.save();ctx.translate(ex,ey);ctx.rotate(a);ctx.fillStyle='#ff9a1f';ctx.strokeStyle=OL;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(15,-8);ctx.lineTo(15,8);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
-   ctx.drawImage(BALLS[b.n-1],ex-11,ey-11,22,22)}}
+  // off-screen balls: the pointer with distance lives in ui2.js (one arrow, not two)
+}
 }
 function hud2(){
  const x0=W-12-SI-7*17,y=ST+10+58;
@@ -1960,7 +1960,7 @@ function loop(ts){if(rsPend)rsApply();const dt=Math.min(.05,(ts-last)/1000||0);l
 
 /* ===== v8: level-up rarity ===== */
 const RAR=[{n:'Common',m:1,w:0},{n:'Uncommon',m:1.25,w:22},{n:'Rare',m:1.5,w:8},{n:'Epic',m:2,w:3},{n:'Legendary',m:2.6,w:1},{n:'Mythic',m:3,w:0}];
-const MYTHLV=5,MCAP=10,PCAP={zen:8,spd:6,sen:8,cdr:5.5,arm:6,rad:6},WCAP=3.5;
+const MYTHLV=5,MCAP=10,PCAP={zen:8,spd:6,sen:8,cdr:4.45,arm:6,rad:6},WCAP=3.5;
 const WL=k=>(S.w[k]||0)+((S.rw&&S.rw[k])||0);
 function rollRar(luck,minR){
  const bump=1+Math.min(.5,S.p.lv/80),lk=luck?2.4:1;let tot=0;const ws=RAR.map((r,i)=>i?r.w*bump*lk:0);
@@ -2408,7 +2408,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="cut4.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
