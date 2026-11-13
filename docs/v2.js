@@ -209,7 +209,7 @@ function drawDangerZone(z, x, y, k, t) {
 }
 // Kaioken aura: a living ring of flame that flares on every damage tick.
 function drawKaioken(t) {
-  if (!S.w.aura) return; const E = S.evo.aura, R = (50 + 10 * WL('aura')) * (E ? 1.8 : 1) * AR(), x = W / 2, y = H / 2 + 4;
+  if (!S.w.aura) return; const E = S.evo.aura, R = (50 + 10 * WL('aura')) * (E ? 1.8 : 1) * AR2(), x = W / 2, y = H / 2 + 4;
   const pulse = Math.max(0, 1 - (V2.auT || 0) / .18), n = GFX == 'low' ? 14 : 26;
   LT();
   gl('rd', x, y, R * 1.15, .22 + .25 * pulse);

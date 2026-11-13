@@ -91,10 +91,12 @@ function dmgTally7() {
   }; }
 
 /* ---------- power-up screen: show counterparts you already own ---------- */
+// Partners not unlocked yet stay hidden (they can't be offered this run, so naming them only teases).
+const unl7 = (g, k) => (g == 'w' ? S.w[k] > 0 : S.ps[k] > 0) || RU((g == 'w' ? 'w:' : 'p:') + k);
 evoHint = function (g, k) {
-  if (g == 'w' && EVO[k] && INFO[EVO[k][2]]) { const ps = EVO[k][2], own = S.ps[ps] > 0;
+  if (g == 'w' && EVO[k] && INFO[EVO[k][2]]) { const ps = EVO[k][2], own = S.ps[ps] > 0; if (!unl7('ps', ps)) return '';
     return `<br><small class="new">Evolves with ${INFO[ps][0]}</small>${own ? ` <small class="own7b">✓ You have ${INFO[ps][0]}</small>` : ''}`; }
-  if (g == 'ps') { const w = Object.keys(EVO).filter(x => EVO[x][2] == k && INFO[x]); if (!w.length) return '';
+  if (g == 'ps') { const w = Object.keys(EVO).filter(x => EVO[x][2] == k && INFO[x] && unl7('w', x)); if (!w.length) return '';
     const owned = w.filter(x => S.w[x] > 0);
     return `<br><small class="new">Evolves: ${w.map(x => (S.evo[x] ? '★ ' : '') + (BASE[x] || INFO[x][0])).join(', ')}</small>` +
       (owned.length ? ` <small class="own7b">✓ You have ${owned.map(x => nm7(x)).join(', ')}</small>` : ''); }

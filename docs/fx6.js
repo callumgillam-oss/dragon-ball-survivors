@@ -199,7 +199,7 @@ drawW3 = function (cx, cy, t) {
       ctx.beginPath(); for (let i = 0; i < 8; i++) { const a = i * .785 + t * 3, r1 = 52 * (1 - k) + 16, r0 = r1 + 14; ctx.moveTo(px + Math.cos(a) * r0, py + Math.sin(a) * r0); ctx.lineTo(px + Math.cos(a) * r1, py + Math.sin(a) * r1); } ctx.stroke(); NM(); continue; }
     const k = Math.max(0, 1 - b.t / b.T); beam6(px, py, b.a ?? b.a0, b.len, b.w * 1.12 * Math.min(1, (1 - k) * 10 + .35) * Math.min(1, k * 5 + .15), Q, k, t, 0, 0, 0); NM(); }
   // Explosive Wave: a dome of fire rolling outwards
-  for (const w of arr('wav')) { if (w.dl > 0 || !w.r) continue; const k = w.t / w.T, a = 1 - k, x = w.x - cx, y = w.y - cy, R = w.r;
+  for (const w of arr('wav')) { if (w.dl > 0 || !w.r) continue; const k = 1 - (w.pw ?? 1) * (1 - .5 * w.t / w.T), a = 1 - k, x = w.x - cx, y = w.y - cy, R = w.r;
     LT(); const g = ctx.createRadialGradient(x, y, Math.max(0, R - 60), x, y, R + 6); g.addColorStop(0, 'rgba(255,170,60,0)'); g.addColorStop(.75, 'rgba(255,170,60,' + .3 * a + ')'); g.addColorStop(1, 'rgba(255,236,170,' + .5 * a + ')');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, R + 6, 0, 7); ctx.fill(); NM();
     if (GFX != 'low') { const n = Math.max(14, Math.min(40, R / 7 | 0)); ctx.fillStyle = 'rgba(255,196,80,' + .85 * a + ')'; ctx.beginPath();   // flame tongues along the rim

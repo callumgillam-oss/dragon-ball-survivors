@@ -7,11 +7,12 @@
 
 const W3 = ['galick', 'wave', 'tri', 'wolf', 'after', 'scatter'];
 // per-attack damage multipliers (1 = as designed); tune these with the balance bot
+const WAVE_SPD = 230, WAVE_MIN = .12;   // Explosive Wave: pulse speed (px/s) and the power left when it fizzles out
 const W3B = { galick: .85, wave: 1, tri: .9, wolf: 1, after: 1, scatter: 1 };
 
 Object.assign(INFO, {
   galick: ['Galick Gun', "Vegeta's beam: charges, then sweeps across the thickest crowd."],
-  wave: ['Explosive Wave', 'A shockwave bursts out from you and knocks enemies back.'],
+  wave: ['Explosive Wave', 'A shockwave rolls out from you and knocks enemies back. It weakens with every enemy it passes through.'],
   tri: ['Tri-Beam', 'A triangle of ki on a crowd. Damage ramps up the longer they stay in it.'],
   wolf: ['Wolf Fang Fist', 'Dash-strikes rain on nearby enemies. Short range, rapid hits.'],
   after: ['Afterimage Strike', 'Moving leaves afterimages that explode. Keep moving!'],
@@ -19,7 +20,7 @@ Object.assign(INFO, {
 });
 Object.assign(EVO, {
   galick: ['Final Flash', 'A colossal beam that still sweeps the crowd and blasts enemies back.', 'arm'],
-  wave: ['Super Explosive Wave', 'Twin shockwaves that stun everything they hit.', 'area'],
+  wave: ['Super Explosive Wave', 'Twin shockwaves that stun what they hit.', 'area'],
   tri: ['Neo Tri-Beam', 'Three triangles at once, lasting longer.', 'amt'],
   wolf: ['Neo Wolf Fang Fist', 'Longer combos on more targets, and each combo heals you.', 'sen'],
   after: ['Instant Transmission Strike', 'Afterimages teleport-strike the nearest enemy as they blow.', 'spd'],
@@ -91,16 +92,18 @@ function updW3(dt) {
   if (W_.wave) { DSRC = 'wave'; S.cd.wave -= dt; if (S.cd.wave <= 0) { const L = W_.wave, E = ev.wave, M = MY('wave');
     if (!near(1, 260).length) S.cd.wave = .3;
     else { S.cd.wave = (E ? 2.2 : Math.max(2.6, 4.2 - .3 * L)) * cm(); p.atk = p.ad = .35;
-      const R = (110 + 12 * WL('wave')) * AR() * (E ? 1.25 : 1), d = (14 + 6 * WL('wave')) * dm() * W3B.wave * (E ? 1.3 : 1) * (M ? .9 : 1), n = (E ? 2 : 1) + (M ? 1 : 0);
-      for (let i = 0; i < n; i++) arr('wav').push({ x: p.x, y: p.y, R: R * (1 + i * .18), d, dl: i * .22, t: 0, T: .45, h: new Set(), st: E ? .8 : 0, kb: E || M ? (E ? 80 : 60) * .2 : 60, clr: M });   // evolved / wished waves barely push (feedback 2026-11-13)
+      // A slow pulse (feedback 2026-11-13): rolls outwards at a walking-pace speed and loses 10% of its power on every enemy it
+      // passes through (a boss soaks 40%), fading out once spent, so it thins a crowd instead of wiping the whole screen.
+      const R = (110 + 12 * WL('wave')) * AR2() * (E ? 1.25 : 1), d = (14 + 6 * WL('wave')) * dm() * W3B.wave * (E ? 1.3 : 1) * (M ? .9 : 1), n = (E ? 2 : 1) + (M ? 1 : 0);
+      for (let i = 0; i < n; i++) { const Ri = R * (1 + i * .18); arr('wav').push({ x: p.x, y: p.y, R: Ri, d, pw: 1, dl: i * .35, t: 0, T: Ri / WAVE_SPD, h: new Set(), st: E ? .8 : 0, kb: E || M ? (E ? 80 : 60) * .2 : 60, clr: M }); }   // evolved / wished waves barely push (feedback 2026-11-13)
       sfx('wave'); } } }
   for (const w of arr('wav')) { DSRC = 'wave';
     if (w.dl > 0) { w.dl -= dt; if (w.dl <= 0) { w.x = p.x; w.y = p.y; } continue; }
-    w.t += dt; const k = Math.min(1, w.t / w.T), r = w.R * (1 - Math.pow(1 - k, 2)); w.r = r;
-    for (const e of S.en) { if (e.dead || w.h.has(e)) continue; const dd = Math.hypot(e.x - w.x, e.y - w.y);
-      if (dd < r + e.r && dd > r - 30 - e.r) { w.h.add(e); hitE(e, w.d); shove(e, w.x, w.y, w.kb); if (w.st && !e.boss) e.st = Math.max(e.st || 0, w.st); } }
+    w.t += dt; const k = Math.min(1, w.t / w.T), r = 12 + (w.R - 12) * k; w.r = r;
+    const hits = S.en.filter(e => !e.dead && !w.h.has(e)).map(e => [e, Math.hypot(e.x - w.x, e.y - w.y)]).filter(([e, dd]) => dd < r + e.r && dd > r - 30 - e.r).sort((a, b) => a[1] - b[1]);
+    for (const [e] of hits) { if (w.pw < WAVE_MIN) break; w.h.add(e); hitE(e, w.d * w.pw); shove(e, w.x, w.y, w.kb * Math.max(.4, w.pw)); if (w.st && !e.boss) e.st = Math.max(e.st || 0, w.st); w.pw *= e.boss ? .6 : .9; }
     if (w.clr) for (const q of S.eb) if (Math.abs(Math.hypot(q.x - w.x, q.y - w.y) - r) < 20) q.l = 0;
-    if (k >= 1) w.done = 1;
+    if (k >= 1 || w.pw < WAVE_MIN) w.done = 1;
   }
   S.wav = arr('wav').filter(w => !w.done);
 
@@ -108,7 +111,7 @@ function updW3(dt) {
   if (W_.tri) { DSRC = 'tri'; S.cd.tri -= dt; if (S.cd.tri <= 0) { const L = W_.tri, E = ev.tri, M = MY('tri'), c = denseSpot(420, 90);
     if (!c) S.cd.tri = .3;
     else { S.cd.tri = (E ? 2.4 : Math.max(2, 3 - .2 * L)) * cm(); p.atk = p.ad = .4; p.face = c.x > p.x ? 1 : -1;
-      const n = (E ? 3 : 1) + (PX() >> 1), s = (70 + 8 * WL('tri')) * AR(), d = (3 + 1.2 * WL('tri')) * dm() * W3B.tri;
+      const n = (E ? 3 : 1) + (PX() >> 1), s = (70 + 8 * WL('tri')) * AR2(), d = (3 + 1.2 * WL('tri')) * dm() * W3B.tri;
       const spots = [c]; if (n > 1) { const others = S.en.filter(e => !e.dead && onScr(e) && Math.hypot(e.x - c.x, e.y - c.y) > s * 1.2).sort(() => Math.random() - .5); spots.push(...others.slice(0, n - 1)); }
       for (const q of spots) arr('tris').push({ x: q.x, y: q.y, s, d, t: 0, T: E ? 2.2 : 1.6, k: 0, n: 0, rot: Math.random() * 2, fol: M ? q : null, burst: M });
       sfx('tri'); } } }
@@ -190,7 +193,7 @@ function drawW3(cx, cy, t) {
     LT(); gl(b.fin ? 'or' : 'pu', px, py, b.w * 1.3, .8 * fade); gl('wh', px, py, b.w * .6, fade); NM();
   }
   // Explosive Wave
-  for (const w of arr('wav')) { if (w.dl > 0 || !w.r) continue; const k = w.t / w.T, x = w.x - cx, y = w.y - cy;
+  for (const w of arr('wav')) { if (w.dl > 0 || !w.r) continue; const k = 1 - (w.pw ?? 1) * (1 - .5 * w.t / w.T), x = w.x - cx, y = w.y - cy;
     const g = ctx.createRadialGradient(x, y, Math.max(0, w.r - 34), x, y, w.r + 4); g.addColorStop(0, 'rgba(255,240,200,0)'); g.addColorStop(.7, 'rgba(255,220,150,' + (.35 * (1 - k)) + ')'); g.addColorStop(1, 'rgba(255,255,255,' + (.8 * (1 - k)) + ')');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, w.r + 4, 0, 7); ctx.fill();
     ctx.strokeStyle = 'rgba(255,250,230,' + (1 - k) + ')'; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(x, y, w.r, 0, 7); ctx.stroke(); }

@@ -809,6 +809,15 @@ Shipped without bot balance runs, at your request: you judge the numbers.
 - **Feel:** Level 2 shooters idle when standing still; Ki Burst and pause fire on touch-down so they work while
   another finger is walking.
 
+### Playtest pass 2 (2026-11-13)
+- **Progression:** XP gems give 50% XP (halved at pickup; Dragon Ball XP unchanged).
+- **Explosive Wave:** now a slow pulse (230 px/s, was ~0.45 s to full size) that loses 10% power per enemy it passes
+  through (a boss soaks 40%) and fizzles below 12%. Radius uses 60% of the Area bonus. Wave draws fade with its power.
+- **Big-AoE audit:** Kaioken aura (and its slow/gravity well), Dragon Thunder, Tri-Beam zones, Kaioken Wolf Fang aura,
+  and the fused beams (Final / Final Shine Kamehameha, Makankosappo Light, Final Shine bomb) use 60% of the Area bonus.
+  Evolved Solar Flare (whole screen) 34+8/lv → 18+5/lv. Makankosappo Light (all-round sweeping beams) 40+7/lv → 28+5/lv.
+- **UI:** "Evolves with" on power-ups hides partners not unlocked yet (owned ones always show).
+
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
 2. **Phase A ships now** as a 2.1 patch, before the big update. ✓

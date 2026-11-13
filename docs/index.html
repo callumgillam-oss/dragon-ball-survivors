@@ -307,13 +307,13 @@ function update(dt){
  }
  if(W_.aura){DSRC='aura';
   S.cd.aura-=dt;
-  if(S.cd.aura<=0){S.cd.aura=S.evo.aura?.22:.3;const L=W_.aura,E=S.evo.aura,R=(50+10*WL('aura'))*(E?1.8:1)*AR();
+  if(S.cd.aura<=0){S.cd.aura=S.evo.aura?.22:.3;const L=W_.aura,E=S.evo.aura,R=(50+10*WL('aura'))*(E?1.8:1)*AR2();
    for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<R+e.r){hitE(e,(3+2*WL('aura'))*dm()*(E?1.3:WB.aura));shove(e,p.x,p.y,E?9:6);if(E)p.hp=Math.min(p.max,p.hp+.12)}}
  }
  if(W_.flare){DSRC='flare';
   S.cd.flare-=dt;
   if(S.cd.flare<=0){const L=W_.flare;S.cd.flare=(S.evo.flare?4:Math.max(5,13-1.4*L))*cm();aFlash(1);
-   for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<(S.evo.flare?900:600)*AR2()){e.st=(1+.4*WL('flare'))*(S.evo.flare?1.6:1)*(MY('flare')?1.25:1)*(e.boss?.5:1);if(MY('flare'))e.mk=5;hitE(e,(S.evo.flare?34+8*WL('flare'):9+4*WL('flare'))*WB.flare*dm())}}
+   for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<(S.evo.flare?900:600)*AR2()){e.st=(1+.4*WL('flare'))*(S.evo.flare?1.6:1)*(MY('flare')?1.25:1)*(e.boss?.5:1);if(MY('flare'))e.mk=5;hitE(e,(S.evo.flare?18+5*WL('flare'):9+4*WL('flare'))*WB.flare*dm())}}
  }
  for(const s of S.sh){DSRC=s.src||'blast';
   if(s.hm)homeS(s,dt);s.x+=s.vx*dt;s.y+=s.vy*dt;s.l-=dt;
@@ -357,7 +357,7 @@ function update(dt){
  const mag=(70+6*p.lv+30*S.pe.rad)*(1+.1*(META.magnet||0));
  for(const g of S.gem){const dx=p.x-g.x,dy=p.y-g.y,d=Math.hypot(dx,dy);
   if(d<mag){g.x+=dx/d*320*dt;g.y+=dy/d*320*dt}
-  if(d<14){g.got=1;addXp(g.v)}}
+  if(d<14){g.got=1;addXp(g.v*.5)}}
  for(const f of S.fx){f.l-=dt;if(!f.ring){f.x+=f.vx*dt;f.y+=f.vy*dt}}
  S.en=S.en.filter(e=>!e.dead);S.sh=S.sh.filter(s=>s.l>0);S.eb=S.eb.filter(b=>b.l>0);
  S.beams=S.beams.filter(b=>b.t>0);S.gem=S.gem.filter(g=>!g.got);S.fx=S.fx.filter(f=>f.l>0);
@@ -549,7 +549,7 @@ function draw(){
  drawChests(cx,cy,t);drawBeans(cx,cy,t);drawBalls(cx,cy,t);drawArrows(cx,cy);
  for(const e of S.en.slice().sort((a,b)=>a.y-b.y)){const x=e.x-cx,y=e.y-cy;if(x<-70||y<-70||x>W+70||y>H+70)continue;enemy(e,x,y)}
  drawNums(cx,cy);ctx.fillStyle='rgba(40,20,5,.32)';el(W/2,H/2+22,17,5);
- if(S.w.aura){const R=(50+10*WL('aura'))*(S.evo.aura?1.8:1)*AR();
+ if(S.w.aura){const R=(50+10*WL('aura'))*(S.evo.aura?1.8:1)*AR2();
   {const g=ctx.createRadialGradient(W/2,H/2,R*.35,W/2,H/2,R*1.04);g.addColorStop(0,'rgba(255,70,30,0)');g.addColorStop(.8,'rgba(255,90,40,'+(.04+.02*Math.sin(t*9))+')');g.addColorStop(.95,'rgba(255,150,70,.22)');g.addColorStop(1,'rgba(255,140,60,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(W/2,H/2,R*1.04,0,7);ctx.fill()}
   }
  if(!(S.hurt>0&&Math.floor(t*20)%2))gokuSprite(ctx,W/2,H/2,p.face,t);
@@ -686,7 +686,7 @@ function lvlUp(){
  if(!c.length){S.pend=0;S.p.hp=S.p.max;S.mode='play';show('');return}
  show(`<div class="card"><h2>Power up! Level ${S.p.lv}</h2>`+c.map(([g,k])=>{
   if(g=='e')return `<button class="evo" onclick="pick('e','${k}')"><b>★ EVOLVE: ${EVO[k][0]}</b><br><small>${EVO[k][1]}</small></button>`;
-  const l=S[g][k],h=g=='w'&&EVO[k]?`<br><small class="new">Evolves with ${INFO[EVO[k][2]][0]}</small>`:'';
+  const l=S[g][k],h=evoHint(g,k);
   return `<button onclick="pick('${g}','${k}')"><b>${INFO[k][0]}</b> ${l?`<small>Lv ${l} → ${l+1}</small>`:'<span class="new">NEW</span>'}<br><small>${INFO[k][1]}</small>${h}</button>`}).join('')+`</div>`);
 }
 function pick(g,k){
@@ -2108,7 +2108,7 @@ function bombTick(dt){
 function updNew(dt){
  const p=S.p,W_=S.w,ev=S.evo;
  // slow / gravity systems share one speed multiplier
- const gz=W_.aura&&MY('aura')?((50+10*WL('aura'))*(ev.aura?1.8:1)*AR())*1.7:0,auR=W_.aura?(50+10*WL('aura'))*(ev.aura?1.8:1)*AR():0;
+ const gz=W_.aura&&MY('aura')?((50+10*WL('aura'))*(ev.aura?1.8:1)*AR2())*1.7:0,auR=W_.aura?(50+10*WL('aura'))*(ev.aura?1.8:1)*AR2():0;
  for(const e of S.en){if(e.dead)continue;if(e.mk>0)e.mk-=dt;
   if(!gz&&!auR&&!S.fields.length&&e.s0===undefined)continue;
   if(e.s0===undefined)e.s0=e.spd;let f=1;
@@ -2150,7 +2150,7 @@ function updNew(dt){
  if(W_.thunder){S.cd.thunder-=dt;if(S.cd.thunder<=0){const L=W_.thunder,E=ev.thunder,ts=near(30,600);
   if(!ts.length)S.cd.thunder=.3;
   else{S.cd.thunder=(E?1.5:Math.max(2,3.4-.3*L))*cm();ts.sort(()=>Math.random()-.5);
-   const n=1+(L>>1)+PX()+(E?2:0),d=(22+9*WL('thunder'))*dm()*(E?1.4*WB.thunderE:1),R=(38+3*WL('thunder'))*AR()*(E?1.35:1);
+   const n=1+(L>>1)+PX()+(E?2:0),d=(22+9*WL('thunder'))*dm()*(E?1.4*WB.thunderE:1),R=(38+3*WL('thunder'))*AR2()*(E?1.35:1);
    for(let i=0;i<n;i++){const e=ts[i%ts.length];S.str.push({x:e.x+(Math.random()-.5)*24,y:e.y+(Math.random()-.5)*24,t:.5,T:.5,R,d,f:0,l:0})}}}}
  for(const s of S.str){DSRC='thunder';
   if(!s.f){s.t-=dt;if(s.t<=0){s.f=1;s.l=.25;S.flash=Math.max(S.flash,.05);sfx('boom');const hit=[];
@@ -2189,7 +2189,7 @@ function drawNew(cx,cy,t){
  for(const b of S.rb){const k=b.l/.3;ctx.strokeStyle='rgba(255,150,0,'+k*.6+')';ctx.lineWidth=b.w*1.4;ctx.beginPath();ctx.moveTo(b.x1-cx,b.y1-cy);ctx.lineTo(b.x2-cx,b.y2-cy);ctx.stroke();
   ctx.strokeStyle='rgba(255,235,150,'+k+')';ctx.lineWidth=b.w*.5;ctx.stroke();gl('or',b.x2-cx,b.y2-cy,b.w*1.2,k*.8)}
  for(const f of S.fields){const x=f.x-cx,y=f.y-cy,k=Math.min(1,f.t/f.T*1.5);gl('cy',x,y,f.r*1.1,.25*k);ctx.strokeStyle='rgba(150,225,255,'+.5*k+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,f.r*(.95+.04*Math.sin(t*6)),0,7);ctx.stroke()}
- if(S.w.aura&&MY('aura')){const R=((50+10*WL('aura'))*(S.evo.aura?1.8:1)*AR())*1.7;ctx.strokeStyle='rgba(190,120,255,.4)';ctx.lineWidth=2;ctx.setLineDash([8,10]);ctx.lineDashOffset=-t*30;ctx.beginPath();ctx.arc(W/2,H/2,R,0,7);ctx.stroke();ctx.setLineDash([])}
+ if(S.w.aura&&MY('aura')){const R=((50+10*WL('aura'))*(S.evo.aura?1.8:1)*AR2())*1.7;ctx.strokeStyle='rgba(190,120,255,.4)';ctx.lineWidth=2;ctx.setLineDash([8,10]);ctx.lineDashOffset=-t*30;ctx.beginPath();ctx.arc(W/2,H/2,R,0,7);ctx.stroke();ctx.setLineDash([])}
  for(const e of S.en)if(e.mk>0){const x=e.x-cx,y=e.y-cy;if(x<-30||y<-30||x>W+30||y>H+30)continue;ctx.strokeStyle='rgba(255,200,60,.85)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,e.r+4,0,7);ctx.stroke()}
 }
 // icons for the new abilities
