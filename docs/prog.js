@@ -58,7 +58,7 @@ const ACH = [
   { id: 's2', c: 'story', n: "Brother's Keeper", d: 'Defeat Raditz', r: ['kiburst', 's:ult'], t: () => P.bk.rad },
   { id: 's3', c: 'story', n: 'Bald Brute', d: 'Defeat Nappa', r: ['dragonballs', 'p:rad', 'w:hell'], t: () => P.bk.nap },
   { id: 's4', c: 'story', n: 'Prince of All Saiyans', d: 'Defeat Vegeta and clear Level 1', r: ['lvl2', 'h:vegeta', 'w:galick'], t: () => P.bk.veg },
-  { id: 's5', c: 'story', n: 'Planet Namek', d: 'Survive 10:00 on Level 2', r: ['s:magnet'], t: () => S.stage == 2 && S.t >= 600 },
+  { id: 's5', c: 'story', n: 'Planet Namek', d: 'Survive 10:00 on Level 2', r: ['s:magnet'], t: () => S.stage == 2 && !S.endless && S.t >= 600 },
   { id: 's6', c: 'story', n: 'Ultra Fighting Bomber', d: 'Defeat Recoome', r: ['w:wave'], t: () => P.bk.rec },
   { id: 's7', c: 'story', n: 'Fastest in the Universe', d: 'Defeat Burter and Jeice', r: ['w:after'], t: () => P.bk.bur && P.bk.jei },
   { id: 's8', c: 'story', n: 'Time Stands Still', d: 'Defeat Guldo', r: ['timefreeze'], t: () => P.bk.gul },

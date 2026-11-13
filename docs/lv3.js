@@ -168,7 +168,7 @@ AI.ce3 = function (e, dt) {
 };
 // Cell evolves when each form falls
 { const _k = killE; killE = function (e) {
-    const was = e.dead; _k(e); if (was || !e.dead || S.stage != 3) return;
+    const was = e.dead; _k(e); if (was || !e.dead || (S.stage != 3 && !S.endless)) return;
     if (e.k == 'ce1' || e.k == 'ce2') { const nk = e.k == 'ce1' ? 'ce2' : 'ce3'; spawnE(nk); const n = S.en[S.en.length - 1]; n.x = e.x; n.y = e.y;
       S.flash = 1; boom(e.x, e.y, 120, '#9f6'); ban(nk == 'ce2' ? 'CELL EVOLVES: SEMI-PERFECT FORM!' : 'PERFECT CELL!'); }
     if (e.k == 'ce3' && e.boomT > 0) S.cellSD = 1;
@@ -473,7 +473,7 @@ const L3ACH = [
   { id: 's15', c: 'story', n: 'Bio-Android', d: 'Defeat Imperfect Cell', r: ['vac2'], t: () => P.bk.ce1 },
   { id: 's15b', c: 'story', n: 'Semi-Perfect', d: 'Defeat Semi-Perfect Cell', r: ['z:1500'], t: () => P.bk.ce2 },
   { id: 's16', c: 'story', n: 'The Cell Games', d: 'Defeat Perfect Cell', r: ['lvl4', 'fusion'], t: () => P.bk.ce3 },
-  { id: 's16b', c: 'story', n: 'City in Ruins', d: 'Survive 10:00 on Level 3', r: ['z:800'], t: () => S.stage == 3 && S.t >= 600 },
+  { id: 's16b', c: 'story', n: 'City in Ruins', d: 'Survive 10:00 on Level 3', r: ['z:800'], t: () => S.stage == 3 && !S.endless && S.t >= 600 },
   { id: 'x11', c: 'secret', n: 'Perfect Timing', h: 'Ten seconds is plenty.', d: 'Defeat Perfect Cell during his self-destruct countdown', r: ['z:1200'], t: () => S.cellSD },
   { id: 'x12', c: 'secret', n: 'Behind You!', h: 'Energy cannot be stolen from the back.', d: 'Defeat Android 19 without him absorbing any of your energy', r: ['z:700'], t: () => S.bkr && S.bkr.a19 && !S.a19abs },
   { id: 'x13', c: 'secret', n: 'Twin Takedown', h: 'Two at once.', d: 'Defeat Androids 17 and 18 within 10 seconds of each other', r: ['z:900'], t: () => S.a78 && S.a78.a17 && S.a78.a18 && Math.abs(S.a78.a17 - S.a78.a18) <= 10 }

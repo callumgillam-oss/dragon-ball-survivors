@@ -33,6 +33,7 @@ window.simRun = async function (o) {
       const sc = b => {
         const lb = /lbPick\((\d)\)/.exec(b.getAttribute('onclick') || '');
         if (lb) return +lb[1] === 3 ? (S.p.hp < S.p.max * .7 ? 50 : 1) : +lb[1] === 0 ? 10 : 5;   // Limit Break: heal when hurt
+        if (/pickFuse/.test(b.getAttribute('onclick') || '')) return 120;   // Fusion Dance
         const m = /pick\('(\w+)','(\w+)'(?:,(\d))?/.exec(b.getAttribute('onclick') || ''); if (!m) return 0;
         const [, g, k, r] = m, rr = +(r || 0);
         if (g === 'e') return 100;
@@ -52,8 +53,8 @@ window.simRun = async function (o) {
     let bestS = -1e18; var mx = 0, my = 0;
     let tgt = null, tb = 1e9;
     const hpF = p.hp / p.max;
-    for (const g of S.gem.concat(S.beans || [], S.chests || [], S.balls || [])) {
-      const ball = (S.balls || []).includes(g), d = Math.hypot(g.x - p.x, g.y - p.y), w = ball ? d * .25 : g.n ? d * .4 : d;
+    for (const g of S.gem.concat(S.beans || [], S.chests || [], S.balls || [], S.cdy || [], S.ch4 || [])) {
+      const ball = (S.balls || []).includes(g), d = Math.hypot(g.x - p.x, g.y - p.y), w = ball ? d * .25 : g.n ? d * .4 : (S.cdy || []).includes(g) ? d * .3 : d;   // grab Fat Buu's candy before he eats it
       if (w < tb && (d < 420 || ball && hpF > (window.BOT_BALLS ? .55 : 2) || ball && hpF > .5 && !S.en.some(e => e.boss))) { tb = w; tgt = g; }   // a player travels for Dragon Balls
     }
     for (let k = 0; k < 17; k++) {
@@ -73,8 +74,13 @@ window.simRun = async function (o) {
         }
         for (const z of S.zones) {
           if (z.f) continue; const d = Math.hypot(px - z.x, py - z.y);
-          if (d < z.r + 14 && z.t < T + .35) danger += (z.d || 20) * 2;
+          if (d < z.r + 14 && z.t < T + .35 + (z.r > 150 ? z.r / sp : 0)) danger += (z.d || 20) * 2;   // big blasts: leave early
         }
+        for (const z of S.gz || []) if (Math.hypot(px - z.x, py - z.y) < z.r + 10) danger += 6;            // Level 4 hazards
+        for (const z of S.spit || []) if (Math.hypot(px - z.x, py - z.y) < 64 && z.t < T + .35) danger += 30;
+        for (const z of S.stn || []) if (Math.hypot(px - z.x, py - z.y) < z.r + 14) danger += 25;
+        for (const z of S.cpd || []) if (Math.hypot(px - z.x, py - z.y) < z.r + 8) danger += 4;
+        if (S.pb && T == .4) { let sd = 1e9, sr = 60; for (const q of S.pb.safe) { const d = Math.hypot(px - q.x, py - q.y); if (d < sd) { sd = d; sr = q.r; } } danger += sd < sr * .6 ? 0 : 20 + sd / 6; }
         if (!window.BOT_NOLANE) for (const l of S.lns || []) {   // telegraphed beam lanes (Frieza's Death Beams, etc.): step out of the stripe
           if (l.on > 0 || l.t > T + .35) continue; const c = Math.cos(l.a), sn = Math.sin(l.a), dx = px - l.x, dy = py - l.y, al = dx * c + dy * sn, pp = Math.abs(-dx * sn + dy * c);
           if (al > -20 && al < l.len && pp < l.w / 2 + 16) danger += (l.d || 20) * 2;
@@ -132,8 +138,8 @@ window.campaign = async function (n, o) {
   try {
   window._camp = [];
   for (let i = 0; i < n; i++) {
-    const before = new Set(Object.keys(P.ach)), stage = HAS('lvl2') ? 2 : 1;
-    const heroes = ['goku', 'pic', 'gohan', 'vegeta', 'kri'].filter(h => HAS(heroKey(h)));
+    const before = new Set(Object.keys(P.ach)), stage = HAS('lvl4') ? 4 : HAS('lvl3') ? 3 : HAS('lvl2') ? 2 : 1;
+    const heroes = ['goku', 'pic', 'gohan', 'vegeta', 'kri', 'trunks', 'gotenks'].filter(h => HAS(heroKey(h)));
     const r = await simRun({ stage, dlv: o.dlv, hero: heroes[i % heroes.length], skill: o.skill, maxT: o.maxT, keepMeta: true });
     for (let g = 0; g < 3 && S.mode == 'play'; g++) { S.revived = 1; S.p.hp = -1; update(1 / 60); }   // hit maxT: end the run so it counts (no revive)
     while (RV) revealNext();

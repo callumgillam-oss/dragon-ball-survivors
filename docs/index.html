@@ -1238,7 +1238,7 @@ function hud(){
   ctx.strokeStyle='#5a0e08';ctx.lineWidth=7;ctx.lineJoin='round';ctx.strokeText(S.ban.txt,W/2,by);ctx.strokeStyle='#d83a14';ctx.lineWidth=3;ctx.strokeText(S.ban.txt,W/2,by);ctx.fillStyle=g;ctx.fillText(S.ban.txt,W/2,by);ctx.globalAlpha=1}
 }
 // ===== v7: Piccolo, Dragon Balls + Shenron, new enemies, art pass, tuning =====
-let HERO='goku';try{const hv=store.getItem('dbs_hero');HERO=['pic','gohan','vegeta','kri','trunks'].includes(hv)?hv:'goku'}catch(e){}
+let HERO='goku';try{const hv=store.getItem('dbs_hero');HERO=['pic','gohan','vegeta','kri','trunks','gotenks'].includes(hv)?hv:'goku'}catch(e){}
 const sheetOf=(h,ssj)=>(typeof XSH!='undefined'&&XSH[h])?XSH[h](ssj):h=='pic'?(ssj?PSSJ:PSHEET):h=='gohan'?(ssj?HSSJ:HSHEET):(ssj&&GSSJ?GSSJ:GSHEET);
 const SHEET=()=>sheetOf(S.hero,S.ssj);
 const FORM=()=>(typeof XFORM!='undefined'&&XFORM[S.hero])?'  '+XFORM[S.hero][0]:S.hero=='pic'?'  ORANGE PICCOLO':S.hero=='gohan'?'  SUPER SAIYAN 2':'  SUPER SAIYAN';
@@ -2291,7 +2291,7 @@ const RUNK='dbs_run';
 function reloadPersisted(){
  try{const v=store.getItem('dbs_diff');if(v!==null&&+v>=0&&+v<=2)DLV=+v}catch(e){}
  U2=store.getItem('dbs_u2')=='1';
- const hv=store.getItem('dbs_hero');HERO=['pic','gohan','vegeta','kri','trunks'].includes(hv)?hv:'goku';
+ const hv=store.getItem('dbs_hero');HERO=['pic','gohan','vegeta','kri','trunks','gotenks'].includes(hv)?hv:'goku';
  try{Object.assign(META,JSON.parse(store.getItem('dbs_meta')||'{}'))}catch(e){}
  for(const k in UPG)META[k]=Math.max(0,Math.min(UPG[k][2],META[k]|0));
 }
@@ -2321,7 +2321,7 @@ function svWelcome(){
  const r=svPeek();if(!r)return false;
  init();Object.assign(S,r.S);S.stage=r.stage;if(r.diff>=0&&r.diff<=2)DLV=r.diff;
  S.fx=[];S.nums=[];S.ban=null;S.mode='pause';joy=null;svWelcomeOn=true;
- const hn={goku:'Goku',pic:'Piccolo',gohan:'Gohan',vegeta:'Vegeta',kri:'Krillin',trunks:'Trunks'}[S.hero]||'Goku';
+ const hn={goku:'Goku',pic:'Piccolo',gohan:'Gohan',vegeta:'Vegeta',kri:'Krillin',trunks:'Trunks',gotenks:'Gotenks'}[S.hero]||'Goku';
  show(`<div class="card"><h2>Welcome back!</h2><p>Your run was saved right where you left it.</p>
   <div class="stats"><div><b>${S.stage==2?'Namek':'Wasteland'}</b><small>level ${S.stage}</small></div><div><b>${fmt(S.t)}</b><small>time</small></div><div><b>${S.p.lv}</b><small>${hn} lv</small></div><div><b>${S.kills}</b><small>defeated</small></div></div>
   <button class="go" onclick="svResume()">▶ Resume run</button><button onclick="svAbandon()">Abandon run &amp; main menu</button></div>`);
@@ -2408,7 +2408,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="cut4.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>

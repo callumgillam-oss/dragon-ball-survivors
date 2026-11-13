@@ -408,6 +408,43 @@ Changes from the plan while building (easy to revisit):
 ---
 
 ## 9. Level 4: Majin Buu Saga (Phase G)
+
+### 9.00 Status
+`[x]` Built on `v3-dev`: `docs/lv4.js` (stage, mobs, bosses, hazards, art, map, intro, achievements), `docs/w5.js`
+(Majin Mark, Ghost Kamikaze, Candy Beam, Fusion Dance, Gotenks, Super Saiyan 3 Goku, Majin Vegeta form),
+`docs/endless.js` (§9.2) and `docs/cut4.js` (§9.0 cutscenes).
+Changes from the plan while building (easy to revisit):
+- **Map** changes with time: Babidi's ship (to 3:20), the rocky wasteland (to 6:20), then the ruined city with candy.
+  Candy puddles in the city slow you down.
+- **Mobs:** Majin Fighters (go berserk below half health), demon imps (ranged), Buu blobs from 2:30 that split into two
+  bits when they die. Swarm rings at 1:00, 3:45 and 6:50.
+- **Bosses:** Pui Pui (x10 gravity zones that slow you), Yakon (darkness: you only see a circle around you; Solar Flare
+  heals him and he takes half damage from outside your light), Dabura (sword lanes, fire fans, stone spit that
+  leaves puddles which root you for 1 s), Majin Vegeta (uses the playable Vegeta's Super Saiyan sprite with the M;
+  Big Bang zones, Galick lanes, and at 20% HP a 4-second Final Explosion you must run from, after which he is
+  exhausted and takes +50%), Fat Buu (turns up to 4 nearby mobs into candy that floats to him and heals him; grab it
+  first for +3 HP; regenerates if you stop hitting him for 2.5 s), Super Buu (absorbs one of your attacks for 15 s),
+  Kid Buu (teleports, Planet Burst every ~15 s: the whole screen blows up except three safe circles).
+  Each boss waits for the one before (+15 s, never more than 75 s late), like Level 3.
+- **S18 (Yakon)** gives **Shenron's blessing** (each wish also fully heals you and adds 10 max HP) instead of a 6th wish
+  choice: wishes offer your attacks, and a 6th choice almost never mattered.
+- **S20 (Majin Vegeta):** Vegeta's transformation becomes Majin Vegeta (the M, a new title and line) and gives +10% damage.
+- **Majin Mark:** +10% damage and +5% XP per level, enemies spawned afterwards move 5% faster per level. Every hero shows the M.
+- **Gotenks:** Show-Off (+15% damage above 70% HP), starts with Ghost Kamikaze (fires 15% faster), Ki Burst
+  **Galactic Donut** (a ring traps a crowd, squeezes it and explodes), transforms to Super Saiyan 3.
+- **Extra achievements:** Candy Land (survive 10:00, +1,000), five secrets (Lights Out, Not Today Vegeta, Sweet Tooth,
+  Planet Survivor, Rock Solid), Ginyu Challenge clears for Level 4 (+1,600 each), Dance Partners (first fusion, +600),
+  Fusion Master (10 fusions, +1,500), Endless 20/30/45/60 minutes (+2,000/3,000/5,000/8,000).
+- **Balance (bot, Hard, fully bought shop, every unlock including Level 4's):** Level 4 won 2-3 of 10 across heroes
+  (wins finish at 8:30-13:00). Tuning done: Fat Buu's healing cut (it made him unkillable for weaker builds),
+  Majin Fighters' berserk speed 1.6x → 1.3x, swarm rings and walls use small blob bits, boss health about 15% above
+  the Level 3 equivalents.
+- **Important for Phase H:** under the same conditions **Level 3 also only won 1 of 10** (it won 6 of 8 in Phase F,
+  before the Level 4 unlocks existed). With 20 attacks and 10 passives in the pool the bot rarely completes evolution
+  pairs (many runs end with 0-1 evolutions at level 20+). It also never uses Mafuba Seals or rerolls, and it takes
+  Majin Mark (faster enemies) like any passive. Phase H should look at evolution reliability with a full pool
+  (and teach the bot to seal and reroll) before judging Level 3-4 difficulty.
+
 - **Map:** Babidi's spaceship interior → rocky wasteland → ruined city. Pink candy-themed hazards late on.
 - **Length:** ~10:30 to the final boss.
 - **Mobs:** Majin-marked fighters (frenzied when low), Buu blobs that **split in two** when killed.
@@ -427,7 +464,11 @@ Changes from the plan while building (easy to revisit):
 - **Candy Beam:** random non-boss enemies get turned into candy (instant kill, 4% chance to drop a heal).
   Bosses take a damage-over-time instead. Evolves (Majin Mark) into **Candy Storm.**
 
-### 9.0 Boss transformation cutscenes (Frieza, Cell, Buu) + Super Saiyan upgrade
+### 9.0 Boss transformation cutscenes (Frieza, Cell, Buu) + Super Saiyan upgrade  `[x]`
+Built in `docs/cut4.js`: middle forms ~2.8 s, final forms ~4.6 s (silhouette until a shockwave reveal), Super Saiyan
+~3.8 s with a speeding heartbeat into a major-key brass hit. Each hero has its own title and line (Goku's becomes
+Super Saiyan 3 after Kid Buu, Gohan gets static sparks, Krillin's is white). Gameplay pauses during them; the bot skips them.
+
 Each boss form change gets a short cutscene (~3 s, tap to skip after the first viewing), built like the existing SSJ one:
 - **Middle forms** (Frieza 2nd, Semi-Perfect Cell, Super Buu): screen dims, the boss's aura flares, a camera
   push-in, a short roar and a title card ("FRIEZA TRANSFORMS!").
@@ -443,14 +484,24 @@ Each boss form change gets a short cutscene (~3 s, tap to skip after the first v
   Gohan's SS2 static sparks and Goku's SS3 (Kid Buu unlock) each get their own variation.)
 - Reduced-flashing setting softens the lightning.
 
-### 9.1 Fusion Dance (unlocked by Perfect Cell)
+### 9.1 Fusion Dance (unlocked by Perfect Cell)  `[x]`
+Built: when both attacks of a recipe are evolved, a gold **Fusion Dance** card appears on level-up (also on Limit
+Break cards). The two attacks become one fused attack and the slot is freed. Recipes: Final Kamehameha
+(Kamehameha + Galick Gun), Father-Son Kamehameha (Kamehameha + Masenko), Mentor's Light (Special Beam Cannon +
+Masenko); after Fat Buu also Twin Kienzan Storm (Destructo Disc + Scattering Bullet) and Dragon Spirit Bomb
+(Spirit Bomb + Dragon Thunder). Fused beams hit several times but are capped against bosses, like Super Kamehameha.
+
 Two **evolved** attacks fuse into one super-attack and **free a slot** (like Unions in Vampire Survivors):
 - Super Kamehameha + Final Flash → **Final Kamehameha**
 - Super Kamehameha + Hyper Masenko → **Father-Son Kamehameha**
 - Makankosappo + Hyper Masenko → **Mentor's Light** (Piccolo and Gohan)
 - (more recipes from Fat Buu: Kienzan + Scattering Barrage → **Twin Kienzan Storm**, etc.)
 
-### 9.2 Endless Mode (unlocked by Kid Buu)
+### 9.2 Endless Mode (unlocked by Kid Buu)  `[x]`
+Built as planned: maps change every 5:00 (Wasteland → Namek → City → Buu Saga → repeat), 3-4 bosses of that saga
+return on each map, each 20-minute loop makes bosses 1.5x tougher, mob health holds the 9-minute curve and then grows
+1.5x per loop, Limit Break is forced on, +40 Zeni per minute, and the best time shows on the menu button.
+
 - One continuous run that **cycles through all 4 maps** every ~5 min.
 - Bosses from every arc return in escalating waves (×1.5 toughness each cycle).
 - Limit Break on, Zeni paid per minute survived. Best time and kills saved.
