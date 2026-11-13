@@ -6,7 +6,7 @@
 'use strict';
 
 const BASE_HEROES = [['goku', 'Goku', 'Saiyan Spirit: +25% damage below 40% HP.'], ['pic', 'Piccolo', 'Namekian Regeneration: heals steadily, faster when hurt.'],
-  ['gohan', 'Gohan', 'Hidden Potential: +8% XP, Masenko fires 15% faster, attacks speed up below 35% HP.']];
+  ['gohan', 'Gohan', 'Hidden Potential: +5% XP, Masenko fires 10% faster, attacks speed up below 35% HP.']];
 function heroList() {
   const L = BASE_HEROES.map(([h, n, d]) => ({ h, n, d, ok: 1 }));
   for (const [u, n, req, h] of LOCKED_HEROES) { const a = achFor(u), sec = a && a.c == 'secret' && !achDone(a), ok = HAS(u) && HERO3[h];

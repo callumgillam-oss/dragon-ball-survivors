@@ -23,7 +23,7 @@ Object.assign(TYPES, {
 const L3BOSS = { a19: 2.0, a20: 1.9, a17: 2.0, a18: 1.9, a16: 1.55, ce1: 1.7, ce2: 1.45, ce3: 1.9 };
 { const _b = DIFF.boss; DIFF.boss = k => L3BOSS[k] ? L3BOSS[k] * (.6 + .4 * DF[DLV]) : _b(k); }
 // Level 3 mobs are tougher than Namek's (players arrive with a stronger shop)
-const L3HP = 1.05, L3THIN = .4;   // mob HP multiplier; share of regular spawns skipped (the city is less crowded than the Wasteland)
+const L3HP = 1.05, L3THIN = .5;   // mob HP multiplier; share of regular spawns skipped (the city is less crowded than the Wasteland)
 { const _h = DIFF.hp; DIFF.hp = t => _h(t) * (S.stage == 3 ? L3HP * (.7 + .3 * Math.min(1, t / 240)) : 1); }   // gentler first four minutes
 
 STAGES[3] = { open: 'THE ANDROIDS HAVE ARRIVED!', final: 'ce3', win: 'Cell is defeated. The Earth is safe, thanks to you!',
@@ -77,8 +77,8 @@ const ang = (e, x, y) => Math.atan2(y - e.y, x - e.x);
 // get behind him for bonus damage.
 AI.a19 = function (e, dt) {
   const p = S.p, h2 = e.hp < e.max * .5; e.t3 = (e.t3 ?? 3) - dt; e.t4 = (e.t4 ?? 5) - dt;
-  if (e.abs > 0) { e.abs -= dt; if (e.abs <= 0) e.t4 = h2 ? 6.5 : 8; }
-  else { chase(e, dt, 60); if (e.t4 <= 0) { e.abs = 2.2; e.fa = ang(e, p.x, p.y); ban('ANDROID 19 IS ABSORBING ENERGY! GET BEHIND HIM!'); sfxPlay('charge'); }
+  if (e.abs > 0) { e.abs -= dt; if (e.abs <= 0) e.t4 = h2 ? 7.5 : 9; }
+  else { chase(e, dt, 60); if (e.t4 <= 0) { e.abs = 1.8; e.fa = ang(e, p.x, p.y); ban('ANDROID 19 IS ABSORBING ENERGY! GET BEHIND HIM!'); sfxPlay('charge'); }
     if (e.t3 <= 0) { e.t3 = h2 ? 2.6 : 3.2; fan(e, h2 ? 4 : 3, 220, 'or', 8); } }
   if (near_(e) && !(e.hc2 > S.t)) { e.hc2 = S.t + .5; bossHurt(16); }
 };

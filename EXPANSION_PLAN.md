@@ -564,6 +564,73 @@ achievements), fusion tiers and the three new recipes in `docs/w5.js`. Notes fro
   9,500. Endless and Insane want a near-full shop (~17,000).**
 - Level payouts scale up for Levels 3-4 so the climb takes about the same number of runs per level.
 
+### 10.0 Phase H balance pass (in progress)
+- **Level-up offers are weighted** (`docs/bal5.js`): upgrades to what you own ×1.8, a passive that evolves an attack you
+  own ×2.2, an attack whose passive you own ×1.3, Majin Mark ×0.7. With 20 attacks and 10 passives a purely random
+  pick rarely completed an evolution pair. A first try at ×2.5/×3/×1.8 made every level far too easy.
+- **The bot rerolls weak cards** and treats Majin Mark as a curse, like a player would.
+- **Levels 3-4:** spawns thinned 40% → 50% (the screen used to flood at 4-5 minutes); bosses +25% health; mobs
+  1.05× → 1.2× health; Android 19 absorbs for 1.8 s every 9 s (was 2.2 s / 8 s); Fat Buu regenerates only after 4 s
+  unhit and candy heals 0.4%.
+- **Dragon Balls** spawn 20% more often on Levels 3-4.
+- **Gohan** was winning every first clear: XP bonus 8% → 5%, Masenko speed-up 15% → 10%.
+- **Current Level 3-4 settings:** Level 3 bosses +50% health, mobs 1.15×; Level 4 bosses +80% health, mobs 1.4×.
+  Judged with the unlock pool a player really has at each point (my "every unlock, maxed shop" tests made both look
+  far harder than they are in real progression).
+- **Fresh-account campaigns** (bot, Hard, no Dragon Ball chasing):
+
+| Milestone | Target (§4.4) | Campaign 1 (before tuning) | Campaign 2 |
+|---|---|---|---|
+| Vegeta | runs 5-8 | 3 | 3 |
+| Frieza | runs 15-22 | 7 | 7 |
+| Perfect Cell | runs 22-35 | 14 | 13 |
+| Kid Buu | runs 35-50 | 15 | 20 |
+| Shop finished | after a couple of Level 4 runs | 19 (38,600 shop) | 26 (49,800 shop; 12 Level 4 runs in) |
+
+| Milestone | Target (§4.4) | Campaign 3 (Gohan trimmed) | Campaign 4 (L3-4 +50% / 1.3×) | Campaign 5 (current) |
+|---|---|---|---|---|
+| Vegeta | runs 5-8 | 6 | 3 | 2 |
+| Frieza | runs 15-22 | 12 | 7 | 3 |
+| Perfect Cell | runs 22-35 | 15 | 26 (19 attempts) | 16 (13 attempts) |
+| Kid Buu | runs 35-50 | 16 | 27 (first try) | 20 (4th attempt; then about 1 in 5) |
+| Shop finished | after a couple of Level 4 runs | 22 | ~29 | 32 (16 Level 4 runs in) |
+
+  Levels 1-2 swing a lot between campaigns (a lucky early Piccolo or Gohan run clears them fast).
+- **Level 3-4 grind rewards + hero outfits** (`docs/rw5.js`, your call): 15 new goals that pay out while you're stuck,
+  and an alternate outfit for every hero (Vegeta already had one):
+  - Level 3: survive 5:00 (+400) and 7:30 (**Krillin: Kame House Blue**); destroy 2,000 drones (+600); beat Android 19
+    with 3 heroes (**Goku: Kaioken Gi**) and Dr. Gero with 3 heroes (+800); clear it with 2 heroes (**Trunks: Capsule
+    Corp Black**) and 4 heroes (+2,000).
+  - Level 4: escape Babidi's ship, survive 3:20 (+500); survive 7:30 (**Gohan: Great Saiyaman**); pop 2,000 Buu blobs
+    (+700); beat Dabura with 3 heroes (**Piccolo: Demon King Robes**) and Majin Vegeta with 3 heroes (+1,200); clear it
+    with 2 heroes (**Gotenks: Super Gotenks Purple**), 4 heroes (+3,000) and all 7 (+5,000).
+  - Outfits switch with the "🎨 Outfit" button under the hero carousel and show everywhere (menu, banner, in game).
+- **Was open:** Level 3 was sparse during the grind: in campaign 5, runs 7-14 each earned **no** unlocks (fixed above). Many Level 3-4
+  losses are deaths at 3:40-4:50 to the mob surge before the second boss, which may feel worse to a human than losing
+  to a boss.
+
+### 10.1 Phase H: shop price pass  `[~]`
+Your goal: the shop shouldn't be finished until a player has had a couple of Level 4 runs, and it's fine for Levels 1-2
+to get easy by then. The first few levels of every item cost about what they did, so early runs feel the same; the top
+levels cost far more, and the core stats got extra levels. Total cost **17,780 → 49,825 Zeni** (a first try at 38,600 was
+fully bought by run 19).
+
+| Item | Levels | Cost per level | Total |
+|---|---|---|---|
+| Saiyan Vitality (+12 HP) | 10 → **15** | 35 … 2,105 | 8,205 |
+| Battle Power (+5% damage) | 10 → **15** | 60 … 3,610 | 14,055 |
+| Gravity Chamber (+2% speed) | 5 | 55 … 280 | 730 |
+| Scouter Data (+5% XP) | 8 | 45 … 525 | 1,670 |
+| Ki Mastery (+3% area) | 8 → **10** | 60 … 1,410 | 4,615 |
+| Ki Reserves | 8 | 45 … 430 | 1,440 |
+| Senzu Stock | 3 | 200 / 500 / 1,250 | 1,950 |
+| Capsule Magnet | 5 | 40 … 205 | 530 |
+| Battle Armor (−3% damage taken) | 6 → **8** | 70 … 1,090 | 3,210 |
+| Hercule Sponsorship | 5 | 80 … 670 | 1,510 |
+| King Kai's Training | 1 | 1,500 | 1,500 |
+| Mafuba Seal | 3 | 300 / 660 / 1,450 | 2,410 |
+| Potential Unleashed | 1 | 8,000 | 8,000 |
+
 ---
 
 ## 11. How it gets built (engineering notes)

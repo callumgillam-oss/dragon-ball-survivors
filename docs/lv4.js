@@ -22,7 +22,7 @@ Object.assign(TYPES, {
 });
 const L4BOSS = { pui: 1.8, yak: 1.4, dab: 1.6, mveg: 1.5, bu1: 1.4, bu2: 1.5, bu3: 1.9 };
 { const _b = DIFF.boss; DIFF.boss = k => L4BOSS[k] ? L4BOSS[k] * (.6 + .4 * DF[DLV]) : _b(k); }
-const L4HP = 1.05, L4THIN = .4;   // mob HP multiplier; share of regular spawns skipped
+const L4HP = 1.05, L4THIN = .5;   // mob HP multiplier; share of regular spawns skipped
 { const _h = DIFF.hp; DIFF.hp = t => _h(t) * (S.stage == 4 ? L4HP * (.7 + .3 * Math.min(1, t / 240)) : 1); }
 
 STAGES[4] = { open: 'BABIDI HAS AWAKENED HIS MAJIN!', final: 'bu3', win: 'Kid Buu is gone. The universe is safe, thanks to you!',
@@ -141,7 +141,7 @@ AI.mveg = function (e, dt) {
 // Fat Buu: turns nearby mobs into candy that floats to him and heals him, regenerates unless you keep hitting him, belly slams
 AI.bu1 = function (e, dt) {
   const p = S.p; chase(e, dt, 60); e.t3 = (e.t3 ?? 3) - dt; e.t4 = (e.t4 ?? 5) - dt; e.t5 = (e.t5 ?? 4) - dt;
-  if (S.t - (e.lh || 0) > 2.5) { e.hp = Math.min(e.max, e.hp + e.max * .003 * dt); e.rg = 1; } else e.rg = 0;
+  if (S.t - (e.lh || 0) > 4) { e.hp = Math.min(e.max, e.hp + e.max * .003 * dt); e.rg = 1; } else e.rg = 0;
   if (e.t3 <= 0) { e.t3 = 3; fan(e, 4, 210, 'pk', 11); }
   if (e.t5 <= 0) { e.t5 = 6; zone(e.x, e.y, 150, .9, 28); }
   if (e.t4 <= 0) { e.t4 = 8; let n = 0; e.cb = [];
@@ -196,7 +196,7 @@ const mph4 = () => { const t = S.endless ? (S.t % 300) * 1.5 : S.t; return t < 2
     const bu = S.en.find(e => e.k == 'bu1' && !e.dead);
     for (const c of arr4('cdy')) { if (Math.hypot(p.x - c.x, p.y - c.y) < 26) { c.got = 1; p.hp = Math.min(p.max, p.hp + 3); sfx('gem'); continue; }
       if (!bu) { c.got = 1; continue; } const dx = bu.x - c.x, dy = bu.y - c.y, d = Math.hypot(dx, dy) || 1;
-      if (d < bu.r) { c.got = 1; bu.hp = Math.min(bu.max, bu.hp + bu.max * .005); S.buAte = 1; if (S.nums.length < 40) S.nums.push({ x: bu.x, y: bu.y - bu.r, v: 'YUM!', l: .6, c: '#ff9ad8' }); continue; }
+      if (d < bu.r) { c.got = 1; bu.hp = Math.min(bu.max, bu.hp + bu.max * .004); S.buAte = 1; if (S.nums.length < 40) S.nums.push({ x: bu.x, y: bu.y - bu.r, v: 'YUM!', l: .6, c: '#ff9ad8' }); continue; }
       c.x += dx / d * 70 * dt; c.y += dy / d * 70 * dt; }
     S.cdy = arr4('cdy').filter(c => !c.got);
     // Super Buu's absorbed attack can't fire

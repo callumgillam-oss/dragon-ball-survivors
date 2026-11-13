@@ -363,7 +363,7 @@ function gtkHead(c, x, y, s, mood, ssj, rot, P) {
 }
 function gtkBody(c, P, ssj) {
   const o = P.l || 0, b = P.b || 0, sq = P.sq || 1;
-  const VS = tones('#2f8f8a', '#0a2a2a'), GD = tones('#e8c040', '#6a4a10'), PN = tones('#f4f2ee', '#8a8aa0'), SA = tones('#2a5aa0', '#0a1a40'), SH = tones('#2a2a34'), SK = ['#fff0dc', '#fcd6ae', '#e0a078'];
+  const VS = tones(PAL.vs || '#2f8f8a', '#0a2a2a'), GD = tones('#e8c040', '#6a4a10'), PN = tones('#f4f2ee', '#8a8aa0'), SA = tones(PAL.sa || '#2a5aa0', '#0a1a40'), SH = tones('#2a2a34'), SK = ['#fff0dc', '#fcd6ae', '#e0a078'];
   const sx = y => o * (1 - .45 * Math.max(0, Math.min(1, (y + 5) / 14)));
   if (ssj) ss3Mane(c, P, 1);
   c.save(); c.lineJoin = 'round'; c.lineCap = 'round'; c.strokeStyle = OL; c.lineWidth = 1.5;

@@ -109,7 +109,7 @@ function vegBody(c, P, ssj) {
 /* ---------- art: Future Trunks (jacket over a tank top, sword on his back) ---------- */
 function truBody(c, P, ssj) {
   const o = P.l || 0, b = P.b || 0, sq = P.sq || 1;
-  const JK = tones('#3e5e9e'), TK = tones('#2a2a34'), PN = tones('#5c606e'), BT = tones('#d9a444', '#5a3a10'), BLT = tones('#6a4a2a'), SK = ['#fff0dc', '#fcd6ae', '#e0a078'];
+  const JK = tones(PAL.jk || '#3e5e9e'), TK = tones(PAL.tk || '#2a2a34'), PN = tones('#5c606e'), BT = tones('#d9a444', '#5a3a10'), BLT = tones('#6a4a2a'), SK = ['#fff0dc', '#fcd6ae', '#e0a078'];
   const sx = y => o * (1 - .45 * Math.max(0, Math.min(1, (y + 5) / 14)));
   c.save(); c.lineJoin = 'round'; c.lineCap = 'round'; c.strokeStyle = OL; c.lineWidth = 1.5;
   c.translate(0, 24); c.scale(.96 * (1 + (1 - sq) * .55), .96 * sq); c.translate(0, -24);

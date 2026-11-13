@@ -39,9 +39,12 @@ window.simRun = async function (o) {
         if (g === 'e') return 100;
         if (g === 'w') { const l = S.w[k] || 0; return (l ? 20 + l * 2 : (Object.values(S.w).filter(v => v > 0).length < 4 ? 12 : 0)) + rr * 3 + (k === 'kame' || k === 'aura' || k === 'bomb' ? 2 : 0); }
         const need = Object.keys(EVO).some(w => S.w[w] > 0 && EVO[w][2] === k && !S.evo[w]);
+        if (k === 'mm' && !(S.ps.mm > 0)) return 2;   // Majin Mark is a curse: only take it when nothing else is useful
         return (need && !(S.ps[k] > 0) ? 18 : need ? 6 : 5) + (k === 'sen' || k === 'zen' ? 3 : 0) + rr * 3;
       };
       let pickB = bs.slice().sort((x, y) => sc(y) - sc(x))[0];
+      const rrB = [...ov.querySelectorAll('button')].find(b => /reroll\(\)/.test(b.getAttribute('onclick') || ''));   // a player rerolls a weak card
+      if (rrB && S.mode === 'lvl' && pickB && sc(pickB) < 8 && o.skill >= 1) { rrB.click(); continue; }
       if (o.skill < 1 && rnd() > o.skill) pickB = bs[(rnd() * bs.length) | 0];
       if (pickB) pickB.click(); else { S.mode = 'play'; show(''); }
       continue;
