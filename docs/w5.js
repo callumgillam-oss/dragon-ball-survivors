@@ -122,6 +122,13 @@ LOCKED_HEROES.push(['h:gotenks', 'Gotenks', 'Defeat Super Buu', 'gotenks']);
     p.atk = p.ad = .6; ban('GALACTIC DONUT!');
   }; }
 
+// Fusion tuning (2026-11-13): a fusion costs two attack slots, so with no wish it should clear faster than any single
+// evolved attack (attack audit: ~8-10 kills/s vs 4-6), ~12-14 at one wish and 15-20 at two, without wiping the screen.
+// Per fusion: damage multiplier for [no wish, one wish, two wishes], on top of FTM.
+const FB5 = { fkame: [1.4, 1, 1.05], fskame: [1.6, 2.2, 1.4], mlight: [1.5, 1.12, 1], tks: [2, 1.55, 1.05], dsb: [2, 2.3, 1.1], kwf: [1.85, 2.5, 1.05], sgp: [1, 1, 1], htc: [1.3, 2.6, .8] };
+const SGP5 = { cd: [.28, .2, .25], cap: [16, 22, 20], spd: [240, 260, 260], chain: [3, 4, 4] };   // Sweet Ghost Parade: seconds between ghosts, most out, speed
+const DSB5 = { cd: [1.8, 3, 3.2] };                    // Dragon Spirit Bomb: seconds between bombs
+const HTC5 = { cd: 2.2, groups: [3, 4, 2] };              // Hellzone Tri-Cage: seconds between casts, cages per cast
 const KWF = { aura: .35, cd: 1, dash: 3, burst: .7 };
 /* ---------- per-frame ---------- */
 function updW5(dt) {
@@ -160,7 +167,7 @@ function updW5(dt) {
   for (const b of arr5('cbm')) b.l -= dt; S.cbm = arr5('cbm').filter(b => b.l > 0);
   for (const b of arr5('cpop')) b.l -= dt; S.cpop = arr5('cpop').filter(b => b.l > 0);
   // ---- fused attacks (damage x1 / x1.35 / x1.8 by tier, plus each tier's extra trick) ----
-  const fm = k => FTM[FT(k)];
+  const fm = k => FTM[FT(k)] * ((FB5[k] || [])[FT(k)] ?? 1);
   const beam = o => S.beams.push(Object.assign({ h: new Set(), fz: 1, tk: .22, src: DSRC }, o));
   if (W_.fkame) { DSRC = 'fkame'; S.cd.fkame -= dt; if (S.cd.fkame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fkame = .2; else { const T = FT('fkame'); S.cd.fkame = 2.8 * cm();
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (70 + 10 * WL('fkame')) * dm() * fm('fkame'); p.atk = p.ad = .9; p.face = Math.cos(a) > 0 ? 1 : -1;
@@ -184,7 +191,7 @@ function updW5(dt) {
       for (const e of S.en) { if (e.dead || (e.tkc || 0) > S.t || Math.hypot(e.x - x, e.y - y) > 24 * AR2() * (big ? 1.4 : 1) + e.r) continue; e.tkc = S.t + .3; hitE(e, e.boss ? Math.min(d, e.max * .006) : d); } };
     for (let i = 0; i < n; i++) { const a = S.t * 2.2 * (i % 2 ? -1 : 1) + i / n * 6.283, rr = R * (i % 2 ? .78 : 1); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr); }
     if (T == 2) for (let i = 0; i < 4; i++) { const a = -S.t * 1.4 + i / 4 * 6.283, rr = 340 * AR2(); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 1); } }
-  if (W_.dsb) { DSRC = 'dsb'; S.cd.dsb -= dt; if (S.cd.dsb <= 0) { const ts = near(12, 700); if (!ts.length) S.cd.dsb = .3; else { const T = FT('dsb'); S.cd.dsb = 4.2 * cm();
+  if (W_.dsb) { DSRC = 'dsb'; S.cd.dsb -= dt; if (S.cd.dsb <= 0) { const ts = near(12, 700); if (!ts.length) S.cd.dsb = .3; else { const T = FT('dsb'); S.cd.dsb = DSB5.cd[T] * cm();
       const d = (160 + 20 * WL('dsb')) * dm() * fm('dsb'), grp = T == 1 && ts.length > 6 ? [ts.slice(0, 6), ts.slice(6)] : [ts.slice(0, 6)];
       for (const g of grp) { let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
         S.dsb.push({ x: cx, y: cy, t: 0, T: .9, R: 150 * AR2() * (T == 2 ? 1.6 : 1), d: d * (T == 2 ? 1.4 : 1), ln: T == 2 ? 14 : 6 }); }
@@ -209,13 +216,16 @@ function updW5(dt) {
   // Sweet Ghost Parade: candy ghosts (and at two wishes, a giant one that sweeps the screen)
   const candyHit = (e, d, heal) => { if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: d * .5, src: DSRC }); hitE(e, e.boss ? Math.min(d, e.max * .006) : d); return; }
     e.hp = 0; killE(e); S.cpop.push({ x: e.x, y: e.y, l: .5, c: Math.random() < .5 ? '#ff7ac8' : '#ffd23a' }); if (Math.random() < heal) S.ch4.push({ x: e.x, y: e.y, l: 12 }); };
-  if (W_.sgp) { DSRC = 'sgp'; const T = FT('sgp'), cap = T ? 12 : 7; S.cd.sgp = (S.cd.sgp ?? .5) - dt;
-    if (S.cd.sgp <= 0 && arr5('sg').length < cap) { S.cd.sgp = (T ? .45 : .8) * cm(); const a = Math.random() * 6.283; S.sg.push({ x: p.x + Math.cos(a) * 18, y: p.y + Math.sin(a) * 18, t: 0, l: 5, s: Math.random() * 6, a }); }
+  if (W_.sgp) { DSRC = 'sgp'; const T = FT('sgp'), cap = SGP5.cap[T]; S.cd.sgp = (S.cd.sgp ?? .5) - dt;
+    if (S.cd.sgp <= 0 && arr5('sg').length < cap) { S.cd.sgp = SGP5.cd[T] * cm(); const a = Math.random() * 6.283; S.sg.push({ x: p.x + Math.cos(a) * 18, y: p.y + Math.sin(a) * 18, t: 0, l: 5, s: Math.random() * 6, a }); }
     if (T == 2) { S.cd.sgb = (S.cd.sgb ?? 4) - dt; if (S.cd.sgb <= 0) { S.cd.sgb = 6 * cm(); const a = Math.random() * 6.283; S.sgb = { x: p.x - Math.cos(a) * 520, y: p.y - Math.sin(a) * 520, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, t: 2.5 }; } } }
   for (const g of arr5('sg')) { DSRC = 'sgp'; g.t += dt; g.l -= dt;
     if (!g.e || g.e.dead) { let b = null, bd = 520; for (const e of S.en) { if (e.dead || !onScr(e)) continue; const dd = Math.hypot(e.x - g.x, e.y - g.y); if (dd < bd) { bd = dd; b = e; } } g.e = b; }
-    if (g.e) { const dx = g.e.x - g.x, dy = g.e.y - g.y, dd = Math.hypot(dx, dy) || 1; g.a = Math.atan2(dy, dx); g.x += dx / dd * 170 * dt; g.y += dy / dd * 170 * dt;
-      if (dd < g.e.r + 8) { g.l = 0; candyHit(g.e, (16 + 4 * WL('sgp')) * dm() * fm('sgp'), FT('sgp') ? .08 : .04); } }
+    if (g.e) { const dx = g.e.x - g.x, dy = g.e.y - g.y, dd = Math.hypot(dx, dy) || 1; g.a = Math.atan2(dy, dx); g.x += dx / dd * SGP5.spd[FT('sgp')] * dt; g.y += dy / dd * SGP5.spd[FT('sgp')] * dt;
+      if (dd < g.e.r + 8) { g.l = 0; const sd = (16 + 4 * WL('sgp')) * dm() * fm('sgp'), sh = FT('sgp') ? .08 : .04, gx = g.e.x, gy = g.e.y; candyHit(g.e, sd, sh);
+        // the pop turns the closest few neighbours to candy too (bosses and elites just take the damage)
+        const nb = S.en.filter(o => !o.dead && !o.boss && Math.hypot(o.x - gx, o.y - gy) < 55 * AR2() + o.r).sort((a, b) => Math.hypot(a.x - gx, a.y - gy) - Math.hypot(b.x - gx, b.y - gy)).slice(0, SGP5.chain[FT('sgp')]);
+        for (const o of nb) candyHit(o, sd, sh); } }
     else { g.x += Math.cos(g.t * 2 + g.s) * 40 * dt; g.y += Math.sin(g.t * 1.6 + g.s) * 40 * dt; } }
   S.sg = arr5('sg').filter(g => g.l > 0);
   if (S.sgb) { DSRC = 'sgp'; const b = S.sgb; b.t -= dt; b.x += b.vx * dt; b.y += b.vy * dt; const d = (16 + 4 * WL('sgp')) * dm() * fm('sgp') * 2;
@@ -223,14 +233,14 @@ function updW5(dt) {
     if (b.t <= 0) S.sgb = null; }
   // Hellzone Tri-Cage: triangle cages on crowds, ramping damage, then detonation
   if (W_.htc) { DSRC = 'htc'; const T = FT('htc'), d = (12 + 3 * WL('htc')) * dm() * fm('htc'); S.cd.htc = (S.cd.htc ?? .5) - dt;
-    if (S.cd.htc <= 0) { const ts = near(14, 650); if (!ts.length) S.cd.htc = .3; else { S.cd.htc = 2.6 * cm();
-        for (const g of T ? [ts.slice(0, 7), ts.slice(7)] : [ts]) { if (!g.length) continue; let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
+    if (S.cd.htc <= 0) { const ng = HTC5.groups[T], gs = ng == 1 ? 14 : 7, ts = near(gs * ng, 650); if (!ts.length) S.cd.htc = .3; else { S.cd.htc = HTC5.cd * cm();
+        for (let gi = 0; gi < ng; gi++) { const g = ts.slice(gi * gs, (gi + 1) * gs); if (!g.length) continue; let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
           arr5('cage').push({ x: cx, y: cy, R: 120 * AR2() * (T == 2 ? 1.2 : 1), t: 0, T: 3, tk: 0, d, pull: T == 2, big: T == 2 ? 2.4 : 1.4, a0: Math.random() * 6.283 }); }
         sfxPlay('orb'); } } }
   for (const c of arr5('cage')) { DSRC = 'htc'; c.t += dt; c.tk -= dt;
     if (c.tk <= 0) { c.tk = .25; const ramp = 1 + c.t; for (const e of S.en) { if (e.dead) continue; const dx = c.x - e.x, dy = c.y - e.y, dd = Math.hypot(dx, dy) || 1; if (dd > c.R) continue;
-        hitE(e, e.boss ? Math.min(c.d * ramp, e.max * .004) : c.d * ramp); if (c.pull && !e.boss) { e.x += dx / dd * Math.min(dd, 18); e.y += dy / dd * Math.min(dd, 18); } } }
-    if (c.t >= c.T && !c.done) { c.done = 1; const R = c.R * (c.pull ? 1.3 : 1); for (const e of S.en) if (!e.dead && Math.hypot(e.x - c.x, e.y - c.y) < R + e.r) hitE(e, e.boss ? Math.min(c.d * 6 * c.big, e.max * .02) : c.d * 6 * c.big); boom(c.x, c.y, R, '#d8a0ff'); kick(6); } }
+        hitE(e, e.boss ? Math.min(c.d * ramp, e.max * .004 / Math.max(1, S.cage.length / 2)) : c.d * ramp); if (c.pull && !e.boss) { e.x += dx / dd * Math.min(dd, 18); e.y += dy / dd * Math.min(dd, 18); } } }
+    if (c.t >= c.T && !c.done) { c.done = 1; const R = c.R * (c.pull ? 1.3 : 1); for (const e of S.en) if (!e.dead && Math.hypot(e.x - c.x, e.y - c.y) < R + e.r) hitE(e, e.boss ? Math.min(c.d * 6 * c.big, e.max * .02 / Math.max(1, S.cage.length / 2)) : c.d * 6 * c.big); boom(c.x, c.y, R, '#d8a0ff'); kick(6); } }
   S.cage = arr5('cage').filter(c => !c.done);
   // Galactic Donut (Gotenks' Ki Burst)
   const G = S.gdn; if (G) { DSRC = 'ult'; G.t += dt; const k = Math.min(1, G.t / G.T), R = G.R * (1 - .8 * k);

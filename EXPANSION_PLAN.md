@@ -827,6 +827,12 @@ Shipped without bot balance runs, at your request: you judge the numbers.
   targets (was 6/9). Afterimage Strike explodes after 1.4 s (was 1 s).
   Kaioken Wolf Fang Barrage boosted again: dashes every 1 s (was 1.5) for x3 damage (was x2), each dash bursts on nearby
   enemies at every tier, aura x0.35 (was x0.25). Kills/s 1.9 / ? / 8.7 → 5.5 / 9.7 / 15.5 (no wish / 1 / 2).
+- **Fusions compensate for the slot they cost:** with no wish they now clear clearly faster than any single evolved attack.
+  Tuning tables at the top of w5.js (FB5 damage per tier, SGP5, DSB5, HTC5). Kills/s in the audit, no wish / 1 / 2:
+  Final Kamehameha 9.5/13.2/18.3, Final Shine 10.2/11.6/13.9, Makankosappo Light 9.3/14.6/18.4, disc fusion 10/12.4/16.3,
+  Dragon Spirit Bomb 7.8/13/17.1 (bombs every 1.8/3/3.2 s), Kaioken Wolf Fang Barrage 8.7/13.2/17.2, Sweet Ghost Parade
+  8.4/11.4/14.3 (faster ghosts, each candy pop takes 3-4 neighbours, never bosses), Tri-Cage 8.3/10.3/19.5 (3/4/2 cages).
+  Evolved attacks are 4-6. Boss damage checked: every fusion at or under ~2% boss HP/s (Tri-Cage boss caps split across cages).
 
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
