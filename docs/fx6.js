@@ -235,7 +235,21 @@ drawW3 = function (cx, cy, t) {
 // Shining Sword Attack: real blade arcs instead of stroked lines; the barrier gains a glass highlight and lit corners
 drawW4 = function (cx, cy, t) {
   const p = S.p, px = p.x - cx, py = p.y - cy, B = S.bar;
-  if (B && B.r) { const k = B.pulse / .35, R = B.r * (1 + .35 * k), E = S.evo.barrier, c0 = E ? '255,220,140' : '140,200,255', c1 = E ? '255,240,200' : '200,235,255';
+  if (B && B.boom) { const bm = B.boom, u = 1 - bm.t / bm.T, R = bm.R0 + (bm.R1 - bm.R0) * (1 - Math.pow(1 - u, 3)), al = (1 - u) * (.55 + .45 * bm.f), c1 = S.evo.barrier ? '255,236,170' : '190,230,255';
+    LT(); softGlow(c1, px, py, R, .35 * al); if (u < .2) softGlow('255,255,255', px, py, bm.R0 * 1.2, .5 * (1 - u / .2)); NM();
+    const c2 = S.evo.barrier ? '255,190,70' : '90,170,255';
+    ctx.strokeStyle = 'rgba(' + c2 + ',' + al * .6 + ')'; ctx.lineWidth = 14 + 20 * (1 - u) * bm.f; ctx.beginPath(); ctx.arc(px, py, R, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(' + c1 + ',' + al + ')'; ctx.lineWidth = 5 + 8 * (1 - u); ctx.beginPath(); ctx.arc(px, py, R, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,' + al * .8 + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, R * .92, 0, 7); ctx.stroke(); }
+  if (B && B.r && B.up === 0) {   // reforming: a faint dashed outline that closes up
+    const u = 1 - B.dn / (B.dnT || 1); ctx.save(); ctx.setLineDash([6, 8]); ctx.lineDashOffset = -t * 40; ctx.strokeStyle = 'rgba(200,235,255,' + (.15 + .35 * u) + ')'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(px, py, B.r * (.6 + .4 * u), 0, 6.283 * u); ctx.stroke(); ctx.restore(); }
+  if (B && B.r && B.up !== 0) { const fill = Math.min(1, (B.en || 0) / BAR.cap), k = Math.max(B.pulse / .35, fill * fill * .6), R = B.r * (1 + .06 * fill * Math.sin(t * 30) * fill), E = S.evo.barrier, c0 = E ? '255,220,140' : '140,200,255', c1 = E ? '255,240,200' : '200,235,255';
+    // charge meter: a bright arc around the rim that fills as the barrier absorbs
+    if (fill > 0) { const a0 = -1.5708, a1 = a0 + 6.2832 * fill; LT(); ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(' + c0 + ',' + (.25 + .35 * fill) + ')'; ctx.lineWidth = 12 + 6 * fill; ctx.beginPath(); ctx.arc(px, py, R + 6, a0, a1); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,' + (.6 + .4 * fill) + ')'; ctx.lineWidth = 3.5 + 2 * fill; ctx.beginPath(); ctx.arc(px, py, R + 6, a0, a1); ctx.stroke();
+      softGlow(c1, px + Math.cos(a1) * (R + 6), py + Math.sin(a1) * (R + 6), 10 + 8 * fill, .9); NM(); }
     const g = ctx.createRadialGradient(px, py, R * .55, px, py, R); g.addColorStop(0, 'rgba(' + c0 + ',0)'); g.addColorStop(.85, 'rgba(' + c0 + ',' + (.12 + .25 * k) + ')'); g.addColorStop(1, 'rgba(' + c1 + ',' + (.35 + .4 * k) + ')');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, R, 0, 7); ctx.fill();
     ctx.strokeStyle = 'rgba(' + c1 + ',' + (.5 + .4 * k) + ')'; ctx.lineWidth = 1.5 + 2 * k; ctx.lineJoin = 'round'; ctx.beginPath();

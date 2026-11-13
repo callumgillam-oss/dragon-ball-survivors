@@ -6,19 +6,21 @@
 
 const W4 = ['sword', 'barrier'];
 const W4B = { sword: 1, barrier: 1 };   // per-attack damage multipliers for balancing
+// Android Barrier: charge to fill, max hold time, rim drain (base dmg, seconds between ticks), burst (base dmg, reach × dome radius, evolved ×), downtime (base, min, evolved)
+const BAR = { cap: 30, hold: 2, tick: 4, tickT: .3, dmg: 18, reach: 2.3, evo: 1.5, dn: 2.6, dnMin: 2, dnE: 1.6 };
 
 Object.assign(INFO, {
   sword: ['Shining Sword Attack', 'Fast sword slashes in front of you, finished with a ki blast.'],
-  barrier: ['Android Barrier', 'A dome that blocks enemy shots and pulses to knock enemies back.'],
+  barrier: ['Android Barrier', 'A dome that holds enemies back and drains them, then detonates. The more it absorbs, the bigger the blast.'],
   inf: ['Infinite Energy', 'Android power: +6% damage and +12% Ki Burst charge. At max level your Ki Burst refills by itself.']
 });
 Object.assign(EVO, {
   sword: ['Burning Sword Rush', 'Five slashes, then a Burning Attack fireball.', 'inf'],
-  barrier: ['Perfect Barrier', 'Blocks every shot and fires it back at enemies.', 'inf']
+  barrier: ['Perfect Barrier', 'Bigger blasts, reforms faster, and fires every blocked shot back at enemies.', 'inf']
 });
 Object.assign(MYTH, {
   sword: 'Mythic: slashes reach 40% farther and the finisher stuns',
-  barrier: 'Mythic: every pulse heals you 2 HP'
+  barrier: 'Mythic: every blast heals you 4 HP'
 });
 for (const k of W4) BASE[k] = INFO[k][0];
 PCAP.inf = 6;
@@ -62,20 +64,33 @@ function updW4(dt) {
     s.T -= dt; if (s.T <= 0) s.done = 1;
   }
   S.sws = arr('sws').filter(s => !s.done);
-  // Android Barrier: a dome around you. It eats enemy shots (a few per pulse; evolved: all, and fires them back)
-  // and pulses to push enemies away.
+  // Android Barrier (reworked 2026-11-13): ABSORB, then RELEASE.
+  // While up, the dome holds ordinary enemies back at its rim and drains them; every enemy pressing on it and every
+  // shot it blocks charges it. When it is full (or after BAR.hold seconds) it detonates in a shockwave that hits harder
+  // the more it absorbed, then reforms after a short gap. The more you are swarmed, the bigger and more frequent the
+  // blasts, and the less time it spends holding the crowd back (so it can't make you untouchable).
   const B = S.bar || (S.bar = { r: 0, pulse: 0, blk: 0 });
-  if (W_.barrier) { DSRC = 'barrier'; const L = W_.barrier, E = ev.barrier, M = MY('barrier'), R = (70 + 6 * L) * AR2();
-    B.r = R; S.cd.barrier -= dt; B.pulse = Math.max(0, B.pulse - dt);
-    if (S.cd.barrier <= 0) { S.cd.barrier = (E ? 2.2 : Math.max(2.4, 3.8 - .25 * L)) * cm(); B.pulse = .35; B.blk = E ? 1e9 : 2 + L;
-      const d = (8 + 4 * WL('barrier')) * dm() * W4B.barrier * (E ? 1.5 : 1);
-      for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R * 1.35 + e.r) { hitE(e, d); shove(e, p.x, p.y, E ? 90 : 70); }
-      if (M) p.hp = Math.min(p.max, p.hp + 2); }
-    for (const q of S.eb) { if (q.l <= 0 || B.blk <= 0) continue; if (Math.hypot(q.x - p.x, q.y - p.y) < R) { q.l = 0; B.blk--;
+  if (W_.barrier) { DSRC = 'barrier'; const L = W_.barrier, E = ev.barrier, M = MY('barrier'), R = (70 + 6 * L) * AR2(), cap = BAR.cap;
+    if (B.up === undefined) { B.up = 1; B.en = 0; B.ht = 0; B.dn = 0; B.dnT = 1; }
+    B.r = R; B.pulse = Math.max(0, B.pulse - dt); if (B.boom) { B.boom.t -= dt; if (B.boom.t <= 0) B.boom = null; }
+    if (!B.up) { B.dn -= dt; if (B.dn <= 0) { B.up = 1; B.en = 0; B.ht = 0; } }
+    else {
+      B.ht += dt; const tick = (BAR.tick + 1.5 * WL('barrier')) * dm() * W4B.barrier;
+      for (const e of S.en) { if (e.dead || e.boss || e.line) continue; const dx = e.x - p.x, dy = e.y - p.y, dd = Math.hypot(dx, dy) || 1, rr = R + e.r;
+        if (dd < rr) { e.x = p.x + dx / dd * rr; e.y = p.y + dy / dd * rr;   // held at the rim
+          if (S.t >= (e.bt7 || 0)) { e.bt7 = S.t + BAR.tickT; hitE(e, tick); B.en += 1; } } }
+      for (const q of S.eb) { if (q.l <= 0 || Math.hypot(q.x - p.x, q.y - p.y) > R) continue; q.l = 0; B.en += 2;
         if (E) { let tg = null, bd = 360; for (const e of S.en) { if (e.dead) continue; const dd = Math.hypot(e.x - q.x, e.y - q.y); if (dd < bd) { bd = dd; tg = e; } }
           if (tg) { hitE(tg, (8 + 4 * WL('barrier')) * dm() * .8); arr('swf').push({ x0: q.x, y0: q.y, x1: tg.x, y1: tg.y, l: .2 }); } }
-        else arr('swf').push({ x0: q.x, y0: q.y, l: .2 }); } }
-  } else B.r = 0;
+        else arr('swf').push({ x0: q.x, y0: q.y, l: .2 }); }
+      if (B.en >= cap || B.ht >= BAR.hold) {   // RELEASE
+        const fill = Math.min(1, B.en / cap), BR = R * BAR.reach, d = (BAR.dmg + 6 * WL('barrier')) * dm() * W4B.barrier * (E ? BAR.evo : 1) * (.5 + fill);
+        for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < BR + e.r) { hitE(e, bossCap(d, e, .6)); shove(e, p.x, p.y, 60 + 50 * fill); }
+        B.boom = { t: .5, T: .5, R0: R, R1: BR, f: fill }; B.pulse = .35; kick && kick(4 + 6 * fill);
+        if (M) p.hp = Math.min(p.max, p.hp + 4);
+        B.up = 0; B.dnT = B.dn = (E ? BAR.dnE : Math.max(BAR.dnMin, BAR.dn - .1 * L)) * cm(); B.en = 0; B.ht = 0; }
+    }
+  } else { B.r = 0; B.up = undefined; B.boom = null; }
   for (const f of arr('swf')) f.l -= dt; S.swf = arr('swf').filter(f => f.l > 0);
 }
 

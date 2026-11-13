@@ -854,6 +854,15 @@ Shipped without bot balance runs, at your request: you judge the numbers.
 
 - Edge freeze, diagnosed from the player's console: none of the game's script files had loaded (`V2` undefined), so only the page's built-in code ran and its first frame crashed on `drawDangerZone is not defined`, killing the loop (the crash-proof loop lives in fix.js, which never arrived). Cause: the service worker fetched with no time limit, so a stalled request on refresh left every script pending, and on a failed request it could serve index.html in place of a script. Fixes: the service worker falls back to the cached copy after 6 s, only caches good responses, and only serves the page for page requests; the built-in loop waits until every script has loaded (`DBS_READY`, set at the end of v7.js); and if they haven't loaded after 10 s, a "Still loading" card offers a clean reload (clears the offline cache and service worker; saved runs are kept).
 
+### Android Barrier rework (2026-11-13)
+Players found it weak with little game feel. New loop, ABSORB then RELEASE (`BAR` in w4.js):
+- While up, the dome holds ordinary (non-boss) enemies at its rim and drains them (4 + 1.5×level damage every 0.3 s each). Every enemy pressing on it adds 1 charge per tick and every blocked shot adds 2.
+- At 30 charge, or after 2 s, it detonates: a shockwave out to 2.3× the dome radius dealing (18 + 6×level) × (0.5 + fill), up to 1.5× when full, with knockback; bosses are capped. It then reforms over 2.6 s (−0.1 s per level, min 2 s; evolved 1.6 s).
+- More swarmed means bigger, more frequent blasts and less time holding the crowd back, so it can't make you untouchable.
+- Evolved (Perfect Barrier) blasts ×1.5 and still fires blocked shots back. Mythic heals 4 HP per blast.
+- Visuals: a charge arc fills around the rim, the dome shimmers as it nears full, the blast is a bold expanding ring with a flash, and while reforming a dashed outline closes back up.
+- Chasing-crowd test (80 Level 3 mobs, hero strafing): base L5 ≈3.4 kills/s, letting through ≈18 damage/s; evolved ≈6 kills/s, ≈8 damage/s. Other evolved attacks: 5.5–10 kills/s, 30–55 damage/s. The first draft (4 s hold, 0.8 s evolved reform) let through 0 damage, so it was shortened.
+
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
 2. **Phase A ships now** as a 2.1 patch, before the big update. ✓
