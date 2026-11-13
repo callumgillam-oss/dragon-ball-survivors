@@ -9,7 +9,8 @@ const W3 = ['galick', 'wave', 'tri', 'wolf', 'after', 'scatter'];
 // per-attack damage multipliers (1 = as designed); tune these with the balance bot
 const WAVE_SPD = 230, WAVE_MIN = .12;   // Explosive Wave: pulse speed (px/s) and the power left when it fizzles out
 const AFT_DLY = 1.4;   // Afterimage Strike: seconds before an afterimage explodes (was 1)
-const W3B = { galick: .85, wave: 1, tri: .9, wolf: 1, after: 1, scatter: 1 };
+const AFT_EVO = { d: 1.5, reach: 320, r: 55 };   // Instant Transmission Strike: damage multiplier, teleport reach, blast radius at the target
+const W3B = { galick: .68, wave: 1, tri: .9, wolf: 1, after: 1, scatter: 1 };
 
 Object.assign(INFO, {
   galick: ['Galick Gun', "Vegeta's beam: charges, then sweeps across the thickest crowd."],
@@ -24,7 +25,7 @@ Object.assign(EVO, {
   wave: ['Super Explosive Wave', 'Twin shockwaves that stun what they hit.', 'area'],
   tri: ['Neo Tri-Beam', 'Three triangles at once, lasting longer.', 'amt'],
   wolf: ['Neo Wolf Fang Fist', 'Longer combos on more targets, and each combo heals you.', 'sen'],
-  after: ['Instant Transmission Strike', 'Afterimages teleport-strike the nearest enemy as they blow.', 'spd'],
+  after: ['Instant Transmission Strike', 'Stronger afterimages that also teleport-strike the nearest enemy with a blast as they blow.', 'spd'],
   scatter: ['Scattering Barrage', 'Far more shards, and each one pulls XP gems to you.', 'rad']
 });
 Object.assign(MYTH, {
@@ -145,13 +146,13 @@ function updW3(dt) {
   if (W_.after) { DSRC = 'after'; const L = W_.after, E = ev.after, M = MY('after'), mov = (p.mag || 0) > .2;
     S.aiT = (S.aiT ?? .8) - dt * (mov ? 1 : .4);
     if (S.aiT <= 0) { S.aiT = (E ? .35 : Math.max(.5, .9 - .06 * L)) * cm();
-      arr('aims').push({ x: p.x, y: p.y, f: p.face || 1, t: AFT_DLY, T: AFT_DLY, R: (46 + 5 * WL('after')) * AR2(), d: (16 + 6 * WL('after')) * dm() * W3B.after, ev: E, n: M ? 2 : 1 }); } }
+      arr('aims').push({ x: p.x, y: p.y, f: p.face || 1, t: AFT_DLY, T: AFT_DLY, R: (46 + 5 * WL('after')) * AR2(), d: (16 + 6 * WL('after')) * dm() * W3B.after * (E ? AFT_EVO.d : 1), ev: E, n: M ? 2 : 1 }); } }
   for (const a of arr('aims')) { DSRC = 'after';
     a.t -= dt; if (a.t > 0) continue;
     for (const e of S.en) if (!e.dead && onScr(e) && Math.hypot(e.x - a.x, e.y - a.y) < a.R + e.r) hitE(e, a.d);
     pop(a.x, a.y, a.R, '#bfe6ff'); impact(a.x, a.y, a.R, 'cy', .3);
-    if (a.ev) { let b = null, bd = 260; for (const e of S.en) { if (e.dead || !onScr(e)) continue; const d = Math.hypot(e.x - a.x, e.y - a.y); if (d < bd) { bd = d; b = e; } }
-      if (b) { hitE(b, a.d); arr('wfx').push({ x: b.x, y: b.y, a: Math.atan2(b.y - a.y, b.x - a.x), l: .25, tp: [a.x, a.y] }); } }
+    if (a.ev) { let b = null, bd = AFT_EVO.reach; for (const e of S.en) { if (e.dead || !onScr(e)) continue; const d = Math.hypot(e.x - a.x, e.y - a.y); if (d < bd) { bd = d; b = e; } }
+      if (b) { const bx = b.x, by = b.y, br = AFT_EVO.r * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - bx, e.y - by) < br + e.r) hitE(e, a.d); pop(bx, by, br, '#bfe6ff'); arr('wfx').push({ x: b.x, y: b.y, a: Math.atan2(b.y - a.y, b.x - a.x), l: .25, tp: [a.x, a.y] }); } }
     if (--a.n > 0) a.t = .3; else a.done = 1;
   }
   S.aims = arr('aims').filter(a => !a.done);

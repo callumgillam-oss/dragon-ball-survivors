@@ -25,11 +25,14 @@ for (const k in UPG) UPG[k][4] *= 1.2;
 { const _b = DIFF.boss; DIFF.boss = k => _b(k) * ({ rec: .88, jei: 1.15, bur: 1.15, gul: 1.15, gin: 1.15, a19: .85 }[k] || 1); }
 // Level 2 opens harder: tougher mobs and extra spawns, both fading out by 3:00.
 { const _h = DIFF.hp; DIFF.hp = t => _h(t) * (S.stage == 2 && !S.endless ? 1 + .25 * Math.max(0, 1 - t / 180) : 1); }
+// Playtest pass 3: Level 2 mobs are 10% tougher and hit 10% harder
+{ const _h = DIFF.hp; DIFF.hp = t => _h(t) * (S.stage == 2 && !S.endless ? 1.1 : 1); }
+{ const _d = DIFF.dmg; DIFF.dmg = t => _d(t) * (S.stage == 2 && !S.endless ? 1.1 : 1); }
 { const _u = update; update = function (dt) {
     const r = _u(dt);
     if (S.mode == 'play' && S.stage == 2 && !S.endless && S.t < 180 && !S.en.some(e => e.boss)) {
       S.x7 = (S.x7 ?? 1.5) - dt;
-      if (S.x7 <= 0) { S.x7 = .9 + 1.6 * S.t / 180; if (S.en.length < 125) spawnE(pickE()); }
+      if (S.x7 <= 0) { S.x7 = .45 + .8 * S.t / 180; if (S.en.length < 170) spawnE(pickE()); }
     }
     return r;
   }; }

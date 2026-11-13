@@ -55,8 +55,8 @@ DIFF.boss = k => ({ rad: 2.4, nap: 4.2, veg: 11, rec: 3.0, bur: 3.4, jei: 3.4, g
 { const _hp = DIFF.hp; DIFF.hp = t => _hp(t) * (1 + .15 * Math.min(1, t / 60) * (S.stage == 2 ? .5 : 1)); }
 // Armor upgrade + per-difficulty boss damage
 { const _hu = hurtP, _hi = hitP;
-  hurtP = function (d) { _hu(d * (1 - .03 * (META.armor || 0)) * (V2.bossHit ? (.75 + .25 * DF[DLV]) : 1)); };
-  hitP = function (e, d) { _hi(e, d * (1 - .03 * (META.armor || 0))); }; }
+  hurtP = function (d) { _hu(d * (1 - .02 * (META.armor || 0)) * (V2.bossHit ? (.75 + .25 * DF[DLV]) : 1)); };
+  hitP = function (e, d) { _hi(e, d * (1 - .02 * (META.armor || 0))); }; }
 const bossHurt = d => { V2.bossHit = 1; hurtP(d); V2.bossHit = 0; };
 
 /* ---------- hazards: telegraphed beam lanes ---------- */
@@ -376,7 +376,7 @@ UPG.xp[1] = '+5% XP per level'; UPG.xp[3] = .05;
 UPG.area[1] = '+3% area per level'; UPG.area[3] = .03;
 Object.assign(UPG, {
   magnet: ['Capsule Magnet', '+10% pickup range per level', 5, .1, 40, 1.4],
-  armor: ['Battle Armor', '-3% damage taken per level', 6, .03, 70, 1.38],
+  armor: ['Battle Armor', '-2% damage taken per level', 6, .02, 70, 1.38],
   greed: ['Hercule Sponsorship', '+10% Zeni per run per level', 5, .1, 80, 1.45],
   revive: ['Zenkai Revival', 'Once per run, get back up at 50% HP', 1, 1, 1200, 1]
 });

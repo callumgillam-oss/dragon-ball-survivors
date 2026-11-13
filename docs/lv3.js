@@ -23,7 +23,7 @@ Object.assign(TYPES, {
 const L3BOSS = { a19: 2.0, a20: 1.9, a17: 2.0, a18: 1.9, a16: 1.55, ce1: 1.7, ce2: 1.45, ce3: 1.9 };
 { const _b = DIFF.boss; DIFF.boss = k => L3BOSS[k] ? L3BOSS[k] * (.6 + .4 * DF[DLV]) : _b(k); }
 // Level 3 mobs are tougher than Namek's (players arrive with a stronger shop)
-const L3HP = 1.05, L3THIN = .5;   // mob HP multiplier; share of regular spawns skipped (the city is less crowded than the Wasteland)
+const L3HP = 1.05, L3THIN = .3;   // mob HP multiplier; share of regular spawns skipped (the city is less crowded than the Wasteland)
 { const _h = DIFF.hp; DIFF.hp = t => _h(t) * (S.stage == 3 ? L3HP * (.7 + .3 * Math.min(1, t / 240)) : 1); }   // gentler first four minutes
 
 STAGES[3] = { open: 'THE ANDROIDS HAVE ARRIVED!', final: 'ce3', win: 'Cell is defeated. The Earth is safe, thanks to you!',

@@ -86,9 +86,9 @@ const ACH = [
   { id: 'm15', c: 'mile', n: 'Slayer II', d: 'Defeat 150,000 enemies in total', r: ['z:2500'], pg: () => [kills(), 150000] },
   { id: 'm16', c: 'mile', n: 'Slayer III', d: 'Defeat 300,000 enemies in total', r: ['z:4000'], pg: () => [kills(), 300000] },
 
-  { id: 'x1', c: 'secret', n: "Yamcha'd", h: 'Even the best fall early.', d: 'Fall within the first 1:30 of a run', r: ['w:wolf'], ev: 'death', t: () => S.t < 90 },
+  { id: 'x1', c: 'secret', n: "Yamcha'd", h: 'Even the best fall early.', d: 'Fall in battle within the first 3:00 of a run', r: ['w:wolf'], ev: 'death', t: () => S.t < 180 },
   { id: 'x2', c: 'secret', n: "It's Over 9000!", h: 'What does the scouter say?', d: 'Deal over 9,000 damage to a single boss within 10 seconds', r: ['scouter', 'z:900'], t: () => (S.pk || 0) > 9000 },
-  { id: 'x3', c: 'secret', n: 'Bald Destiny', h: 'A disc for a friend.', d: 'Defeat 5,000 enemies with Destructo Disc in total', r: ['h:krillin', 'w:scatter'], pg: () => [P.discK, 5000] },
+  { id: 'x3', c: 'secret', n: 'Bald Destiny', h: 'A disc for a friend.', d: 'Defeat 1,500 enemies with Destructo Disc in total', r: ['h:krillin', 'w:scatter'], pg: () => [P.discK, 1500] },
   { id: 'x4', c: 'secret', n: 'Untouchable', h: 'Not a scratch.', d: 'Defeat Nappa without taking damage during the fight', r: ['z:500'], t: () => S.bkr && S.bkr.nap && !S.napHurt },
   { id: 'x5', c: 'secret', n: 'Kakarot!', h: 'Never give up.', d: 'Defeat Vegeta as Goku while below 10% HP', r: ['z:500'], t: () => S.kak },
   { id: 'x6', c: 'secret', n: 'Senzu Addict', h: 'Korin is worried.', d: 'Eat 50 Senzu Beans in one run', r: ['z:300'], t: () => (S.beanN || 0) >= 50 },
@@ -146,7 +146,7 @@ let HSRC = '';
     return _h(e, d); }; }
 { const _k = killE; killE = function (e) {
     const was = e.dead; _k(e); if (was || !e.dead) return;
-    P.kills++; if (HSRC == 'disc') P.discK++; if (e.elite) P.elites = (P.elites || 0) + 1;
+    P.kills++; if (HSRC == 'disc' || DSRC == 'disc' || DSRC == 'tks') P.discK++; if (e.elite) P.elites = (P.elites || 0) + 1;
     if (e.boss) { P.bk[e.k] = 1; (S.bkr || (S.bkr = {}))[e.k] = 1;
       if (e.k == 'veg') { if (S.hero == 'goku' && S.p.hp < S.p.max * .1) S.kak = 1; if (S.hero == 'vegeta') S.vegVeg = 1; } }
   }; }
@@ -185,7 +185,7 @@ setInterval(() => { if (S && (S.mode == 'play' || S.mode == 'pause')) saveProg()
     if (!reviving) {
       P.runs++; P.bestT = Math.max(P.bestT, Math.floor(S.t)); P.bestLv = Math.max(P.bestLv, S.p.lv);
       if (win) { const st = S.stage || 1; (P.clr[st] || (P.clr[st] = {}))[S.hero] = 1; progCheck('win'); }
-      else { P.deaths++; progCheck('death'); }
+      else if (S.p.hp <= 0) { P.deaths++; progCheck('death'); }   // quitting a run is not a death
       progCheck('tick'); saveProg();
     }
     const r = _ec(win);

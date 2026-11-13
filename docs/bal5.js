@@ -24,7 +24,7 @@ function wShuffle(a) {   // weighted random order (Efraimidis-Spirakis): higher 
 for (const [k, mx, base, gr] of [['hp', 15, 35, 1.34], ['dmg', 15, 60, 1.34], ['spd', 5, 55, 1.5], ['xp', 8, 45, 1.42], ['area', 10, 60, 1.42], ['ult', 8, 45, 1.38],
   ['rr', 3, 200, 2.5], ['magnet', 5, 40, 1.5], ['armor', 8, 70, 1.48], ['greed', 5, 80, 1.7], ['revive', 1, 1500, 1], ['seal', 3, 300, 2.2], ['slot', 1, 8000, 1]])
   if (UPG[k]) { UPG[k][2] = mx; UPG[k][4] = base; UPG[k][5] = gr; }
-// Armor stacks multiplicatively with Saiyan Armor; 8 levels x 3% stays well below immunity.
+// Armor stacks multiplicatively with Saiyan Armor; 8 levels x 2% stays well below immunity.
 
 // Levels 3-4 are judged with the unlock pool a player really has at that point (smaller than "everything"),
 // where they proved too easy (beaten within 1-3 attempts). Level 3: bosses +50%, mobs 1.05x → 1.15x.

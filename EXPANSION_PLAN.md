@@ -834,6 +834,19 @@ Shipped without bot balance runs, at your request: you judge the numbers.
   8.4/11.4/14.3 (faster ghosts, each candy pop takes 3-4 neighbours, never bosses), Tri-Cage 8.3/10.3/19.5 (3/4/2 cages).
   Evolved attacks are 4-6. Boss damage checked: every fusion at or under ~2% boss HP/s (Tri-Cage boss caps split across cages).
 
+### Playtest pass 3 (2026-11-13)
+- Taiyoken Burst (evolved Solar Flare) no longer stun-locks: blinded enemies move at 10% speed (bosses 50%) for the old stun duration (`e.bl`, handled in `updNew`'s speed multiplier). Base Solar Flare still stuns.
+- Dragon Ball timer runs 20% slower on Levels 1 and 2, so the 7th ball (and Namek's second set) arrives 20% later.
+- Level 2: regular spawns cap 125 → 170, early spawn-rate ramp .5 → .8, group size ×.6 → ×.85, extra early spawner twice as fast; mobs +10% HP and +10% damage (non-endless).
+- Level 3: share of regular spawns skipped `L3THIN` .5 → .3 (about 40% more mobs).
+- Floor crystal XP ×.8 on Levels 2-4 (non-endless).
+- Galick Gun and Final Flash damage −20% (`W3B.galick` .85 → .68).
+- Saiyan Armor 10% → 7% per (rarity-weighted) level, cap 60% → 42%. Battle Armor (shop) 3% → 2% per level.
+- Senzu Bean regen .5 → .35 HP/s per level. Tank check (raw damage taken by a mid build standing in the crowd: L3 4:00 ≈190/min, L3 7:00 ≈470/min, L4 5:00 ≈500/min, L4 8:00 ≈930/min): with capped Saiyan Armor + capped Senzu + Battle Armor 8, the old numbers out-healed everything until mid Level 4; now the maxed build loses ≈55/min at L3 7:00 and ≈75/min at L4 5:00 (430 max HP), and a mid build still dies in about a minute at L3 7:00 if it stands still.
+- Instant Transmission Strike (evolved Afterimage) was the weakest evolved attack (≈1,600 dps, 0.8 kills/s in the stationary-crowd test): afterimages now hit 1.5× harder and the teleport-strike is a 55px blast reaching 320px (≈4,500 dps, 2.2 kills/s; evolved Galick ≈3,500, Wolf Fang ≈4,300, Kamehameha ≈6,000).
+- Unlocks: Krillin's "Bald Destiny" needs 1,500 Destructo Disc kills (was 5,000), and disc-fusion kills count. "Yamcha'd" is now "fall within 3:00" (was 1:30). Death achievements (Snake Way, Yamcha'd, deaths count) only fire on a real death (HP 0), never on quitting a run.
+- Hyperbolic Time Chamber hold time 7 s → 5.5 s.
+
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
 2. **Phase A ships now** as a 2.1 patch, before the big update. ✓
