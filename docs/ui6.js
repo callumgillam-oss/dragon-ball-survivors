@@ -198,3 +198,30 @@ function menu6() {
 }
 { const _m = menu; menu = function () { _m(); try { if (PROG_READY) menu6(); } catch (e) { console.warn('menu6', e); } }; }
 if (PROG_READY && S && S.mode == 'menu' && !svWelcomeOn) menu();
+
+/* ---------- pause menu: end the run and go home ---------- */
+// "Restart" was the only way out of a run. This ends it properly: the run is over, what you earned is banked
+// (it goes through the same results screen as a defeat), and Main menu is the first button.
+{ const _p = pz.onclick; pz.onclick = function () {
+    _p.apply(this, arguments); const c = ov.querySelector('.card'); if (!c || S.mode != 'pause' || c.querySelector('.qrun')) return;
+    c.insertAdjacentHTML('beforeend', '<button class="qrun" style="text-align:center" onclick="quitAsk()">End run &amp; main menu</button>');
+    for (const b of c.querySelectorAll('button:not(.go)')) b.style.textAlign = 'center';   // Restart was the one left-aligned button
+  }; }
+function quitAsk() {
+  if (S.mode != 'pause') return;
+  show(`<div class="card"><h2>End this run?</h2><p>You keep the Zeni and unlocks you earned. The run can't be resumed.</p>
+  <button class="go" onclick="quitRun()">End run</button><button style="text-align:center" onclick="pz.onclick()">Keep playing</button></div>`);
+}
+function quitRun() {
+  if (S.mode != 'pause') return;
+  const m = muted; muted = true;   // leaving by choice isn't a defeat: skip the defeat jingle
+  try { S.mode = 'over'; endCard(false); } finally { muted = m; }
+  try { MUS.want('menu'); MUS.sync(); } catch (e) { }
+  const fix = root => { const card = root.querySelector('.card.end'); if (!card) return false;
+    const h = card.querySelector('h2'); if (h) h.textContent = 'RUN ENDED';
+    const p = card.querySelector('h2 + p'); if (p) p.textContent = 'You left the fight early. Everything you earned is kept.';
+    const mb = [...card.querySelectorAll('button')].find(b => b.getAttribute('onclick') == 'menu()'), first = card.querySelector('button');
+    if (mb && first && mb != first) { for (const b of card.querySelectorAll('button.go')) { b.classList.remove('go'); b.style.textAlign = 'center'; } mb.classList.add('go'); first.before(mb); }
+    return true; };
+  if (!fix(ov) && typeof RV != 'undefined' && RV && RV.back) { const d = document.createElement('div'); d.innerHTML = RV.back; if (fix(d)) RV.back = d.innerHTML; }   // unlock reveals show first; fix the card waiting behind them
+}
