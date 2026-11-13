@@ -122,6 +122,7 @@ LOCKED_HEROES.push(['h:gotenks', 'Gotenks', 'Defeat Super Buu', 'gotenks']);
     p.atk = p.ad = .6; ban('GALACTIC DONUT!');
   }; }
 
+const KWF = { aura: .35, cd: 1, dash: 3, burst: .7 };
 /* ---------- per-frame ---------- */
 function updW5(dt) {
   const p = S.p, W_ = S.w, ev = S.evo;
@@ -196,11 +197,13 @@ function updW5(dt) {
   for (const l of arr5('dsl')) { DSRC = 'dsb'; const was = l.t; l.t += dt; if (was < 0 && l.t >= 0) { for (const e of S.en) if (!e.dead && Math.hypot(e.x - l.x, e.y - l.y) < 55 + e.r) hitE(e, e.boss ? Math.min(l.d, e.max * .01) : l.d); sfxPlay('thunder'); } }
   S.dsl = arr5('dsl').filter(l => l.t < .3);
   // Kaioken Wolf Fang Barrage: a burning aura plus dash strikes on the nearest enemies
+  // Kaioken Wolf Fang Barrage tuning (2026-11-13: lifted from ~2 to 4+ kills/s at one wish; every dash now bursts)
   if (W_.kwf) { DSRC = 'kwf'; const T = FT('kwf'), d = (30 + 7 * WL('kwf')) * dm() * fm('kwf'), R = 100 * AR2();
-    S.cd.kwfa = (S.cd.kwfa || 0) - dt; if (S.cd.kwfa <= 0) { S.cd.kwfa = .3; for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) hitE(e, d * .25); }
-    S.cd.kwf = (S.cd.kwf ?? 1) - dt; if (S.cd.kwf <= 0) { const ts = near(T == 2 ? 12 : T ? 10 : 8, 380); if (!ts.length) S.cd.kwf = .2; else { S.cd.kwf = 1.5 * cm(); p.atk = p.ad = .4;
+    S.cd.kwfa = (S.cd.kwfa || 0) - dt; if (S.cd.kwfa <= 0) { S.cd.kwfa = .3; for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) hitE(e, d * KWF.aura); }
+    S.cd.kwf = (S.cd.kwf ?? 1) - dt; if (S.cd.kwf <= 0) { const ts = near(T == 2 ? 12 : T ? 10 : 8, 380); if (!ts.length) S.cd.kwf = .2; else { S.cd.kwf = KWF.cd * cm(); p.atk = p.ad = .4;
         for (const [i, e] of ts.entries()) { arr5('kws').push({ x0: p.x, y0: p.y, x1: e.x, y1: e.y, t: -i * .04, l: .28 });
-          hitE(e, e.boss ? Math.min(d * 2, e.max * .008) : d * 2); if (T == 2) { for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < 50 * AR2() + o.r) hitE(o, d); boom(e.x, e.y, 50 * AR2(), '#ff8a3a'); } }
+          hitE(e, e.boss ? Math.min(d * KWF.dash, e.max * .008) : d * KWF.dash);
+          { const BR = (T == 2 ? 55 : 40) * AR2(), bd = d * (T == 2 ? 1.2 : KWF.burst); for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < BR + o.r) hitE(o, o.boss ? Math.min(bd, o.max * .004) : bd); if (T == 2 || i < 4) boom(e.x, e.y, BR, '#ff8a3a'); } }
         if (T) p.hp = Math.min(p.max, p.hp + 1 + ts.length * .3); sfxPlay('dash'); } } }
   for (const s of arr5('kws')) s.t += dt; S.kws = arr5('kws').filter(s => s.t < s.l);
   // Sweet Ghost Parade: candy ghosts (and at two wishes, a giant one that sweeps the screen)

@@ -825,6 +825,8 @@ Shipped without bot balance runs, at your request: you judge the numbers.
   x0.4 (was x0.6) and end shockwave x1 (was x1.5) → 14.8; disc fusion 17+4/lv, 10 discs + 4 outer (was 12 + 6) → 17.5.
   Buffs: Explosive Wave loses 7% per enemy (was 10%); Kaioken Wolf Fang Barrage 30+7/lv, aura radius 100, 8/10 dash
   targets (was 6/9). Afterimage Strike explodes after 1.4 s (was 1 s).
+  Kaioken Wolf Fang Barrage boosted again: dashes every 1 s (was 1.5) for x3 damage (was x2), each dash bursts on nearby
+  enemies at every tier, aura x0.35 (was x0.25). Kills/s 1.9 / ? / 8.7 → 5.5 / 9.7 / 15.5 (no wish / 1 / 2).
 
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
