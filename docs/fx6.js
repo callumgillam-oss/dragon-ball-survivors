@@ -221,7 +221,7 @@ drawW3 = function (cx, cy, t) {
       ctx.fillStyle = 'rgba(255,150,50,' + k + ')'; ctx.beginPath(); ctx.moveTo(ax - c * L, ay - s * L); ctx.quadraticCurveTo(ax - s * wd * 1.6, ay + c * wd * 1.6, ax + c * L, ay + s * L); ctx.quadraticCurveTo(ax + s * wd * 1.6, ay - c * wd * 1.6, ax - c * L, ay - s * L); ctx.fill();
       ctx.fillStyle = 'rgba(255,250,225,' + k + ')'; ctx.beginPath(); ctx.moveTo(ax - c * L * .8, ay - s * L * .8); ctx.quadraticCurveTo(ax - s * wd * .7, ay + c * wd * .7, ax + c * L * .8, ay + s * L * .8); ctx.quadraticCurveTo(ax + s * wd * .7, ay - c * wd * .7, ax - c * L * .8, ay - s * L * .8); ctx.fill(); } }
   // Afterimages: translucent copies of the hero
-  for (const a of arr('aims')) { const x = a.x - cx, y = a.y - cy, k = Math.max(0, a.t);
+  for (const a of arr('aims')) { const x = a.x - cx, y = a.y - cy, k = Math.max(0, a.t / (a.T || 1));
     ctx.save(); ctx.translate(x, y); ctx.scale(a.f < 0 ? -1 : 1, 1); ctx.globalAlpha = .25 + .3 * k;
     ctx.drawImage(SHEET(), 0, 2 * HC, HC, HC, -HOX / HC * HD, HDY, HD, HD); ctx.restore();
     ctx.strokeStyle = 'rgba(170,220,255,' + (.25 + .5 * (1 - k)) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, a.R * (1 - k * .5), 0, 7); ctx.stroke(); }

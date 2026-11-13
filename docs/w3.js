@@ -8,6 +8,7 @@
 const W3 = ['galick', 'wave', 'tri', 'wolf', 'after', 'scatter'];
 // per-attack damage multipliers (1 = as designed); tune these with the balance bot
 const WAVE_SPD = 230, WAVE_MIN = .12;   // Explosive Wave: pulse speed (px/s) and the power left when it fizzles out
+const AFT_DLY = 1.4;   // Afterimage Strike: seconds before an afterimage explodes (was 1)
 const W3B = { galick: .85, wave: 1, tri: .9, wolf: 1, after: 1, scatter: 1 };
 
 Object.assign(INFO, {
@@ -144,7 +145,7 @@ function updW3(dt) {
   if (W_.after) { DSRC = 'after'; const L = W_.after, E = ev.after, M = MY('after'), mov = (p.mag || 0) > .2;
     S.aiT = (S.aiT ?? .8) - dt * (mov ? 1 : .4);
     if (S.aiT <= 0) { S.aiT = (E ? .35 : Math.max(.5, .9 - .06 * L)) * cm();
-      arr('aims').push({ x: p.x, y: p.y, f: p.face || 1, t: 1, R: (46 + 5 * WL('after')) * AR2(), d: (16 + 6 * WL('after')) * dm() * W3B.after, ev: E, n: M ? 2 : 1 }); } }
+      arr('aims').push({ x: p.x, y: p.y, f: p.face || 1, t: AFT_DLY, T: AFT_DLY, R: (46 + 5 * WL('after')) * AR2(), d: (16 + 6 * WL('after')) * dm() * W3B.after, ev: E, n: M ? 2 : 1 }); } }
   for (const a of arr('aims')) { DSRC = 'after';
     a.t -= dt; if (a.t > 0) continue;
     for (const e of S.en) if (!e.dead && onScr(e) && Math.hypot(e.x - a.x, e.y - a.y) < a.R + e.r) hitE(e, a.d);
@@ -209,7 +210,7 @@ function drawW3(cx, cy, t) {
     ctx.strokeStyle = 'rgba(255,190,90,' + k + ')'; ctx.lineWidth = 3; ctx.beginPath();
     for (let i = -1; i <= 1; i++) { const o = i * 5, c = Math.cos(f.a), s = Math.sin(f.a); ctx.moveTo(x - c * 14 - s * o, y - s * 14 + c * o); ctx.lineTo(x + c * 14 - s * o, y + s * 14 + c * o); } ctx.stroke(); }
   // Afterimages: translucent copies of the hero
-  for (const a of arr('aims')) { const x = a.x - cx, y = a.y - cy, k = Math.max(0, a.t);
+  for (const a of arr('aims')) { const x = a.x - cx, y = a.y - cy, k = Math.max(0, a.t / (a.T || 1));
     ctx.save(); ctx.translate(x, y); ctx.scale(a.f < 0 ? -1 : 1, 1); ctx.globalAlpha = .25 + .3 * k;
     ctx.drawImage(SHEET(), 0, 2 * HC, HC, HC, -HOX / HC * HD, HDY, HD, HD); ctx.restore();
     ctx.strokeStyle = 'rgba(170,220,255,' + (.25 + .5 * (1 - k)) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, a.R * (1 - k * .5), 0, 7); ctx.stroke(); }
