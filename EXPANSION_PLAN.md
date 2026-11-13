@@ -847,6 +847,11 @@ Shipped without bot balance runs, at your request: you judge the numbers.
 - Unlocks: Krillin's "Bald Destiny" needs 1,500 Destructo Disc kills (was 5,000), and disc-fusion kills count. "Yamcha'd" is now "fall within 3:00" (was 1:30). Death achievements (Snake Way, Yamcha'd, deaths count) only fire on a real death (HP 0), never on quitting a run.
 - Hyperbolic Time Chamber hold time 7 s → 5.5 s.
 
+### Playtest pass 4 (2026-11-13)
+- Enemy hit flash no longer strobes. Every hit used to turn an enemy fully white for 0.1 s, and a big evolved Kaioken aura hits the whole pack every 0.22 s, so the crowd blinked white in sync 4-5 times a second (seen in a player's video). Now an enemy can only start a new flash after a randomised 0.45-0.75 s gap (1.4-1.7 s for the aura and Spirit Bomb fields), and a hit never extends a flash already showing. With Flashing effects set to Reduced, hits don't flash enemies at all (`HF7` in v7.js).
+- Game loop watchdog (Edge report: "resume, then frozen, even a new run"): not reproduced in Chromium. The loop now restarts itself if it hasn't run for 1.5 s while the page is visible, duplicate loop chains are dropped, and if drawing fails every frame the error is shown on screen (update errors already were), so a repeat can be reported (`LP7` in v7.js).
+- Hero portraits are framed to each hero's measured outline (`PCROP` in ui2.js): the menu carousel and end card show the whole body filling the circle, and the HUD ring frames head and shoulders anchored from the feet (hair heights differ). Before, one fixed crop left short heroes low with empty space above and cut everyone's legs off.
+
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
 2. **Phase A ships now** as a 2.1 patch, before the big update. ✓

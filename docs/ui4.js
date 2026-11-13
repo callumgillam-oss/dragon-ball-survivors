@@ -24,7 +24,7 @@ function carDraw() {
       x.clearRect(0, 0, c.width, c.height); const im = sheetOf(h, 0); if (!im) return;
       const row = 1, f = sel && !lk ? Math.floor(T * 8) % FRN[row] : 0;
       x.save(); if (lk) x.filter = 'brightness(0)'; x.globalAlpha = lk ? .75 : 1;
-      x.drawImage(im, f * HC + 19, row * HC + 8, 170, 170, 0, 0, c.width, c.height); x.restore();
+      const q = PCROP(im, 'full'); x.drawImage(im, f * HC + q[0], row * HC + q[1], q[2], q[3], 0, 0, c.width, c.height); x.restore();
       if (lk) { x.fillStyle = 'rgba(255,210,122,.9)'; x.font = '800 ' + (c.width * .3 | 0) + 'px system-ui,sans-serif'; x.textAlign = 'center'; x.fillText('?', c.width / 2, c.height * .62); } });
     CAR.raf = requestAnimationFrame(step);
   };

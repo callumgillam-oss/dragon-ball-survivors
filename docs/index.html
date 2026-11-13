@@ -1203,7 +1203,7 @@ function lvlUp(){
   const r=o_[ix],R=RAR[r],l=S[g][k],pips='●'.repeat(l+1)+'○'.repeat(4-l),h=evoHint(g,k);
   return `<button class="up r${r}" onclick="pick('${g}','${k}',${r})"><img class="ic" src="${iurl(k)}"><div>${r?`<span class="rt r${r}">${R.n}</span> `:''}<b>${INFO[k][0]}</b> ${l?'':'<span class="new">NEW</span>'}<span class="pips"> ${pips}</span><br><small>${INFO[k][1]}</small><br><small class="bon">${bonusText(g,k,r)}</small>${h}</div></button>`}).join('')+rerollBtn()+`</div>`);
 }
-function heroURL(){const c=mk(240,240),x=c.getContext('2d');x.drawImage(sheetOf(S.hero,S.ssj),0,HC,HC,HC,-8,-8,256,256);return c.toDataURL()}
+function heroURL(){const c=mk(240,240),x=c.getContext('2d'),im=sheetOf(S.hero,S.ssj),q=typeof PCROP=='function'?PCROP(im,'full'):[8,8,240,240];x.drawImage(im,q[0],HC+q[1],q[2],q[3],0,0,240,240);return c.toDataURL()}
 function endCard(win){
  const p=S.p,st=S.stage||1;let best='';const zn=awardZeni(win);
  try{const k='dbs_best'+st,b=+store.getItem(k)||0;if(win&&(!b||S.t<b)){store.setItem(k,Math.floor(S.t));best='New best time!'}else if(b)best='Best time: '+fmt(b)}catch(e){}

@@ -305,3 +305,41 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .hcd.lk::after{content:'🔒';position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:26px;filter:drop-shadow(0 2px 3px #000)}
 </style>`);
 if (typeof PROG_READY != 'undefined' && PROG_READY && S && S.mode == 'menu' && !svWelcomeOn) menu();
+
+/* ---------- hit flash without strobing (feedback 2026-11-13) ----------
+   Every hit turned an enemy fully white for 0.1 s. A big evolved Kaioken aura hits the whole pack every 0.22 s,
+   so the crowd strobed white in sync 4-5 times a second. Now an enemy can only start a new white flash after a
+   short, randomised gap (longer for damage-over-time like the aura), so a pack never blinks in unison.
+   With Flashing effects set to Reduced, hits don't flash enemies at all (damage numbers still show). */
+const HF7 = { gap: .45, jit: .3, dotGap: 1.4, dot: { aura: 1, bomb: 1 } };
+{ const _h = hitE; hitE = function (e, d) {
+    const pf = e ? e.fl : 0, r = _h(e, d);
+    if (e && pf > 0 && e.fl > pf) e.fl = pf;   // a hit never extends a flash already showing (steady damage would hold it white)
+    else if (e && e.fl > 0 && !(pf > 0)) {
+      const ok = SET.flash != 'reduced' && S.t >= (e.fn7 || 0);
+      if (ok) e.fn7 = S.t + (HF7.dot[DSRC] ? HF7.dotGap : HF7.gap) + Math.random() * HF7.jit;
+      else e.fl = pf || 0;
+    }
+    return r;
+  }; }
+
+/* ---------- the game loop can never silently stop (Edge "resume, then frozen" report) ----------
+   1) A watchdog restarts the loop if it hasn't run for 1.5 s while the page is visible.
+   2) Duplicate loop chains (a restart racing a late frame) are dropped, so the game never runs double speed.
+   3) If drawing fails every frame (the picture would just freeze), the error is shown on screen to report. */
+const LP7 = { t: performance.now(), ts: -1, streak: 0, errN: 0, shown: '' };
+{ const _l = loop; loop = function (ts) {
+    if (ts === LP7.ts) return;   // a second chain in the same frame: let it die
+    LP7.ts = ts; LP7.t = performance.now();
+    const n0 = V2.errN || 0; _l(ts);
+    LP7.streak = (V2.errN || 0) > n0 ? LP7.streak + 1 : 0;
+    if (LP7.streak > 90 && V2.lastErr) {
+      const e = V2.lastErr, msg = String(e && e.message || e).slice(0, 120);
+      if (LP7.shown != msg) { LP7.shown = msg;
+        let d = document.getElementById('err7');
+        if (!d) { d = document.createElement('div'); d.id = 'err7'; d.style.cssText = 'position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);background:#3a0d0d;color:#ffd9d0;border:2px solid #ff7a5a;border-radius:10px;padding:8px 10px;font:12px/1.35 system-ui,sans-serif;z-index:60;white-space:pre-wrap;word-break:break-word'; d.onclick = () => d.remove(); document.body.append(d); }
+        d.textContent = 'The game hit an error and is stuck. Please screenshot this and report it (tap to hide):\n' + msg + '\n' + String(e && e.stack || '').split('\n').slice(1, 3).join('\n').trim().slice(0, 200);
+      }
+    }
+  }; }
+setInterval(() => { if (!document.hidden && performance.now() - LP7.t > 1500) { LP7.t = performance.now(); requestAnimationFrame(loop); } }, 1000);

@@ -35,7 +35,7 @@ function sanitizeRun() {
 { const _l = loop; loop = function (ts) {
     try { _l(ts); }
     catch (e) {
-      V2.errN = (V2.errN || 0) + 1; if (V2.errN < 5) console.error('[recovered]', e);
+      V2.errN = (V2.errN || 0) + 1; V2.lastErr = e; if (V2.errN < 5) console.error('[recovered]', e);
       try { sanitizeRun(); if (!(W > 0 && H > 0)) rs(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; } catch (_) { }
       requestAnimationFrame(loop);
     }

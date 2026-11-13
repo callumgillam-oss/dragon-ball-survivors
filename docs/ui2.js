@@ -11,6 +11,32 @@ const FLM = () => SET.flash == 'reduced' ? .35 : 1;
 function applyHand() { document.documentElement.classList.toggle('lefty', SET.hand == 'left'); }
 applyHand();
 
+/* ---------- hero portraits framed to each hero's real outline (feedback 2026-11-13) ----------
+   The portraits used one fixed crop of the sprite cell, so short heroes (Krillin, Trunks, Gotenks) sat low with
+   empty space above and everyone's legs were cut off. PCROP measures the visible pixels of the idle/run row once per
+   sheet and returns a square crop: 'full' fits the whole body, 'bust' frames head and shoulders for the small HUD ring. */
+const PCB = new WeakMap();
+function PCROP(im, mode) {
+  if (!im) return [19, HC + 8, 170, 170];
+  let b = PCB.get(im);
+  if (!b) {
+    b = [HC, HC, 0, 0];
+    try { const c = document.createElement('canvas'); c.width = c.height = HC; const x = c.getContext('2d', { willReadFrequently: true });
+      for (let f = 0; f < FRN[1]; f++) { x.clearRect(0, 0, HC, HC); x.drawImage(im, f * HC, HC, HC, HC, 0, 0, HC, HC);
+        const d = x.getImageData(0, 0, HC, HC).data;
+        for (let y = 0; y < HC; y++) for (let X = 0; X < HC; X++) if (d[(y * HC + X) * 4 + 3] > 40) { if (X < b[0]) b[0] = X; if (y < b[1]) b[1] = y; if (X > b[2]) b[2] = X; if (y > b[3]) b[3] = y; } }
+    } catch (e) { b = [39, 28, 171, 252]; }
+    if (!(b[2] > b[0])) b = [39, 28, 171, 252];
+    PCB.set(im, b);
+  }
+  const cx = (b[0] + b[2]) / 2, bw = b[2] - b[0], bh = b[3] - b[1];
+  let s, x, y;
+  if (mode == 'bust') { s = 128; x = cx - s / 2; y = b[3] - 180; }   // bodies are about the same height, hair isn't: anchor from the feet
+  else { s = Math.max(bw, bh) * 1.08; x = cx - s / 2; y = (b[1] + b[3]) / 2 - s / 2; }
+  s = Math.min(s, HC); x = Math.max(0, Math.min(HC - s, x)); y = Math.max(0, Math.min(HC - s, y));   // stay inside this cell of the sheet
+  return [x, y, s, s];
+}
+
 /* ---------- joystick: lock the base where your thumb first lands ---------- */
 // The original stick drags its base along when your thumb passes the edge. In "Fixed" mode the base stays put,
 // so sliding your thumb back always reverses direction exactly like a physical stick.
@@ -86,7 +112,7 @@ hud = function () {
   const cx = m + 29, cy = y + 29, R = 24;
   const rg = ctx.createRadialGradient(cx - 6, cy - 8, 2, cx, cy, R + 4); rg.addColorStop(0, '#ffe08a'); rg.addColorStop(1, '#d9640a'); ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(cx, cy, R + 4, 0, 7); ctx.fill();
   ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fillStyle = S.ssj ? '#a6791a' : S.hero == 'pic' ? '#3e6e30' : S.hero == 'gohan' ? '#5a3290' : '#2f5fc4'; ctx.fill(); ctx.clip();
-  ctx.drawImage(SHEET(), 19, HC + 8, 170, 170, cx - R + 2, cy - R + 2, R * 2, R * 2); ctx.restore();
+  { const im = SHEET(), q = PCROP(im, 'bust'); ctx.drawImage(im, q[0], HC + q[1], q[2], q[3], cx - R + 2, cy - R + 2, R * 2, R * 2); } ctx.restore();
   ctx.strokeStyle = '#7a2a05'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx, cy, R + 4, 0, 7); ctx.stroke();
   // level badge (four-star ball)
   starBall(cx + R - 2, cy + R - 2, 10, 4); ctx.fillStyle = '#fff'; ctx.font = 'bold 9px ' + F; ctx.textAlign = 'center'; ctx.lineWidth = 2.5; ctx.strokeStyle = '#5a1a02'; ctx.strokeText(p.lv, cx + R - 2, cy + R + 1); ctx.fillText(p.lv, cx + R - 2, cy + R + 1);
