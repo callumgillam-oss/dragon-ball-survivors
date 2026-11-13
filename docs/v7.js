@@ -281,7 +281,7 @@ document.head.insertAdjacentHTML('beforeend', `<style>
   pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;z-index:5;text-align:center;line-height:1.25}
 .o7tip.on{opacity:1;transform:none}.o7tip small{display:block;font-size:10px;color:#ffd27a}
 .own7b{color:#9fe8a0;font-weight:700}
-.card .up.pair7{box-shadow:0 0 0 2px #7dff8a inset,0 0 12px rgba(125,255,138,.35)}
+.card .up.pair7{position:relative;overflow:hidden}.card .up.pair7::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.08) 40%,rgba(255,250,220,.38) 50%,rgba(255,255,255,.08) 60%,transparent 70%);background-size:250% 100%;background-repeat:no-repeat;animation:pair7s 2.4s ease-in-out infinite}@keyframes pair7s{0%{background-position:150% 0}60%,100%{background-position:-50% 0}}@media (prefers-reduced-motion:reduce){.card .up.pair7::after{animation:none;background:linear-gradient(105deg,transparent 35%,rgba(255,250,220,.18) 50%,transparent 65%)}}
 .dmg7{margin:6px 0 4px;padding:6px 8px;border-radius:10px;background:rgba(20,8,2,.45);border:1px solid rgba(255,170,60,.3)}
 .d7h{font-size:13px;color:#ffd27a;text-align:center;margin-bottom:5px;font-weight:700}.d7h small{color:#ffe9c8;opacity:.7;font-weight:400}
 .d7r{display:flex;align-items:center;gap:6px;font-size:11.5px;line-height:1;margin:3px 0}
