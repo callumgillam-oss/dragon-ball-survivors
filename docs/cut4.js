@@ -37,7 +37,7 @@ function cracks(x, y, k, col, Z) { ctx.save(); ctx.strokeStyle = col; ctx.lineWi
     for (let j = 1; j <= 5; j++) ctx.lineTo(x + Math.cos(a) * L * j / 5 + Math.sin(j * 9 + i) * 7 * Z, y + Math.sin(a) * L * j / 5 * .42 + Math.cos(j * 7 + i) * 3 * Z); ctx.stroke(); } ctx.restore(); }
 function title(name, sub, a, col) {
   if (a <= 0) return; const fs = Math.min(62, W * .12), y = H * .26; ctx.save(); ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
-  ctx.font = '900 ' + fs + 'px Impact,"Arial Black",sans-serif'; ctx.lineWidth = fs * .2; ctx.strokeStyle = col[2]; ctx.strokeText(name, W / 2, y);
+  ctx.font = '900 ' + fs + 'px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.lineWidth = fs * .2; ctx.strokeStyle = col[2]; ctx.strokeText(name, W / 2, y);
   const g = ctx.createLinearGradient(0, y - fs, 0, y); g.addColorStop(0, col[0]); g.addColorStop(1, col[1]); ctx.fillStyle = g; ctx.fillText(name, W / 2, y);
   if (sub) { ctx.font = 'bold ' + Math.round(fs * .3) + 'px "Trebuchet MS",sans-serif'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(sub, W / 2, y + fs * .5); ctx.fillStyle = '#fff3d8'; ctx.fillText(sub, W / 2, y + fs * .5); }
   ctx.restore();

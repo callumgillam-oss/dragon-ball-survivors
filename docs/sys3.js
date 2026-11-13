@@ -136,7 +136,7 @@ for (const a of ACH) ACH_BY[a.id] = a;
 { const _op = offerPool; offerPool = function () { return _op().filter(([g, k]) => !(S.ban3 && S.ban3[k])); }; }
 function sealPick(k) {
   if (S.mode != 'lvl' || !(S.seal > 0)) return;
-  S.seal--; S.ban3[k] = 1; sfxPlay('hit'); lvlUp();
+  S.seal--; S.ban3[k] = 1; sfxPlay('seal'); lvlUp();
 }
 // Limit Break boosts. Area and cooldown live in S.pe so the existing formulas pick them up;
 // addPow recalculates S.pe for a passive, so we add the bonus back on top.

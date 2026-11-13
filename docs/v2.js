@@ -301,7 +301,7 @@ function drawVictory(dt) {
   ctx.fillStyle = 'rgba(255,250,230,' + Math.max(0, .9 - t * 1.6) + ')'; ctx.fillRect(0, 0, W, H);
   const a = Math.min(1, Math.max(0, (t - .15) / .25)), sc = 1 + Math.max(0, .35 - t) * 1.2, fs = Math.min(76, W * .16);
   ctx.globalAlpha = a; ctx.translate(W / 2, H * .38); ctx.scale(sc, sc); ctx.textAlign = 'center'; ctx.lineJoin = 'round';
-  ctx.font = '900 ' + fs + 'px Impact,"Arial Black",sans-serif'; ctx.lineWidth = fs * .22; ctx.strokeStyle = '#5a0e08'; ctx.strokeText('VICTORY!', 0, 0);
+  ctx.font = '900 ' + fs + 'px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.lineWidth = fs * .22; ctx.strokeStyle = '#5a0e08'; ctx.strokeText('VICTORY!', 0, 0);
   const g = ctx.createLinearGradient(0, -fs * .8, 0, 0); g.addColorStop(0, '#fff6c0'); g.addColorStop(1, '#ff9a1f'); ctx.fillStyle = g; ctx.fillText('VICTORY!', 0, 0);
   ctx.restore();
 }
@@ -325,7 +325,7 @@ function drawBossIntro() {
   const y = H * .42, sl = (1 - inn) * W * .6;
   ctx.globalAlpha = a; ctx.fillStyle = 'rgba(20,4,0,.72)'; ctx.beginPath(); ctx.moveTo(-20 + sl, y - 46); ctx.lineTo(W + 20 + sl, y - 66); ctx.lineTo(W + 20 + sl, y + 24); ctx.lineTo(-20 + sl, y + 44); ctx.fill();
   ctx.fillStyle = '#ff9a1f'; ctx.fillRect(0, y + 40 - 4, W, 3);
-  const fs = Math.min(64, W * .13); ctx.font = '900 ' + fs + 'px Impact,"Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
+  const fs = Math.min(64, W * .13); ctx.font = '900 ' + fs + 'px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
   const x = W / 2 - sl * .4; ctx.lineWidth = fs * .2; ctx.strokeStyle = '#5a0e08'; ctx.strokeText(b.n, x, y + fs * .25);
   const g = ctx.createLinearGradient(0, y - fs * .6, 0, y + fs * .3); g.addColorStop(0, '#fff3b0'); g.addColorStop(1, '#ff8a1f'); ctx.fillStyle = g; ctx.fillText(b.n, x, y + fs * .25);
   ctx.font = 'bold ' + Math.round(fs * .3) + 'px "Trebuchet MS",sans-serif'; ctx.fillStyle = '#ffe6b0'; ctx.fillText(b.s.toUpperCase(), x, y + fs * .25 + fs * .45);
@@ -518,6 +518,6 @@ MUS.want('menu');
 
 /* ---------- css bits for 2.0 ---------- */
 document.head.insertAdjacentHTML('beforeend', `<style>
-.ver{display:inline-block;margin:2px auto 6px;padding:1px 10px;border-radius:20px;background:linear-gradient(90deg,#ff5a3a,#ffd23a);color:#2a0600;font:900 13px Impact,"Arial Black",sans-serif;letter-spacing:2px}
+.ver{display:inline-block;margin:2px auto 6px;padding:1px 10px;border-radius:20px;background:linear-gradient(90deg,#ff5a3a,#ffd23a);color:#2a0600;font:900 13px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif;letter-spacing:2px}
 </style>`);
 if (S && S.mode == 'menu' && !/Welcome back/.test(ov.textContent)) menu();

@@ -77,9 +77,9 @@ function updW3(dt) {
       for (let i = 0; i <= extra; i++) { const off = (i - extra / 2) * .5;
         arr('gal').push({ a0: a + off - arc / 2, a1: a + off + arc / 2, ch: .45, t: 0, T: E ? .55 : .45, back: M && !E ? 1 : 0, fin: E ? 1 : 0,
           w: (E ? 62 + 5 * L : 24 + 4 * L) * AR() * (M ? 1.2 : 1), len: E ? 900 : 520, d: (30 + 11 * WL('galick')) * dm() * W3B.galick * (E ? 2.4 : 1), h: new Set() }); }
-      sfxPlay('charge'); } } }
+      sfxPlay('galick'); } } }
   for (const b of arr('gal')) {
-    if (b.ch > 0) { b.ch -= dt; if (b.ch <= 0) sfx('boom'); continue; }
+    if (b.ch > 0) { b.ch -= dt; if (b.ch <= 0) sfx('galfire'); continue; }
     b.t += dt; const k = Math.min(1, b.t / b.T), a = b.a0 + (b.a1 - b.a0) * (b.back == 2 ? 1 - k : k); b.a = a;
     for (const e of S.en) { if (e.dead || b.h.has(e) || !onScr(e)) continue;
       if (lineHit(p.x, p.y, a, b.len, b.w, e)) { b.h.add(e); hitE(e, b.fin ? bossCap(b.d, e, .5) : bossCap(b.d, e, .8)); if (b.fin) shove(e, p.x, p.y, 40); } }
@@ -93,7 +93,7 @@ function updW3(dt) {
     else { S.cd.wave = (E ? 2.2 : Math.max(2.6, 4.2 - .3 * L)) * cm(); p.atk = p.ad = .35;
       const R = (110 + 12 * WL('wave')) * AR() * (E ? 1.25 : 1), d = (14 + 6 * WL('wave')) * dm() * W3B.wave * (E ? 1.5 : 1), n = (E ? 2 : 1) + (M ? 1 : 0);
       for (let i = 0; i < n; i++) arr('wav').push({ x: p.x, y: p.y, R: R * (1 + i * .18), d, dl: i * .22, t: 0, T: .45, h: new Set(), st: E ? .8 : 0, kb: E ? 80 : 60, clr: M });
-      sfx('boom'); } } }
+      sfx('wave'); } } }
   for (const w of arr('wav')) {
     if (w.dl > 0) { w.dl -= dt; if (w.dl <= 0) { w.x = p.x; w.y = p.y; } continue; }
     w.t += dt; const k = Math.min(1, w.t / w.T), r = w.R * (1 - Math.pow(1 - k, 2)); w.r = r;
@@ -111,7 +111,7 @@ function updW3(dt) {
       const n = (E ? 3 : 1) + (PX() >> 1), s = (70 + 8 * WL('tri')) * AR(), d = (3 + 1.2 * WL('tri')) * dm() * W3B.tri;
       const spots = [c]; if (n > 1) { const others = S.en.filter(e => !e.dead && onScr(e) && Math.hypot(e.x - c.x, e.y - c.y) > s * 1.2).sort(() => Math.random() - .5); spots.push(...others.slice(0, n - 1)); }
       for (const q of spots) arr('tris').push({ x: q.x, y: q.y, s, d, t: 0, T: E ? 2.2 : 1.6, k: 0, n: 0, rot: Math.random() * 2, fol: M ? q : null, burst: M });
-      sfx('charge'); } } }
+      sfx('tri'); } } }
   for (const z of arr('tris')) {
     z.t += dt; z.k -= dt; z.rot += dt * .8;
     if (z.fol && !z.fol.dead) { z.x += (z.fol.x - z.x) * Math.min(1, dt * 2); z.y += (z.fol.y - z.y) * Math.min(1, dt * 2); }
@@ -132,7 +132,7 @@ function updW3(dt) {
     if (q.e.dead || q.n <= 0) { q.done = 1; continue; }
     q.t = .07; q.n--; hitE(q.e, q.d); shove(q.e, p.x, p.y, 6);
     if (S.fx.length < 150) arr('wfx').push({ x: q.e.x, y: q.e.y, a: Math.random() * 6.283, l: .18 });
-    if (q.n == 0) { if (q.st && !q.e.boss) q.e.st = Math.max(q.e.st || 0, .6); if (q.heal) p.hp = Math.min(p.max, p.hp + 1); sfx('hit'); }
+    if (q.n == 0) { if (q.st && !q.e.boss) q.e.st = Math.max(q.e.st || 0, .6); if (q.heal) p.hp = Math.min(p.max, p.hp + 1); sfx('wolf'); }
   }
   S.wfq = arr('wfq').filter(q => !q.done);
   for (const f of arr('wfx')) f.l -= dt; S.wfx = arr('wfx').filter(f => f.l > 0);
@@ -157,13 +157,13 @@ function updW3(dt) {
     if (!near(1, 380).length) S.cd.scatter = .3;
     else { S.cd.scatter = (E ? 2 : Math.max(2.4, 3.6 - .25 * L)) * cm(); p.atk = p.ad = .4;
       arr('sca').push({ x: p.x, y: p.y, t: .45, n: Math.round((8 + 2 * L + PX() * 2) * (E ? 1.6 : 1)), d: (8 + 3 * WL('scatter')) * dm() * W3B.scatter, R: 22 * AR2() * (M ? 1.3 : 1), ev: E, ch: M });
-      sfxPlay('charge'); } } }
+      sfxPlay('scatter'); } } }
   for (const o of arr('sca')) {
     o.t -= dt; if (o.t > 0) continue; o.done = 1;
     const ox = o.x, oy = o.y - 70, ts = S.en.filter(e => !e.dead && onScr(e) && Math.hypot(e.x - o.x, e.y - o.y) < 380);
     for (let i = 0; i < o.n; i++) { const e = ts.length ? ts[(Math.random() * ts.length) | 0] : null, a = Math.random() * 6.283, r = 60 + Math.random() * 200;
       arr('shd').push({ x0: ox, y0: oy, tx: e ? e.x + (Math.random() - .5) * 20 : o.x + Math.cos(a) * r, ty: e ? e.y + (Math.random() - .5) * 20 : o.y + Math.sin(a) * r, t: 0, T: .3 + Math.random() * .25, d: o.d, R: o.R, ev: o.ev, ch: o.ch }); }
-    sfx('boom');
+    sfx('scatpop');
   }
   S.sca = arr('sca').filter(o => !o.done);
   for (const s of arr('shd')) {

@@ -211,7 +211,7 @@ function drawSSJCut() {
   if (t > 2.1 && t < 2.9) { const f = 1 - Math.abs(t - 2.35) / .55; ctx.fillStyle = 'rgba(255,250,225,' + Math.max(0, f) + ')'; ctx.fillRect(0, 0, W, H); }
   // title
   if (t > 2.3) { const a = Math.min(1, (t - 2.3) / .2) * (t > 2.95 ? Math.max(0, 1 - (t - 2.95) / .25) : 1), fs = Math.min(60, W * .12);
-    ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.font = '900 ' + fs + 'px Impact,"Arial Black",sans-serif'; ctx.lineWidth = fs * .2; ctx.strokeStyle = '#5a2a00';
+    ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.font = '900 ' + fs + 'px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.lineWidth = fs * .2; ctx.strokeStyle = '#5a2a00';
     const y = H * .27; ctx.strokeText(name, px, y); const g = ctx.createLinearGradient(0, y - fs, 0, y); g.addColorStop(0, '#fffbd0'); g.addColorStop(1, '#ffc21f'); ctx.fillStyle = g; ctx.fillText(name, px, y); ctx.globalAlpha = 1; }
   ctx.restore();
 }

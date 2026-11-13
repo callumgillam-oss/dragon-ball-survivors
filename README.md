@@ -16,7 +16,8 @@ achievements and unlocks. `EXPANSION_PLAN.md` is the full design and build log.
 
 Code is layered: `index.html` is the original game; each later file wraps or extends it, loaded in this order:
 `v2.js art2.js ui2.js fix.js patch21.js prog.js w3.js w4.js heroes3.js sys3.js cut3.js lv3.js w5.js lv4.js
-endless.js dball5.js bal5.js cut4.js ui4.js rw5.js`. `sw.js` caches every file for offline play; bump its `CACHE`
+endless.js dball5.js bal5.js cut4.js ui4.js rw5.js fx6.js ui6.js cut6.js snd6.js`. The last four are
+presentation only (effects, UI, cutscenes, sound). `sw.js` caches every file for offline play; bump its `CACHE`
 name whenever you ship.
 
 ## Balance testing

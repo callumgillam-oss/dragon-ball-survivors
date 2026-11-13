@@ -75,7 +75,7 @@ function pickFuse(id) {
   S.w[f.a] = 0; S.w[f.b] = 0; S.fz[f.a] = S.fz[f.b] = 1; S.w[id] = 5; S.cd[id] = .6; fsync(id);
   if (f.a == 'disc' || f.b == 'disc') S.discs = [];
   S.fuN = (S.fuN || 0) + 1; P.fus = (P.fus || 0) + 1; (P.fusR || (P.fusR = {}))[id] = Math.max(P.fusR[id] || 0, tier + 1); try { saveProg(); } catch (e) { }
-  S.flash = Math.max(S.flash, .8); boom(S.p.x, S.p.y, 170, '#ffe27a'); ban('FUSION HA! ' + (f.n + FTN[tier]).toUpperCase() + '!'); sfxPlay('ult');
+  S.flash = Math.max(S.flash, .8); boom(S.p.x, S.p.y, 170, '#ffe27a'); ban('FUSION HA! ' + (f.n + FTN[tier]).toUpperCase() + '!'); sfxPlay('fuse');
   if (S.luckN > 0) S.luckN--; S.pend--; lvlUp();
 }
 { const _op = offerPool; offerPool = function () { return _op().filter(([g, k]) => !(S.fz && S.fz[k]) && !FUSE[k]); }; }
@@ -128,7 +128,7 @@ function updW5(dt) {
   // Ghost Kamikaze: ghosts seek enemies, latch on and explode
   if (W_.ghost) { const L = W_.ghost, E = ev.ghost, cap = 3 + L + (E ? 4 : 0); S.cd.ghost -= dt;
     if (S.cd.ghost <= 0 && arr5('gh').length < cap) { S.cd.ghost = (E ? .75 : Math.max(1.1, 2.1 - .22 * L)) * cm() * (S.hero == 'gotenks' ? .85 : 1);
-      const n = 1 + (PX() >> 1); for (let i = 0; i < n; i++) { const a = Math.random() * 6.283; S.gh.push({ x: p.x + Math.cos(a) * 18, y: p.y + Math.sin(a) * 18 - 10, t: 0, l: 6, s: Math.random() * 6, a }); } sfxPlay('tele'); } }
+      const n = 1 + (PX() >> 1); for (let i = 0; i < n; i++) { const a = Math.random() * 6.283; S.gh.push({ x: p.x + Math.cos(a) * 18, y: p.y + Math.sin(a) * 18 - 10, t: 0, l: 6, s: Math.random() * 6, a }); } sfxPlay('ghost'); } }
   for (const g of arr5('gh')) {
     g.t += dt; g.l -= dt; const M = MY('ghost'), sp = (g.mini ? 170 : 150) * (M ? 2 : 1);
     if (!g.e || g.e.dead) { let b = null, bd = 520; for (const e of S.en) { if (e.dead || !onScr(e)) continue; const d = Math.hypot(e.x - g.x, e.y - g.y); if (d < bd) { bd = d; b = e; } } g.e = b; }
@@ -151,10 +151,10 @@ function updW5(dt) {
           e.hp = 0; killE(e); S.cpop.push({ x: e.x, y: e.y, l: .5, c: Math.random() < .5 ? '#ff7ac8' : '#ffd23a' });
           if (M) { for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < 50 * AR2() + o.r) hitE(o, dd * 1.5); }
           if (Math.random() < (E ? .08 : .04)) S.ch4.push({ x: e.x, y: e.y, l: 12 }); }
-        sfxPlay('tele'); } } }
+        sfxPlay('candy'); } } }
   for (const c of arr5('cdot')) { c.t -= dt; c.tk -= dt; if (c.tk <= 0 && !c.e.dead) { c.tk = .5; hitE(c.e, c.d); } }
   S.cdot = arr5('cdot').filter(c => c.t > 0 && !c.e.dead);
-  for (const c of arr5('ch4')) { c.l -= dt; if (Math.hypot(c.x - p.x, c.y - p.y) < 28) { c.l = 0; p.hp = Math.min(p.max, p.hp + 8); sfx('gem'); if (S.nums.length < 40) S.nums.push({ x: p.x, y: p.y - 24, v: '+8', l: .7, c: '#ff9ad8' }); } }
+  for (const c of arr5('ch4')) { c.l -= dt; if (Math.hypot(c.x - p.x, c.y - p.y) < 28) { c.l = 0; p.hp = Math.min(p.max, p.hp + 8); sfx('bean'); if (S.nums.length < 40) S.nums.push({ x: p.x, y: p.y - 24, v: '+8', l: .7, c: '#ff9ad8' }); } }
   S.ch4 = arr5('ch4').filter(c => c.l > 0);
   for (const b of arr5('cbm')) b.l -= dt; S.cbm = arr5('cbm').filter(b => b.l > 0);
   for (const b of arr5('cpop')) b.l -= dt; S.cpop = arr5('cpop').filter(b => b.l > 0);
@@ -187,7 +187,7 @@ function updW5(dt) {
       const d = (160 + 20 * WL('dsb')) * dm() * fm('dsb'), grp = T == 1 && ts.length > 6 ? [ts.slice(0, 6), ts.slice(6)] : [ts.slice(0, 6)];
       for (const g of grp) { let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
         S.dsb.push({ x: cx, y: cy, t: 0, T: .9, R: 150 * AR() * (T == 2 ? 1.6 : 1), d: d * (T == 2 ? 1.4 : 1), ln: T == 2 ? 14 : 6 }); }
-      sfxPlay('charge'); } } }
+      sfxPlay('spirit'); } } }
   for (const b of arr5('dsb')) { b.t += dt; if (b.t >= b.T && !b.hit) { b.hit = 1;
       for (const e of S.en) if (!e.dead && Math.hypot(e.x - b.x, e.y - b.y) < b.R + e.r) { hitE(e, e.boss ? Math.min(b.d, e.max * .03) : b.d); shove(e, b.x, b.y, 40); }
       boom(b.x, b.y, b.R, b.fs ? '#d8f0ff' : '#bfe0ff'); aFlash(.5); kick(10);
@@ -254,9 +254,12 @@ function ghostShape(c, x, y, s, t, sd, a, mini, pk) {
 }
 function drawW5(cx, cy, t) {
   for (const g of S.gh || []) ghostShape(ctx, g.x - cx, g.y - cy, g.mini ? .9 : 1.3, t, g.s, g.a, g.mini);
-  for (const b of S.cbm || []) { const k = b.l / .25; ctx.save(); ctx.strokeStyle = `rgba(255,120,200,${.8 * k})`; ctx.lineWidth = 5 * k + 1; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(W / 2, H / 2 - 12); const mx = (W / 2 + b.x - cx) / 2, my = (H / 2 + b.y - cy) / 2 - 30; ctx.quadraticCurveTo(mx, my, b.x - cx, b.y - cy); ctx.stroke();
-    ctx.strokeStyle = `rgba(255,240,250,${k})`; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore(); }
+  for (const b of S.cbm || []) { const k = b.l / .25, x1 = b.x - cx, y1 = b.y - cy, mx = (W / 2 + x1) / 2, my = (H / 2 + y1) / 2 - 30;   // Candy Beam: a pink ribbon with a sparkle where it lands
+    ctx.save(); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(W / 2, H / 2 - 12); ctx.quadraticCurveTo(mx, my, x1, y1);
+    ctx.strokeStyle = `rgba(255,90,190,${.35 * k})`; ctx.lineWidth = 12 * k + 2; ctx.stroke();
+    ctx.strokeStyle = `rgba(255,130,210,${.95 * k})`; ctx.lineWidth = 5.5 * k + 1; ctx.stroke();
+    ctx.strokeStyle = `rgba(255,244,252,${k})`; ctx.lineWidth = 1.8; ctx.stroke(); ctx.restore();
+    LT(); gl('pu', x1, y1, 20 * k + 6, .7 * k); ctx.fillStyle = `rgba(255,240,250,${k})`; if (typeof star4 == 'function') star4(x1, y1, 16 * (1.3 - k * .5), 2.2 * k + .6, t * 3); NM(); }
   for (const b of S.cpop || []) { const k = b.l / .5, x = b.x - cx, y = b.y - cy; ctx.save(); ctx.globalAlpha = Math.min(1, k * 2); ctx.translate(x, y - (1 - k) * 10); ctx.rotate((1 - k) * 3);
     ctx.fillStyle = b.c; ctx.strokeStyle = OL; ctx.lineWidth = 1.2; for (const q of [-1, 1]) { ctx.beginPath(); ctx.moveTo(q * 5, 0); ctx.lineTo(q * 9, -3); ctx.lineTo(q * 9, 3); ctx.closePath(); ctx.fill(); ctx.stroke(); }
     ctx.beginPath(); ctx.ellipse(0, 0, 6, 4.4, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.restore(); }
@@ -264,17 +267,23 @@ function drawW5(cx, cy, t) {
     ctx.save(); ctx.fillStyle = '#7dff9a'; ctx.strokeStyle = OL; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.ellipse(x, y, 6, 4.4, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect(x - 1, y - 3, 2, 6); ctx.fillRect(x - 3, y - 1, 6, 2); ctx.restore(); }
   for (const c of S.cdot || []) { if (c.e.dead) continue; LT(); gl('rd', c.e.x - cx, c.e.y - cy, c.e.r * 1.4, .25 + .1 * Math.sin(t * 12)); NM(); }
   // Twin Kienzan Storm discs
-  if (S.w.tks) for (const d of S.tkd || []) { const x = d.x - cx, y = d.y - cy; LT(); gl('or', x, y, 30, .55); NM();
-    ctx.save(); ctx.translate(x, y); ctx.rotate(t * 20); ctx.fillStyle = 'rgba(255,230,120,.85)'; ctx.strokeStyle = 'rgba(255,255,230,.95)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, 0, 22 * AR2() * (d.big ? 1.4 : 1), d.big ? 8 : 6, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.restore(); }
+  if (S.w.tks) for (const d of S.tkd || []) { const x = d.x - cx, y = d.y - cy, r = 22 * AR2() * (d.big ? 1.4 : 1), n = 14; LT(); gl('or', x, y, r * 1.3, .4); NM();
+    ctx.save(); ctx.translate(x, y); ctx.scale(1, d.big ? .42 : .36); ctx.rotate(t * 20);   // flat serrated blades seen edge-on
+    ctx.beginPath(); for (let i = 0; i < n * 2; i++) { const a = i * Math.PI / n, q = i & 1 ? r * .9 : r * 1.14; i ? ctx.lineTo(Math.cos(a) * q, Math.sin(a) * q) : ctx.moveTo(Math.cos(a) * q, Math.sin(a) * q); } ctx.closePath();
+    const g = ctx.createRadialGradient(0, 0, r * .15, 0, 0, r * 1.1); g.addColorStop(0, '#ffffff'); g.addColorStop(.5, '#fff3b0'); g.addColorStop(1, '#ff9a1f');
+    ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = '#b04a08'; ctx.lineWidth = 2.6; ctx.lineJoin = 'round'; ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.arc(0, 0, r * .55, 0, 7); ctx.stroke(); ctx.restore(); }
   // Dragon Spirit Bomb
   for (const b of S.dsb || []) { const x = b.x - cx, y = b.y - cy, k = Math.min(1, b.t / b.T);
-    if (!b.hit) { const yy = y - (1 - k) * 340, r = b.R * (.55 + .2 * k); LT(); gl('cy', x, yy, r * 1.5, .55); gl('wh', x, yy, r * .7, .7); NM();
+    if (!b.hit) { const yy = y - (1 - k) * 340, r = b.R * (.55 + .2 * k); LT(); gl('cy', x, yy, r * 1.5, .45); NM();
+      { const g = ctx.createRadialGradient(x - r * .22, yy - r * .25, r * .05, x, yy, r * .72); g.addColorStop(0, '#ffffff'); g.addColorStop(.35, '#d6f2ff'); g.addColorStop(.8, '#5ab8ff'); g.addColorStop(1, 'rgba(40,120,255,.85)');   // a solid sphere of spirit energy
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, yy, r * .72, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(230,248,255,.9)'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(x, yy, r * (.3 + i * .14), t * (3 + i) + i * 2, t * (3 + i) + i * 2 + 1.6); ctx.stroke(); } }
       ctx.save(); ctx.strokeStyle = 'rgba(160,220,255,.7)'; ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.beginPath(); ctx.arc(x, y, b.R, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.restore(); }
     else { const u = (b.t - b.T) / .5; LT(); gl('cy', x, y, b.R * (1 + u * .4), .7 * (1 - u)); NM(); } }
   for (const l of S.dsl || []) { if (l.t < 0) continue; const x = l.x - cx, y = l.y - cy, a = 1 - l.t / .3;
-    ctx.save(); ctx.strokeStyle = `rgba(200,240,255,${a})`; ctx.lineWidth = 3; ctx.beginPath(); let px = x + (Math.random() - .5) * 30, py = y - 220; ctx.moveTo(px, py);
-    for (let i = 0; i < 6; i++) { px = x + (Math.random() - .5) * 26 * (1 - i / 6); py += 220 / 6; ctx.lineTo(px, py); } ctx.stroke(); ctx.restore(); LT(); gl('cy', x, y, 40, a * .8); NM(); }
+    ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath(); let px = x + (Math.random() - .5) * 30, py = y - 220; ctx.moveTo(px, py);
+    for (let i = 0; i < 6; i++) { px = x + (Math.random() - .5) * 26 * (1 - i / 6); py += 220 / 6; ctx.lineTo(px, py); }
+    ctx.strokeStyle = `rgba(90,170,255,${a * .5})`; ctx.lineWidth = 9; ctx.stroke(); ctx.strokeStyle = `rgba(235,250,255,${a})`; ctx.lineWidth = 3; ctx.stroke(); ctx.restore(); LT(); gl('cy', x, y, 40, a * .8); NM(); }
   // Kaioken Wolf Fang Barrage: burning aura + flaming dash streaks
   if (S.w.kwf) { const R = 85 * AR(); LT(); gl('rd', W / 2, H / 2, R * 1.2, .35 + .08 * Math.sin(t * 14)); NM();
     ctx.save(); ctx.strokeStyle = `rgba(255,90,40,${.45 + .2 * Math.sin(t * 9)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(W / 2, H / 2, R, 0, 7); ctx.stroke(); ctx.restore(); }

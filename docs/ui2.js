@@ -76,7 +76,7 @@ function starBall(x, y, r, n) { const g = ctx.createRadialGradient(x - r * .35, 
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.strokeStyle = '#7a2a05'; ctx.lineWidth = 1.2; ctx.stroke();
   ctx.fillStyle = '#e8261a'; ctx.font = 'bold ' + Math.round(r * 1.1) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('★', x, y + r * .05); ctx.textBaseline = 'alphabetic'; }
 hud = function () {
-  const p = S.p, m = 12 + SI, y = ST + 10, F = '"Trebuchet MS",sans-serif', IM = 'Impact,"Arial Black",sans-serif';
+  const p = S.p, m = 12 + SI, y = ST + 10, F = '"Trebuchet MS",sans-serif', IM = 'Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif';
   const pw = Math.min(330, W * .58), hpK = p.hp / p.max;
   // left panel: portrait in a Dragon Ball ring + HP / power bars
   ctx.save();
@@ -126,7 +126,7 @@ hud = function () {
   // first-seconds tip
   if (S.t < 9 && S.mode == 'play') { ctx.textAlign = 'center'; ctx.font = 'bold 15px ' + F; ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(30,10,0,.8)'; const t1 = 'Drag anywhere to move. Attacks are automatic.'; ctx.strokeText(t1, W / 2, H * .78); ctx.fillStyle = 'rgba(255,244,224,.95)'; ctx.fillText(t1, W / 2, H * .78); }
   // banner
-  if (S.ban && S.ban.txt) { ctx.textAlign = 'center'; let fs = 30; const FF = ' Impact,"Arial Black",sans-serif'; ctx.font = fs + 'px' + FF; const mw = ctx.measureText(S.ban.txt).width; if (mw > W - 28) { fs = Math.max(14, Math.floor(fs * (W - 28) / mw)); ctx.font = fs + 'px' + FF; }
+  if (S.ban && S.ban.txt) { ctx.textAlign = 'center'; let fs = 30; const FF = ' Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.font = fs + 'px' + FF; const mw = ctx.measureText(S.ban.txt).width; if (mw > W - 28) { fs = Math.max(14, Math.floor(fs * (W - 28) / mw)); ctx.font = fs + 'px' + FF; }
     const by = H * .3, al = Math.min(1, S.ban.t * 1.5); ctx.globalAlpha = al;
     const bgg = ctx.createLinearGradient(0, by - fs - 14, 0, by + 18); bgg.addColorStop(0, 'rgba(20,6,0,0)'); bgg.addColorStop(.28, 'rgba(20,6,0,.7)'); bgg.addColorStop(.72, 'rgba(20,6,0,.7)'); bgg.addColorStop(1, 'rgba(20,6,0,0)'); ctx.fillStyle = bgg; ctx.fillRect(0, by - fs - 14, W, fs + 32);
     ctx.fillStyle = '#ff9a1f'; ctx.fillRect(W * .15, by + 9, W * .7, 2);
@@ -189,7 +189,7 @@ function drawShenronCut() {
   const pulse = .55 + .45 * Math.sin(t * (6 + t * 4));
   LT(); gl('or', px, py - lift, 140 * ease, .35 + .3 * pulse * Math.min(1, t)); NM();
   for (let i = 0; i < 7; i++) { const a = spin + i / 7 * 6.283, bx = px + Math.cos(a) * R, by = py - lift + Math.sin(a) * R * .55;
-    LT(); gl('or', bx, by, 22 + 10 * pulse, .5 + .4 * pulse); NM(); ctx.drawImage(BALLS[i], bx - 13, by - 13, 26, 26); }
+    const bs = S.set2 == 1 ? 19 : 13; LT(); gl('or', bx, by, bs * 1.7 + 10 * pulse, .5 + .4 * pulse); NM(); ctx.drawImage(BALLS[i], bx - bs, by - bs, bs * 2, bs * 2); }
   // pillar of light into the sky
   if (t > 1.9) { const k = Math.min(1, (t - 1.9) / .35), w = (26 + 18 * Math.sin(now * 40)) * k;
     LT(); const g = ctx.createLinearGradient(px - w, 0, px + w, 0); g.addColorStop(0, 'rgba(255,220,120,0)'); g.addColorStop(.35, 'rgba(255,220,120,.7)'); g.addColorStop(.5, 'rgba(255,255,240,1)'); g.addColorStop(.65, 'rgba(255,220,120,.7)'); g.addColorStop(1, 'rgba(255,220,120,0)');
@@ -199,7 +199,7 @@ function drawShenronCut() {
   if (t > SHC_RISE) { S.shT = V2.shc.t0 + SHC_RISE; drawShenron(); }
   if (t > SHC_RISE - .35 && t < SHC_RISE + .5) { const f = 1 - Math.abs(t - SHC_RISE) / .5; ctx.fillStyle = 'rgba(255,255,240,' + Math.max(0, f) * FL + ')'; ctx.fillRect(0, 0, W, H); }
   // titles
-  const title = (txt, y, fs, a, c1, c2) => { ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.font = '900 ' + fs + 'px Impact,"Arial Black",sans-serif'; ctx.lineWidth = fs * .2; ctx.strokeStyle = '#0a2a14'; ctx.strokeText(txt, px, y); const g = ctx.createLinearGradient(0, y - fs, 0, y); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillText(txt, px, y); ctx.globalAlpha = 1; };
+  const title = (txt, y, fs, a, c1, c2) => { ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.font = '900 ' + fs + 'px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.lineWidth = fs * .2; ctx.strokeStyle = '#0a2a14'; ctx.strokeText(txt, px, y); const g = ctx.createLinearGradient(0, y - fs, 0, y); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillText(txt, px, y); ctx.globalAlpha = 1; };
   if (t > .9 && t < 2.9) title(S.set2 == 1 ? 'ARISE, PORUNGA!' : 'ARISE, ETERNAL DRAGON!', H * .2, Math.min(34, W * .07), Math.min(1, (t - .9) / .3) * Math.min(1, (2.9 - t) / .3), '#fff6c0', '#ffb21f');
   if (t > 3.5) title(S.set2 == 1 ? 'PORUNGA' : 'SHENRON', H * .86, Math.min(64, W * .14), Math.min(1, (t - 3.5) / .4), '#d8ffe0', '#3ad06a');
   ctx.restore();
@@ -266,18 +266,18 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .card::before,.card::after{content:'★';position:absolute;top:-13px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--db-red);
  background:radial-gradient(circle at 35% 30%,#fff2b0 0%,#ffad1f 45%,#d9640a 100%);border:1.5px solid #7a2a05;box-shadow:0 2px 6px rgba(0,0,0,.5);z-index:2;pointer-events:none}
 .card::before{left:-10px}.card::after{right:-10px}
-.card h2{font-family:Impact,"Arial Black",sans-serif;letter-spacing:1.5px;font-size:24px;color:#ffd23a;background:linear-gradient(#fff6b8,#ffb21f 60%,#ff7a1a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+.card h2{font-family:Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif;letter-spacing:1.5px;font-size:24px;color:#ffd23a;background:linear-gradient(#fff6b8,#ffb21f 60%,#ff7a1a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
  filter:drop-shadow(2px 2px 0 #5a0e08) drop-shadow(-1px -1px 0 #5a0e08);text-transform:uppercase}
 .card button{background:linear-gradient(180deg,#4a2a12 0%,#2e1608 100%);border:2px solid #c86a14;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,220,150,.25),0 2px 0 rgba(0,0,0,.4);transition:transform .08s,box-shadow .15s}
 .card button:hover,.card button:focus-visible{background:linear-gradient(180deg,#6a3a14,#3e1e0a);box-shadow:inset 0 1px 0 rgba(255,220,150,.35),0 0 12px rgba(255,150,40,.5)}
 .card button:active{transform:translateY(1px)}
-.card button.go{background:linear-gradient(180deg,#ff5a2a 0%,#d4260e 55%,#a8180a 100%);border:2px solid #ffe08a;font-family:Impact,"Arial Black",sans-serif;letter-spacing:1px;text-shadow:2px 2px 0 #5a0e08;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 3px 0 #5a0e08,0 0 14px rgba(255,90,30,.4)}
+.card button.go{background:linear-gradient(180deg,#ff5a2a 0%,#d4260e 55%,#a8180a 100%);border:2px solid #ffe08a;font-family:Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif;letter-spacing:1px;text-shadow:2px 2px 0 #5a0e08;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 3px 0 #5a0e08,0 0 14px rgba(255,90,30,.4)}
 .card button.go small{font-family:"Trebuchet MS",sans-serif;letter-spacing:0;text-shadow:none}
 .up .ic,.ic{border-radius:50%!important;border:2px solid var(--db-or)!important;background:radial-gradient(circle at 35% 30%,#5a3214,#1a0a02)!important;box-shadow:0 0 0 2px #3a1206,0 0 10px rgba(255,150,40,.35);padding:2px;box-sizing:border-box}
 .dhead{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 8px}.dhead h2{margin:0}
 .db4{width:22px;height:22px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#fff2b0,#ffad1f 45%,#d9640a);border:1.5px solid #7a2a05;position:relative}
 .db4::after{content:'★';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#e8261a;font-size:11px}
-.zeni{margin-left:auto;font:900 16px Impact,"Arial Black",sans-serif;color:#ffe27a;background:rgba(0,0,0,.35);border:1.5px solid #c86a14;border-radius:20px;padding:3px 12px}
+.zeni{margin-left:auto;font:900 16px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif;color:#ffe27a;background:rgba(0,0,0,.35);border:1.5px solid #c86a14;border-radius:20px;padding:3px 12px}
 .shop,.sett{max-width:760px!important}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin:0 0 4px}
 .card .sup{margin:0;padding:7px 8px;display:flex;flex-direction:column;gap:2px;text-align:left;min-height:0}

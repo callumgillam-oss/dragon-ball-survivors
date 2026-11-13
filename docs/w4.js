@@ -49,7 +49,7 @@ function updW4(dt) {
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (10 + 4.5 * WL('sword')) * dm() * W4B.sword, n = (E ? 5 : 3) + (PX() >> 1);
       p.atk = p.ad = .35; p.face = Math.cos(a) > 0 ? 1 : -1;
       for (let i = 0; i < n; i++) arr('sws').push({ a: a + (i % 2 ? .35 : -.35) * (i ? 1 : 0), R, d, t: i * .07, T: .16, h: null });
-      arr('sws').push({ fin: 1, a, R, d: d * (E ? 3 : 1.6), t: n * .07 + .05, T: .3, E, st: M }); sfx('hit'); } } }
+      arr('sws').push({ fin: 1, a, R, d: d * (E ? 3 : 1.6), t: n * .07 + .05, T: .3, E, st: M }); sfx('slash'); } } }
   for (const s of arr('sws')) {
     if (s.t > 0) { s.t -= dt; continue; }
     if (!s.h) { s.h = 1; s.x = p.x; s.y = p.y;

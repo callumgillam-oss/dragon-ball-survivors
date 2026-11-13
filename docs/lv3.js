@@ -78,7 +78,7 @@ const ang = (e, x, y) => Math.atan2(y - e.y, x - e.x);
 AI.a19 = function (e, dt) {
   const p = S.p, h2 = e.hp < e.max * .5; e.t3 = (e.t3 ?? 3) - dt; e.t4 = (e.t4 ?? 5) - dt;
   if (e.abs > 0) { e.abs -= dt; if (e.abs <= 0) e.t4 = h2 ? 7.5 : 9; }
-  else { chase(e, dt, 60); if (e.t4 <= 0) { e.abs = 1.8; e.fa = ang(e, p.x, p.y); ban('ANDROID 19 IS ABSORBING ENERGY! GET BEHIND HIM!'); sfxPlay('charge'); }
+  else { chase(e, dt, 60); if (e.t4 <= 0) { e.abs = 1.8; e.fa = ang(e, p.x, p.y); ban('ANDROID 19 IS ABSORBING ENERGY! GET BEHIND HIM!'); sfxPlay('absorb'); }
     if (e.t3 <= 0) { e.t3 = h2 ? 2.6 : 3.2; fan(e, h2 ? 4 : 3, 220, 'or', 8); } }
   if (near_(e) && !(e.hc2 > S.t)) { e.hc2 = S.t + .5; bossHurt(16); }
 };
@@ -97,7 +97,7 @@ AI.a20 = function (e, dt) {
   e.t3 = (e.t3 ?? 2.5) - dt; e.t4 = (e.t4 ?? 6) - dt;
   if (d > 230) chase(e, dt, 0); else if (d < 160) { e.x -= dx / d * e.spd * .8 * dt; e.y -= dy / d * e.spd * .8 * dt; }
   if (e.t3 <= 0) { e.t3 = h2 ? 2.6 : 3.4; const a = Math.atan2(dy, dx), n = h2 ? 3 : 2;
-    for (let i = 0; i < n; i++) lane(e.x, e.y, a + (i - (n - 1) / 2) * .22, 900, 26, .85, 28, 'or'); sfxPlay('charge'); }
+    for (let i = 0; i < n; i++) lane(e.x, e.y, a + (i - (n - 1) / 2) * .22, 900, 26, .85, 28, 'or'); sfxPlay('bosscharge'); }
   if (e.t4 <= 0) { e.t4 = 9; summon(e, 'dr', 3); summon(e, 'drg', 1); }
   if (near_(e) && !(e.hc2 > S.t)) { e.hc2 = S.t + .5; bossHurt(14); }
 };
@@ -125,7 +125,7 @@ AI.a16 = function (e, dt) {
   e.t3 = (e.t3 ?? 4) - dt; e.t4 = (e.t4 ?? 8) - dt; e.t5 = (e.t5 ?? 3) - dt;
   if (!(e.gw > 0)) chase(e, dt, 40);
   if (e.t3 <= 0) { e.t3 = h2 ? 4.5 : 6; const a = ang(e, p.x, p.y); (S.rp || (S.rp = [])).push({ x: e.x, y: e.y, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, t: 3.2, e }); e.arm = 3.2; ban('ROCKET PUNCH!'); sfxPlay('dash'); }
-  if (e.t4 <= 0) { e.t4 = h2 ? 8 : 10; const a = ang(e, p.x, p.y); for (let i = -1; i <= 1; i++) lane(e.x, e.y, a + i * .4, 1000, 70, 1.2, 40, 'or'); ban("HELL'S FLASH!"); sfxPlay('charge'); }
+  if (e.t4 <= 0) { e.t4 = h2 ? 8 : 10; const a = ang(e, p.x, p.y); for (let i = -1; i <= 1; i++) lane(e.x, e.y, a + i * .4, 1000, 70, 1.2, 40, 'or'); ban("HELL'S FLASH!"); sfxPlay('bosscharge'); }
   if (e.gw > 0) { e.gw -= dt; if (e.gw <= 0) { if (d < 110) { bossHurt(36); kick(14); } boom(e.x, e.y, 110, '#ffb070'); } }
   else if (d < 90 && e.t5 <= 0) { e.t5 = 4; e.gw = .7; S.zones.push({ x: e.x, y: e.y, r: 110, t: .7, T: .7, d: 0 }); }
   if (e.arm > 0) e.arm -= dt;
@@ -137,7 +137,7 @@ AI.ce1 = function (e, dt) {
   if (e.t3 <= 0) { e.t3 = 2.6; fan(e, 4, 240, 'pu', 11); }
   if (e.t4 <= 0) { e.t4 = 7; let n = 0; e.drn = [];
     for (const o of S.en) { if (o.dead || o.boss || n >= 5 || Math.hypot(o.x - e.x, o.y - e.y) > 320) continue; n++; o.dead = 1; e.drn.push([o.x, o.y]); }
-    if (n) { e.hp = Math.min(e.max, e.hp + e.max * .006 * n); e.drT = .5; ban('CELL ABSORBS HIS PREY!'); sfxPlay('tele'); } }
+    if (n) { e.hp = Math.min(e.max, e.hp + e.max * .006 * n); e.drT = .5; ban('CELL ABSORBS HIS PREY!'); sfxPlay('absorb'); } }
   if (e.drT > 0) e.drT -= dt;
   if (near_(e) && !(e.hc2 > S.t)) { e.hc2 = S.t + .5; bossHurt(18); }
 };
@@ -162,7 +162,7 @@ AI.ce3 = function (e, dt) {
   chase(e, dt, 90); e.t3 = (e.t3 ?? 2) - dt; e.t4 = (e.t4 ?? 6) - dt; e.t6 = (e.t6 ?? 10) - dt;
   if (e.t3 <= 0) { e.t3 = h2 ? 1.5 : 2; fan(e, h2 ? 7 : 5, 270, 'pu', 12); }
   if (e.t4 <= 0) { e.t4 = h2 ? 4.5 : 6; const a = ang(e, p.x, p.y), n = h2 ? 3 : 2;
-    for (let i = 0; i < n; i++) lane(e.x, e.y, a + (i - (n - 1) / 2) * .3, 1000, 46, .8, 42, 'bl'); ban('SOLAR KAMEHAMEHA!'); sfxPlay('charge'); }
+    for (let i = 0; i < n; i++) lane(e.x, e.y, a + (i - (n - 1) / 2) * .3, 1000, 46, .8, 42, 'bl'); ban('SOLAR KAMEHAMEHA!'); sfxPlay('bosscharge'); }
   if (e.t6 <= 0) { e.t6 = 15; summon(e, 'cj', 3); }
   if (near_(e) && !(e.hc2 > S.t)) { e.hc2 = S.t + .5; bossHurt(22); }
 };
@@ -297,7 +297,7 @@ function bossArt4(c, x, y, r, t, e) {
   else { c.beginPath(); c.moveTo(-3, 8); c.quadraticCurveTo(0, 7.2, 3, 8); c.stroke(); }
   c.restore(); c.restore();
   // self-destruct countdown over Perfect Cell
-  if (e.boomT > 0) { ctx.save(); ctx.font = '900 ' + Math.round(r * 1.6) + 'px Impact,"Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#3a0000';
+  if (e.boomT > 0) { ctx.save(); ctx.font = '900 ' + Math.round(r * 1.6) + 'px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#3a0000';
     const s = String(Math.ceil(e.boomT)); ctx.strokeText(s, x, y - r * 2.6); ctx.fillStyle = e.boomT < 3 ? '#ff4030' : '#ffe27a'; ctx.fillText(s, x, y - r * 2.6); ctx.restore(); }
   // Imperfect Cell's tail drain
   if (e.drT > 0 && e.drn) { ctx.save(); ctx.strokeStyle = 'rgba(160,255,120,' + e.drT * 1.6 + ')'; ctx.lineWidth = 3; const cx = S.p.x - W / 2, cy = S.p.y - H / 2;
@@ -357,6 +357,12 @@ const TILE4 = (() => { const c = mk(512, 512), x = c.getContext('2d'); x.scale(2
   x.lineWidth = 1.1;   // cracks
   for (let i = 0; i < 18; i++) { let px = rnd(i, 24) * 256, py = rnd(i, 25) * 256; x.strokeStyle = 'rgba(30,30,36,.55)'; x.beginPath(); x.moveTo(px, py);
     for (let j = 0; j < 5; j++) { px += (rnd(i, j + 30) - .5) * 30; py += (rnd(j, i + 30) - .5) * 30; x.lineTo(px, py); } x.stroke(); }
+  // paving slabs: each one a slightly different tone, with dark joints and a lit top-left edge
+  for (let gx = 0; gx < 4; gx++) for (let gy = 0; gy < 4; gy++) { const q = rnd(gx + 60, gy + 61); x.fillStyle = q < .5 ? 'rgba(30,32,44,' + (.05 + q * .12) + ')' : 'rgba(225,220,205,' + ((q - .5) * .14) + ')'; x.fillRect(gx * 64, gy * 64, 64, 64); }
+  x.fillStyle = 'rgba(30,30,38,.32)'; for (let g = 0; g < 4; g++) { x.fillRect(g * 64, 0, 1.5, 256); x.fillRect(0, g * 64, 256, 1.5); }
+  x.fillStyle = 'rgba(235,235,240,.13)'; for (let g = 0; g < 4; g++) { x.fillRect(g * 64 + 1.5, 0, 1, 256); x.fillRect(0, g * 64 + 1.5, 256, 1); }
+  for (let i = 0; i < 7; i++) { const px = rnd(i, 62) * 256, py = rnd(i, 63) * 256, r = 10 + rnd(i, 64) * 18;   // oil and scorch stains
+    wrap((ox, oy) => { const q = x.createRadialGradient(px + ox, py + oy, 0, px + ox, py + oy, r); q.addColorStop(0, 'rgba(20,18,24,.3)'); q.addColorStop(1, 'rgba(20,18,24,0)'); x.fillStyle = q; x.fillRect(px + ox - r, py + oy - r, r * 2, r * 2); }); }
   for (let i = 0; i < 1200; i++) { x.fillStyle = i % 2 ? 'rgba(40,40,46,.22)' : 'rgba(220,220,228,.16)'; x.fillRect(rnd(i, 26) * 256, rnd(i, 27) * 256, 1 + rnd(i, 28) * 1.6, 1 + rnd(i, 29) * 1.4); }
   return c; })();
 const PAT4 = ctx.createPattern(TILE4, 'repeat'); PAT4.setTransform(new DOMMatrix().scale(.5));
@@ -381,13 +387,30 @@ for (let v = 0; v < 4; v++) { DEC4.ruin.push(mkRuin(v)); DEC4.crater.push(mkCrat
 for (let v = 0; v < 6; v++) DEC4.rock.push(mkBoulder(v, PAL4.rock));
 function bg3(cx, cy) {
   ctx.save(); ctx.translate(-(((cx % 256) + 256) % 256), -(((cy % 256) + 256) % 256)); ctx.fillStyle = PAT4; ctx.fillRect(0, 0, W + 256, H + 256); ctx.restore();
-  // roads every 660 px with dashed centre lines
-  const RG = 660, RW = 84; ctx.fillStyle = 'rgba(40,40,46,.55)';
-  for (let gy = Math.floor(cy / RG); gy <= (cy + H) / RG; gy++) { const y = gy * RG - cy; ctx.fillRect(0, y - RW / 2, W, RW); }
-  for (let gx = Math.floor(cx / RG); gx <= (cx + W) / RG; gx++) { const x = gx * RG - cx; ctx.fillRect(x - RW / 2, 0, RW, H); }
-  ctx.fillStyle = 'rgba(240,200,80,.65)';
-  for (let gy = Math.floor(cy / RG); gy <= (cy + H) / RG; gy++) { const y = gy * RG - cy; for (let x = -((cx % 60) + 60) % 60; x < W; x += 60) if (hash(Math.floor((x + cx) / 60), gy) > .2) ctx.fillRect(x, y - 2, 30, 4); }
-  for (let gx = Math.floor(cx / RG); gx <= (cx + W) / RG; gx++) { const x = gx * RG - cx; for (let y = -((cy % 60) + 60) % 60; y < H; y += 60) if (hash(gx, Math.floor((y + cy) / 60)) > .2) ctx.fillRect(x - 2, y, 4, 30); }
+  // roads every 660 px: asphalt, pavement kerbs, dashed centre lines, zebra crossings at the junctions
+  const RG = 660, RW = 84, hw = RW / 2, onX = v => { const m = ((v % RG) + RG) % RG; return m < hw + 26 || m > RG - hw - 26; };
+  const ys = [], xs = [];
+  for (let gy = Math.floor(cy / RG); gy <= (cy + H) / RG + 1; gy++) ys.push([gy, gy * RG - cy]);
+  for (let gx = Math.floor(cx / RG); gx <= (cx + W) / RG + 1; gx++) xs.push([gx, gx * RG - cx]);
+  ctx.fillStyle = 'rgba(206,202,190,.34)';   // pavement strips
+  for (const [, y] of ys) ctx.fillRect(0, y - hw - 12, W, RW + 24);
+  for (const [, x] of xs) ctx.fillRect(x - hw - 12, 0, RW + 24, H);
+  ctx.fillStyle = '#3c3e48';   // asphalt
+  for (const [, y] of ys) ctx.fillRect(0, y - hw, W, RW);
+  for (const [, x] of xs) ctx.fillRect(x - hw, 0, RW, H);
+  ctx.fillStyle = 'rgba(20,20,28,.5)';   // kerb shadow (bottom/right) and lit kerb (top/left)
+  for (const [, y] of ys) ctx.fillRect(0, y + hw - 3, W, 3);
+  for (const [, x] of xs) ctx.fillRect(x + hw - 3, 0, 3, H);
+  ctx.fillStyle = 'rgba(236,234,226,.6)';
+  for (const [, y] of ys) ctx.fillRect(0, y - hw, W, 2);
+  for (const [, x] of xs) ctx.fillRect(x - hw, 0, 2, H);
+  ctx.fillStyle = '#3c3e48'; for (const [, y] of ys) for (const [, x] of xs) ctx.fillRect(x - hw, y - hw, RW, RW);   // junction boxes
+  ctx.fillStyle = 'rgba(240,200,80,.7)';
+  for (const [gy, y] of ys) for (let x = -((cx % 60) + 60) % 60; x < W; x += 60) if (!onX(x + cx + 15) && hash(Math.floor((x + cx) / 60), gy) > .2) ctx.fillRect(x, y - 2, 30, 4);
+  for (const [gx, x] of xs) for (let y = -((cy % 60) + 60) % 60; y < H; y += 60) if (!onX(y + cy + 15) && hash(gx, Math.floor((y + cy) / 60)) > .2) ctx.fillRect(x - 2, y, 4, 30);
+  ctx.fillStyle = 'rgba(236,236,230,.62)';   // zebra crossings on all four sides of each junction
+  for (const [gy, y] of ys) for (const [gx, x] of xs) for (let i = 0; i < 5; i++) { const o = -hw + 8 + i * 15.5, w = hash(gx * 7 + i, gy) > .12;
+    if (w) { ctx.fillRect(x - hw - 24, y + o, 18, 7); ctx.fillRect(x + hw + 6, y + o, 18, 7); ctx.fillRect(x + o, y - hw - 24, 7, 18); ctx.fillRect(x + o, y + hw + 6, 7, 18); } }
   const G = 120;
   for (let gx = Math.floor(cx / G) - 2; gx <= (cx + W) / G; gx++) for (let gy = Math.floor(cy / G) - 2; gy <= (cy + H) / G; gy++) {
     const wx = gx * G + hash(gy + 3, gx + 1) * G, wy = gy * G + hash(gx + 9, gy + 5) * G;
@@ -412,31 +435,11 @@ function drawRing(cx, cy) {
   ctx.restore();
 }
 { const _bg = bg; bg = function (cx, cy) { if (S.stage != 3) return _bg(cx, cy); bg3(cx, cy); drawRing(cx, cy); }; }
-// cooler, smokier light over the city
-{ const _d = draw; draw = function () { _d(); if (S.stage != 3 || (S.mode != 'play' && S.mode != 'pause' && S.mode != 'lvl')) return;
-    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(60,70,110,.12)'); g.addColorStop(1, 'rgba(20,10,30,.14)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); }; }
+// (the city's colour grade now lives in fx6.js drawAtmos, under the HUD instead of over it)
 
 /* ---------- intro: the hero drops into the ruined city ---------- */
 { const _ip = introPod; introPod = function (c, t, T) { if (S.stage != 3) return _ip(c, t, T); introCity(c, t, T); }; }
-function introCity(c, t, T) {
-  const s = Math.min(1.5, Math.max(.8, Math.min(W, H) / 390)), gy = H * .72, tL = 1.5;
-  let sh = 0; if (t > tL && t < tL + .7) sh = 1 - (t - tL) / .7; c.save(); if (sh > 0) c.translate((Math.random() - .5) * 14 * sh * s, (Math.random() - .5) * 14 * sh * s);
-  let g = c.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, '#2a2440'); g.addColorStop(.55, '#8a5a6a'); g.addColorStop(1, '#e8a070'); c.fillStyle = g; c.fillRect(-30, -30, W + 60, H + 60);
-  for (let L = 0; L < 3; L++) { c.fillStyle = ['#4a4060', '#3a3248', '#2a2434'][L]; const bw = (36 + L * 14) * s;
-    for (let i = -1; i < W / bw + 1; i++) { const x = i * bw + ((t * (4 + L * 6) * s) % bw), hh = (50 + ihash(i * 3 + L * 11) * 110) * s * (1 - L * .2), top = gy - hh - L * 6 * s;
-      c.beginPath(); c.moveTo(x, gy); c.lineTo(x, top + 8 * s); c.lineTo(x + bw * .3, top); c.lineTo(x + bw * .5, top + 12 * s * ihash(i + L)); c.lineTo(x + bw * .8, top + 4 * s); c.lineTo(x + bw - 2, top + 14 * s); c.lineTo(x + bw - 2, gy); c.fill();
-      if (L == 2) { c.fillStyle = 'rgba(255,200,120,.5)'; for (let k = 0; k < 4; k++) if (ihash(i * 7 + k) < .3) c.fillRect(x + 6 * s + k * 7 * s, top + 20 * s + ihash(i + k) * 40 * s, 3 * s, 4 * s); c.fillStyle = '#2a2434'; } } }
-  for (let i = 0; i < 3; i++) { const x = W * (.2 + i * .3), hh = (120 + i * 30) * s; for (let k = 0; k < 6; k++) { const u = ((t * .25 + k / 6) % 1); c.fillStyle = 'rgba(70,60,80,' + (.35 * (1 - u)) + ')'; c.beginPath(); c.arc(x + Math.sin(k + t) * 12 * s, gy - hh * u, (16 + 30 * u) * s, 0, 7); c.fill(); } }
-  g = c.createLinearGradient(0, gy, 0, H); g.addColorStop(0, '#6a6c74'); g.addColorStop(1, '#3a3c44'); c.fillStyle = g; c.fillRect(-30, gy, W + 60, H - gy + 30);
-  c.fillStyle = 'rgba(240,200,80,.6)'; for (let x = -((t * 40) % 70); x < W; x += 70) c.fillRect(x, gy + (H - gy) * .45, 34 * s, 4 * s);
-  const hx = W * .5, k = .5 * s;
-  if (t < tL) { const u = Math.max(0, (t - .3) / (tL - .3)), y = -60 * s + (gy + 60 * s) * u * u; LT(); gl('cy', hx, y - 40 * s, 40 * s, .6); NM(); if (t > .3) iHero(c, hx, y, k, 0, 2, 1); }
-  else { if (t < tL + .9) { const u = (t - tL) / .9; c.fillStyle = 'rgba(200,200,210,' + (.6 * (1 - u)) + ')'; for (let i = 0; i < 10; i++) { const a = Math.PI + i / 9 * Math.PI; c.beginPath(); c.arc(hx + Math.cos(a) * 90 * s * u, gy + Math.sin(a) * 20 * s * u, (10 + 14 * u) * s, 0, 7); c.fill(); } }
-    iHero(c, hx, gy, k, Math.floor(t * 9) % FRN[1], 1); }
-  c.restore();
-  iBanner(c, 'ANDROID SAGA', STAGES[3].open, iease((t - 2) / .5) * (1 - iease((t - T + .4) / .3)), H * .2);
-  if (t >= tL && t < tL + .4) { c.fillStyle = 'rgba(255,255,255,' + (.85 * (1 - (t - tL) / .4)) + ')'; c.fillRect(0, 0, W, H); }
-}
+function introCity(c, t, T) { }   // the scene itself is drawn in cut6.js
 
 /* ---------- menu, end card, saved runs ---------- */
 { const _m = menu; menu = function () {

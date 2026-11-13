@@ -653,6 +653,10 @@ fully bought by run 19).
   - `cut3.js`: the King Kai cutscene.
   - `lv3.js`, `lv4.js`: maps, mobs, bosses.
   - `endless.js`
+  - `fx6.js`: effects polish (explosions, beams, attack restyles, per-map atmosphere). See §12.1.
+  - `ui6.js`: UI polish (icon set, level cards, two-column menu, living title banner, motion). See §12.1.
+  - `cut6.js`: the Level 3 and Level 4 intro scenes. See §12.2.
+  - `snd6.js`: sound pass (reverb, per-attack sounds, menu and cutscene cues, new music). See §12.2.
 - **Kill attribution:** each attack's update function sets a "current source" tag before it deals damage,
   so per-attack kill counts (Krillin's unlock) work without touching every damage call.
 - **Unlock gating points:** the level-up offer pool, Ki Burst, Dragon Ball spawns, Time Chamber events,
@@ -675,6 +679,110 @@ fully bought by run 19).
 | **G** | §9 Level 4, Majin Mark, Gotenks, 2 attacks, Fusion, Endless, transformation cutscenes (§9.0) | Frieza's and SS cutscene upgrades can land in Phase D |
 | **G2** | §9.5 wish-powered fusion tiers, Namekian Dragon Balls + Porunga, hero carousel | Your 2026-11-13 ideas |
 | **H** | Full test, balance and feel pass across everything, then ship 3.0 | |
+| **I** | §12.1 art, UI and effects polish pass; §12.2 cutscenes and sound | Your requests before shipping |
+
+### 12.1 Phase I: art, UI and effects polish pass  `[x]`
+Presentation only: no damage, health, timing or drop numbers changed. Checked on a portrait phone (375x812),
+a landscape phone (812x375) and desktop.
+
+**What I found.** Sprites, heroes, bosses and the transformation cutscenes were already consistent and held up
+close-up. The weak spots were shared: almost every effect was built from one soft white-centred glow, so
+explosions and beams read as blurry blobs; menus used emoji, which look different on every phone; the level
+buttons were four identical red bars; desktop showed a phone-width column; Levels 3-4 shared Level 1's colour
+grade; and the title font (Impact) does not exist on phones.
+
+**Effects (`fx6.js`, plus small edits in `index.html`, `w5.js`).**
+- **Explosions** (every enemy death, bomb, grenade, ghost): core flash, a thick coloured shock ring, tapered
+  spikes and a second ring on big ones. Drawn solid so they keep their colour over bright ground.
+- **Sparks** streak along their direction of travel. **Dust** is a real puff, tinted to the map's ground.
+- **Hit sparks:** a four-point anime star plus a ring.
+- **Beams** (Kamehameha, Special Beam Cannon, the fused beams, and now Galick Gun / Final Flash): rippling
+  edges, a white-hot core, streaks flowing down the beam, a charge bulb at the hands. The body is drawn solid,
+  so a blue beam is blue instead of washing out to white.
+- **Restyled attacks:** Destructo Disc and Twin Kienzan (flat serrated spinning blades), Explosive Wave (a rim
+  of flame tongues), Tri-Beam (burning outline, lit corners), Wolf Fang Fist (claw rakes), Scattering Bullet
+  (outlined orbs with tails), Shining Sword Attack (blade-shaped crescents), Energy Barrier (glass highlight,
+  lit corners), Candy Beam (pink ribbon with a sparkle), Dragon Spirit Bomb (a solid sphere, thicker lightning).
+- **Atmosphere per map:** cloud shadows drift across the ground; each map has its own floating particles
+  (wind-blown sand, glowing Namek spores, ash and embers in the city, magic motes in Babidi's ship, twinkles in
+  the candy city) and its own colour grade and vignette. Level 4's old tint was drawn over the HUD; it is now
+  under it.
+- **Running dust** under the hero.
+- "Low" graphics skips the cloud shadows, spikes and streaks.
+
+**Maps.** The ruined city (Level 3 and the candy city) has paving slabs, pavements with kerbs, darker asphalt,
+zebra crossings at junctions and oil stains instead of flat grey.
+
+**UI (`ui6.js`).**
+- **Icon set:** 47 hand-drawn icons in the game's gold-and-outline style replace emoji in every menu, toast and
+  HUD button. A watcher swaps them wherever text appears, so older screens needed no edits.
+- **Level cards:** each level button shows a picture of its map and boss (painted once with the game's own art),
+  the level number, and a star badge counting the heroes who have cleared it.
+- **Two-column main menu** on desktop and landscape phones: hero pick on the left, everything you can press on
+  the right. Portrait keeps one column.
+- **Living title banner:** twinkling stars, turning sun rays, drifting clouds, bobbing Dragon Balls, the chosen
+  hero idling.
+- **Motion:** panels rise in, level-up choices arrive one after another, buttons give when pressed. Respects the
+  phone's "reduce motion" setting.
+- **Title font:** phones have no Impact, so titles fell back to a plain wide font. The font list now includes the
+  condensed heavy fonts phones do have, so titles look alike everywhere.
+
+**Performance.** A frame with 230-280 enemies and five attacks draws in about 2-3 ms on desktop; turning the
+atmosphere pass off made no measurable difference.
+
+**Not changed.** Hero and enemy sprites, boss art, and the boss-transformation and Super Saiyan cutscenes: they
+already matched the target quality. The intros, King Kai's training and Porunga were redone next (§12.2).
+
+### 12.2 Phase I, part 2: cutscenes and sound  `[x]`
+Still presentation only. Checked at the same three screen sizes.
+
+**Level 3 intro (`cut6.js`, 6.0 s).** A city at dusk. An energy blast streaks in and blows the top off a tower,
+which burns under a smoke column for the rest of the scene. The hero flies in across the sky inside a ki aura and
+drops onto the road. Android 20 and Android 19 land on a rooftop above, their eyes flash red, and the title comes
+up.
+
+**Level 4 intro (`cut6.js`, 6.2 s).** Babidi's spiked ship, half buried in a wasteland, drawing ribbons of energy
+down from a dark vortex. The hero flies in and lands, the hatch grinds open and floods the ground with pink
+light, three Majin fighters hop out to stand guard, and the hero charges through them and dives down the hatch.
+The run then starts inside the ship, as before.
+
+**King Kai's training (`cut3.js`, same 8.2 s).** Redrawn:
+- **Defeat:** a shaft of light opens above and the hero rises under a proper gold halo.
+- **Snake Way:** a real serpent (head at the start, fins along the spine, pale belly plates, scales) over a sea
+  of clouds, with the hero sprinting past afterimages and kicked-up puffs, and King Kai's planet growing ahead.
+- **The planet:** grass ball with a ring road, his house, red car and tree. King Kai has his catfish face, round
+  shades, whiskers, antennae and crested robe; Bubbles is a proper little monkey.
+- **Three shots:** push-ups under a "10t" weight, chasing Bubbles round the turning planet, then the power
+  flooding out (Kaio-ken for Goku) while King Kai throws his arms up.
+- The "Panel 1 / 3" label became three progress dots; captions are slanted gold plates; cinema bars match the
+  other cutscenes.
+
+**Shenron and Porunga.** Shenron's summoning and art already held up, so they are unchanged. **Porunga was
+redrawn** (`dball5.js`): he was a small figure with a boxy chest and tube arms; he is now a hulking dragon with
+great curved horns, fin ears, burning eyes under heavy brows, spines fanning off the shoulders, arms folded
+across a muscled chest, and a serpent body rising from below. He scales to fit portrait and landscape with his
+horns on screen. The Namekian balls are drawn larger in his summoning.
+
+**Sound (`snd6.js`).** Everything is still synthesised in the browser: no audio files.
+- **Room reverb** on the whole mix, so sounds sit in a space.
+- **Every attack has its own sound.** Before, several attacks and most boss moves shared one "charge" sound.
+  New: Galick Gun (charge and fire), Explosive Wave, Tri-Beam, Wolf Fang Fist, Scattering Bullet (launch and
+  burst), Shining Sword slash, Energy Barrier, Afterimage, Masenko, Kaioken Aura pulse, Special Beam Cannon,
+  Spirit Bomb, Ghost Kamikaze, Candy Beam, Fusion. Hit, enemy pop, explosion, Kamehameha and level-up were
+  re-voiced.
+- **Bosses:** a warning charge for their beams, absorbing, and Pui Pui's gravity.
+- **Menus:** every button clicks; starting a level, going back, the hero carousel, picking a level-up, evolving,
+  rerolling and sealing each have their own sound.
+- **Feedback:** a heartbeat below 30% health, an alarm when an elite appears, a chime for Senzu Beans.
+- **Cutscene cues** for both new intros and each beat of King Kai's training.
+- **Music:** four new pieces on a second song engine with different instruments per map: Namek (bells over slow
+  arpeggios), the city for Level 3 (square-wave lead over a racing arpeggio), Babidi's ship for Level 4 (a
+  bouncing, off-kilter tune), and a faster, heavier boss theme. Level 1 and the menu keep their songs.
+
+**How the sound was checked.** I cannot listen, so I rendered every new sound and song offline in the browser and
+measured them: all 48 sounds play without errors, none clip, and the new songs sit within about 2 dB of the
+existing ones. Whether the tunes are pleasant is something only your ears can judge; each song is one block of
+note numbers in `snd6.js` and easy to retune or swap.
 
 ---
 

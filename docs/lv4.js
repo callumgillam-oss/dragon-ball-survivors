@@ -90,7 +90,7 @@ AI.pui = function (e, dt) {
   if (e.t3 <= 0) { e.t3 = h2 ? 2 : 2.6; fan(e, h2 ? 5 : 4, 230, 'pu', 9); }
   if (e.t4 <= 0) { e.t4 = h2 ? 5 : 6.5; const n = h2 ? 4 : 3, a0 = Math.random() * 6.283;
     for (let i = 0; i < n; i++) { const a = a0 + i / n * 6.283, d = i ? 120 : 0; arr4('gz').push({ x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d, r: 95, t: 6.5, T: 6.5, w: .8 }); }
-    ban('x10 GRAVITY!'); sfxPlay('charge'); }
+    ban('x10 GRAVITY!'); sfxPlay('gravity'); }
   if (near_(e) && !(e.hc2 > S.t)) { e.hc2 = S.t + .5; bossHurt(15); }
 };
 // Yakon: plunges the world into darkness. Light-based attacks (Solar Flare) feed him, and he shrugs off hits from outside your light.
@@ -134,7 +134,7 @@ AI.mveg = function (e, dt) {
   if (!dashy(e, dt, h2 ? 3 : 4, 400, .45)) chase(e, dt, 90);
   if (e.t3 <= 0) { e.t3 = h2 ? 1.6 : 2.1; fan(e, h2 ? 5 : 3, 300, 'cy', 10, .14); e.at = .4; }
   if (e.t4 <= 0) { e.t4 = h2 ? 3.4 : 4.4; zone(p.x, p.y, 95, 1, 30); ban('BIG BANG ATTACK!'); e.at = .5; }
-  if (e.t5 <= 0) { e.t5 = h2 ? 6 : 8; const a = ang4(e, p.x, p.y); for (let i = -1; i <= 1; i += 2) lane(e.x, e.y, a + i * .14, 1000, 40, .9, 34, 'pu'); ban('GALICK GUN!'); sfxPlay('charge'); e.at = 1; }
+  if (e.t5 <= 0) { e.t5 = h2 ? 6 : 8; const a = ang4(e, p.x, p.y); for (let i = -1; i <= 1; i += 2) lane(e.x, e.y, a + i * .14, 1000, 40, .9, 34, 'pu'); ban('GALICK GUN!'); sfxPlay('bosscharge'); e.at = 1; }
   if (near_(e) && !(e.hc2 > S.t)) { e.hc2 = S.t + .5; bossHurt(20); }
 };
 { const _h = hitE; hitE = function (e, d) { if (e.k == 'mveg' && e.exh > 0) d *= 1.5; return _h(e, d); }; }
@@ -146,7 +146,7 @@ AI.bu1 = function (e, dt) {
   if (e.t5 <= 0) { e.t5 = 6; zone(e.x, e.y, 150, .9, 28); }
   if (e.t4 <= 0) { e.t4 = 8; let n = 0; e.cb = [];
     for (const o of S.en) { if (o.dead || o.boss || n >= 4 || Math.hypot(o.x - e.x, o.y - e.y) > 380) continue; n++; o.dead = 1; e.cb.push([o.x, o.y]); arr4('cdy').push({ x: o.x, y: o.y, s: Math.random() * 6 }); }
-    if (n) { e.cbT = .5; ban('BUU TURNS THEM INTO CANDY!'); sfxPlay('tele'); } }
+    if (n) { e.cbT = .5; ban('BUU TURNS THEM INTO CANDY!'); sfxPlay('candy'); } }
   if (e.cbT > 0) e.cbT -= dt;
   if (near_(e) && !(e.hc2 > S.t)) { e.hc2 = S.t + .5; bossHurt(22); }
 };
@@ -325,7 +325,7 @@ function drawMVeg(c, x, y, r, t, e) {
   if (e.exh > 0) { LT(); gl('wh', x, y, r * 1.6, .25); NM(); }
   c.save(); c.translate(x + (e.fx > 0 ? (Math.random() - .5) * 3 : 0), y); c.scale(face * sc, sc);
   c.drawImage(MVSHEET, f * HC, row * HC, HC, HC, -HOX / HC * HD, HDY, HD, HD); c.restore();
-  if (e.fx > 0) { ctx.save(); ctx.font = '900 ' + Math.round(r * 1.5) + 'px Impact,"Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#3a0000';
+  if (e.fx > 0) { ctx.save(); ctx.font = '900 ' + Math.round(r * 1.5) + 'px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#3a0000';
     const s = String(Math.ceil(e.fx)); ctx.strokeText(s, x, y - r * 2.8); ctx.fillStyle = e.fx < 1.5 ? '#ff4030' : '#ffe27a'; ctx.fillText(s, x, y - r * 2.8); ctx.restore(); }
 }
 
@@ -412,7 +412,7 @@ function drawPB(cx, cy, t) {
     // arrow toward off-screen safe spots
     if (x < 0 || y < 0 || x > W || y > H) { const a = Math.atan2(y - H / 2, x - W / 2), ax = W / 2 + Math.cos(a) * Math.min(W, H) * .4, ay = H / 2 + Math.sin(a) * Math.min(W, H) * .4;
       ctx.save(); ctx.translate(ax, ay); ctx.rotate(a); ctx.fillStyle = '#a0ffc0'; ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-6, -9); ctx.lineTo(-6, 9); ctx.closePath(); ctx.fill(); ctx.restore(); } }
-  ctx.font = '900 ' + Math.round(Math.min(40, W * .08)) + 'px Impact,"Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 5; ctx.strokeStyle = '#3a0010';
+  ctx.font = '900 ' + Math.round(Math.min(40, W * .08)) + 'px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 5; ctx.strokeStyle = '#3a0010';
   const s = (b.T - b.t).toFixed(1); ctx.strokeText(s, W / 2, H * .2); ctx.fillStyle = '#ffd0e4'; ctx.fillText(s, W / 2, H * .2); ctx.restore();
 }
 { const _d = drawNewB; drawNewB = function (cx, cy, t) { if (S.stage == 4) drawHaz4(cx, cy, t); _d(cx, cy, t); if (S.stage == 4) { drawDark4(cx, cy, t); drawPB(cx, cy, t); } }; }
@@ -474,36 +474,11 @@ function candyDecor(cx, cy) {
     if (S.stage != 4) return _bg(cx, cy);
     const ph = mph4(); if (ph == 0) bgShip(cx, cy); else if (ph == 1) bgNew(cx, cy); else { bg3(cx, cy); candyDecor(cx, cy); }
   }; }
-{ const _d = draw; draw = function () { _d(); if (S.stage != 4 || (S.mode != 'play' && S.mode != 'pause' && S.mode != 'lvl')) return;
-    const ph = mph4(); ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); const g = ctx.createLinearGradient(0, 0, 0, H);
-    if (ph == 0) { g.addColorStop(0, 'rgba(120,40,140,.12)'); g.addColorStop(1, 'rgba(30,0,40,.18)'); }
-    else if (ph == 1) { g.addColorStop(0, 'rgba(140,60,140,.12)'); g.addColorStop(1, 'rgba(60,20,40,.12)'); }
-    else { g.addColorStop(0, 'rgba(255,120,200,.12)'); g.addColorStop(1, 'rgba(80,20,60,.12)'); }
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); }; }
+// (the per-phase colour grade now lives in fx6.js drawAtmos, under the HUD instead of over it)
 
 /* ---------- intro: the hero lands beside Babidi's ship ---------- */
 { const _ip = introPod; introPod = function (c, t, T) { if (S.stage != 4) return _ip(c, t, T); introBuu(c, t, T); }; }
-function introBuu(c, t, T) {
-  const s = Math.min(1.5, Math.max(.8, Math.min(W, H) / 390)), gy = H * .72, tL = 1.5;
-  let sh = 0; if (t > tL && t < tL + .7) sh = 1 - (t - tL) / .7; c.save(); if (sh > 0) c.translate((Math.random() - .5) * 14 * sh * s, (Math.random() - .5) * 14 * sh * s);
-  let g = c.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, '#2a1838'); g.addColorStop(.6, '#9a4a7a'); g.addColorStop(1, '#f0a070'); c.fillStyle = g; c.fillRect(-30, -30, W + 60, H + 60);
-  for (let L = 0; L < 2; L++) { c.fillStyle = ['#5a3a5a', '#3a2440'][L]; c.beginPath(); c.moveTo(-30, gy);
-    for (let i = 0; i <= 12; i++) { const x = i / 12 * (W + 60) - 30, hh = (40 + ihash(i * 5 + L * 13) * 90) * s * (1 - L * .3); c.lineTo(x, gy - hh); c.lineTo(x + W / 24, gy - hh * .9); } c.lineTo(W + 30, gy); c.fill(); }
-  // Babidi's ship: a half-buried dome with spikes and a hatch
-  const bx = W * .28, br = 70 * s; c.fillStyle = '#6a5a7a'; c.strokeStyle = '#1a1020'; c.lineWidth = 2 * s; c.beginPath(); c.ellipse(bx, gy, br, br * .7, 0, Math.PI, 0); c.fill(); c.stroke();
-  c.fillStyle = 'rgba(255,255,255,.18)'; c.beginPath(); c.ellipse(bx - br * .3, gy - br * .45, br * .3, br * .12, -.3, 0, 7); c.fill();
-  c.fillStyle = '#4a3a5a'; for (let i = 0; i < 5; i++) { const a = Math.PI + (i + .5) / 5 * Math.PI, x = bx + Math.cos(a) * br, y = gy + Math.sin(a) * br * .7;
-    c.beginPath(); c.moveTo(x - 6 * s, y + 2 * s); c.lineTo(x + Math.cos(a) * 18 * s, y + Math.sin(a) * 18 * s); c.lineTo(x + 6 * s, y + 2 * s); c.fill(); c.stroke(); }
-  c.fillStyle = '#ff7ac8'; c.beginPath(); c.ellipse(bx, gy - br * .25, 10 * s, 14 * s, 0, 0, 7); c.fill(); c.stroke();
-  g = c.createLinearGradient(0, gy, 0, H); g.addColorStop(0, '#8a6a5a'); g.addColorStop(1, '#4a3430'); c.fillStyle = g; c.fillRect(-30, gy, W + 60, H - gy + 30);
-  const hx = W * .6, k = .5 * s;
-  if (t < tL) { const u = Math.max(0, (t - .3) / (tL - .3)), y = -60 * s + (gy + 60 * s) * u * u; LT(); gl('cy', hx, y - 40 * s, 40 * s, .6); NM(); if (t > .3) iHero(c, hx, y, k, 0, 2, 1); }
-  else { if (t < tL + .9) { const u = (t - tL) / .9; c.fillStyle = 'rgba(200,170,160,' + (.6 * (1 - u)) + ')'; for (let i = 0; i < 10; i++) { const a = Math.PI + i / 9 * Math.PI; c.beginPath(); c.arc(hx + Math.cos(a) * 90 * s * u, gy + Math.sin(a) * 20 * s * u, (10 + 14 * u) * s, 0, 7); c.fill(); } }
-    iHero(c, hx, gy, k, Math.floor(t * 9) % FRN[1], 1); }
-  c.restore();
-  iBanner(c, 'MAJIN BUU SAGA', STAGES[4].open, iease((t - 2) / .5) * (1 - iease((t - T + .4) / .3)), H * .2);
-  if (t >= tL && t < tL + .4) { c.fillStyle = 'rgba(255,255,255,' + (.85 * (1 - (t - tL) / .4)) + ')'; c.fillRect(0, 0, W, H); }
-}
+function introBuu(c, t, T) { }   // the scene itself is drawn in cut6.js
 
 /* ---------- menu, end card, saved runs, guards ---------- */
 { const _m = menu; menu = function () {
