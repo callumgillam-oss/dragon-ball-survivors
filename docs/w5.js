@@ -126,10 +126,10 @@ LOCKED_HEROES.push(['h:gotenks', 'Gotenks', 'Defeat Super Buu', 'gotenks']);
 function updW5(dt) {
   const p = S.p, W_ = S.w, ev = S.evo;
   // Ghost Kamikaze: ghosts seek enemies, latch on and explode
-  if (W_.ghost) { const L = W_.ghost, E = ev.ghost, cap = 3 + L + (E ? 4 : 0); S.cd.ghost -= dt;
+  if (W_.ghost) { DSRC = 'ghost'; const L = W_.ghost, E = ev.ghost, cap = 3 + L + (E ? 4 : 0); S.cd.ghost -= dt;
     if (S.cd.ghost <= 0 && arr5('gh').length < cap) { S.cd.ghost = (E ? .75 : Math.max(1.1, 2.1 - .22 * L)) * cm() * (S.hero == 'gotenks' ? .85 : 1);
       const n = 1 + (PX() >> 1); for (let i = 0; i < n; i++) { const a = Math.random() * 6.283; S.gh.push({ x: p.x + Math.cos(a) * 18, y: p.y + Math.sin(a) * 18 - 10, t: 0, l: 6, s: Math.random() * 6, a }); } sfxPlay('ghost'); } }
-  for (const g of arr5('gh')) {
+  for (const g of arr5('gh')) { DSRC = 'ghost';
     g.t += dt; g.l -= dt; const M = MY('ghost'), sp = (g.mini ? 170 : 150) * (M ? 2 : 1);
     if (!g.e || g.e.dead) { let b = null, bd = 520; for (const e of S.en) { if (e.dead || !onScr(e)) continue; const d = Math.hypot(e.x - g.x, e.y - g.y); if (d < bd) { bd = d; b = e; } } g.e = b; }
     if (g.e) { const dx = g.e.x - g.x, dy = g.e.y - g.y, d = Math.hypot(dx, dy) || 1; g.a = Math.atan2(dy, dx); g.x += dx / d * sp * dt + Math.cos(g.t * 6 + g.s) * 20 * dt; g.y += dy / d * sp * dt + Math.sin(g.t * 5 + g.s) * 20 * dt;
@@ -142,17 +142,17 @@ function updW5(dt) {
   }
   S.gh = arr5('gh').filter(g => !g.done);
   // Candy Beam: zap random enemies on screen into candy
-  if (W_.candy) { const L = W_.candy, E = ev.candy, M = MY('candy'); S.cd.candy -= dt;
+  if (W_.candy) { DSRC = 'candy'; const L = W_.candy, E = ev.candy, M = MY('candy'); S.cd.candy -= dt;
     if (S.cd.candy <= 0) { const pool = S.en.filter(e => !e.dead && onScr(e) && Math.hypot(e.x - p.x, e.y - p.y) < 440);
       if (!pool.length) S.cd.candy = .25;
       else { S.cd.candy = (E ? 1.2 : Math.max(1.7, 3.3 - .3 * L)) * cm(); const n = Math.min(pool.length, 1 + (L >> 1) + PX() + (E ? 3 : 0)), dd = (6 + 3 * WL('candy')) * dm() * W5B.candy * (E ? 1.5 : 1);
         for (let i = 0; i < n; i++) { const j = Math.random() * pool.length | 0, e = pool.splice(j, 1)[0]; S.cbm.push({ x: e.x, y: e.y, l: .25 });
-          if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: dd }); continue; }
+          if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: dd, src: DSRC }); continue; }
           e.hp = 0; killE(e); S.cpop.push({ x: e.x, y: e.y, l: .5, c: Math.random() < .5 ? '#ff7ac8' : '#ffd23a' });
           if (M) { for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < 50 * AR2() + o.r) hitE(o, dd * 1.5); }
           if (Math.random() < (E ? .08 : .04)) S.ch4.push({ x: e.x, y: e.y, l: 12 }); }
         sfxPlay('candy'); } } }
-  for (const c of arr5('cdot')) { c.t -= dt; c.tk -= dt; if (c.tk <= 0 && !c.e.dead) { c.tk = .5; hitE(c.e, c.d); } }
+  for (const c of arr5('cdot')) { DSRC = 'candy'; c.t -= dt; c.tk -= dt; if (c.tk <= 0 && !c.e.dead) { c.tk = .5; DSRC = c.src || 'candy'; hitE(c.e, c.d); } }
   S.cdot = arr5('cdot').filter(c => c.t > 0 && !c.e.dead);
   for (const c of arr5('ch4')) { c.l -= dt; if (Math.hypot(c.x - p.x, c.y - p.y) < 28) { c.l = 0; p.hp = Math.min(p.max, p.hp + 8); sfx('bean'); if (S.nums.length < 40) S.nums.push({ x: p.x, y: p.y - 24, v: '+8', l: .7, c: '#ff9ad8' }); } }
   S.ch4 = arr5('ch4').filter(c => c.l > 0);
@@ -160,43 +160,43 @@ function updW5(dt) {
   for (const b of arr5('cpop')) b.l -= dt; S.cpop = arr5('cpop').filter(b => b.l > 0);
   // ---- fused attacks (damage x1 / x1.35 / x1.8 by tier, plus each tier's extra trick) ----
   const fm = k => FTM[FT(k)];
-  const beam = o => S.beams.push(Object.assign({ h: new Set(), fz: 1, tk: .22 }, o));
-  if (W_.fkame) { S.cd.fkame -= dt; if (S.cd.fkame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fkame = .2; else { const T = FT('fkame'); S.cd.fkame = 2.8 * cm();
+  const beam = o => S.beams.push(Object.assign({ h: new Set(), fz: 1, tk: .22, src: DSRC }, o));
+  if (W_.fkame) { DSRC = 'fkame'; S.cd.fkame -= dt; if (S.cd.fkame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fkame = .2; else { const T = FT('fkame'); S.cd.fkame = 2.8 * cm();
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (70 + 10 * WL('fkame')) * dm() * fm('fkame'); p.atk = p.ad = .9; p.face = Math.cos(a) > 0 ? 1 : -1;
       beam({ a: T ? a - .25 : a, t: 1.1, T: 1.1, w: 130 * AR() * (T ? 1.2 : 1), len: 1200, d, pal: T == 2 ? 'fin2' : 'fin', kb: 30, clr: 1, rot: T ? .45 : 0, tm: fm('fkame') });
       if (T == 2) { for (const o of [-.5, .5]) beam({ a: a + o, t: .9, T: .9, w: 70 * AR(), len: 1000, d: d * .6, pal: 'fin', kb: 20, tm: 1 }); S.fsw = { t: 1.1, d: d * 1.5 }; }
       sfxPlay('beam'); kick(6); } } }
-  if (S.fsw) { S.fsw.t -= dt; if (S.fsw.t <= 0) { const R = 260 * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) { hitE(e, e.boss ? Math.min(S.fsw.d, e.max * .02) : S.fsw.d); shove(e, p.x, p.y, 70); } boom(p.x, p.y, R, '#fff2b0'); kick(12); S.fsw = null; } }
-  if (W_.fskame) { S.cd.fskame -= dt; if (S.cd.fskame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fskame = .2; else { const T = FT('fskame'); S.cd.fskame = 2.2 * cm();
+  if (S.fsw) { DSRC = 'fkame'; S.fsw.t -= dt; if (S.fsw.t <= 0) { const R = 260 * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) { hitE(e, e.boss ? Math.min(S.fsw.d, e.max * .02) : S.fsw.d); shove(e, p.x, p.y, 70); } boom(p.x, p.y, R, '#fff2b0'); kick(12); S.fsw = null; } }
+  if (W_.fskame) { DSRC = 'fskame'; S.cd.fskame -= dt; if (S.cd.fskame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fskame = .2; else { const T = FT('fskame'); S.cd.fskame = 2.2 * cm();
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (52 + 8 * WL('fskame')) * dm() * fm('fskame'); p.atk = p.ad = .7; p.face = Math.cos(a) > 0 ? 1 : -1;
       for (const o of T ? [-.16, 0, .16] : [-.11, .11]) beam({ a: a + o, t: .85, T: .85, w: 76 * AR(), len: 1050, d, pal: 'fs', kb: 22, tm: fm('fskame'), rot: T == 2 ? -o * .25 : 0 });
       if (T == 2) arr5('dsb').push({ x: ts[0].x, y: ts[0].y, t: .35, T: .9, R: 130 * AR(), d: d * 2.5, fs: 1 });
       sfxPlay('beam'); } } }
-  if (W_.mlight) { S.cd.mlight -= dt; if (S.cd.mlight <= 0) { const T = FT('mlight'), n = T ? 6 : 4; S.cd.mlight = 2.4 * cm(); const a0 = Math.random() * 6.283, d = (40 + 7 * WL('mlight')) * dm() * fm('mlight'); p.atk = p.ad = .6;
+  if (W_.mlight) { DSRC = 'mlight'; S.cd.mlight -= dt; if (S.cd.mlight <= 0) { const T = FT('mlight'), n = T ? 6 : 4; S.cd.mlight = 2.4 * cm(); const a0 = Math.random() * 6.283, d = (40 + 7 * WL('mlight')) * dm() * fm('mlight'); p.atk = p.ad = .6;
       for (let i = 0; i < n; i++) beam({ a: a0 + i * 6.283 / n, t: 1.15, T: 1.15, w: 54 * AR(), len: 900, d, pal: 'sbc', kb: 10, rot: 1.3, tm: fm('mlight') });
       if (T == 2) { const R = 170 * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) { hitE(e, e.boss ? Math.min(d * 1.5, e.max * .006) : d * 1.5); if (!e.boss) e.st = Math.max(e.st || 0, .7); } S.fpl = { t: .45, R }; }
       sfxPlay('beam'); } }
   if (S.fpl) { S.fpl.t -= dt; if (S.fpl.t <= 0) S.fpl = null; }
   for (const b of S.beams) { if (!b.fz) continue; b.tk -= dt; if (b.tk <= 0) { b.tk = .22; b.h.clear(); } if (b.rot) b.a += b.rot * dt; }
-  if (W_.tks) { const T = FT('tks'), n = T ? 12 : 8, ph = (S.t % 2.4) / 2.4, R = (80 + 220 * Math.sin(ph * Math.PI)) * AR2(), d = (24 + 5 * WL('tks')) * dm() * fm('tks');
+  if (W_.tks) { DSRC = 'tks'; const T = FT('tks'), n = T ? 12 : 8, ph = (S.t % 2.4) / 2.4, R = (80 + 220 * Math.sin(ph * Math.PI)) * AR2(), d = (24 + 5 * WL('tks')) * dm() * fm('tks');
     S.tkd = []; const disc = (x, y, big) => { S.tkd.push({ x, y, big });
       for (const e of S.en) { if (e.dead || (e.tkc || 0) > S.t || Math.hypot(e.x - x, e.y - y) > 24 * AR2() * (big ? 1.4 : 1) + e.r) continue; e.tkc = S.t + .3; hitE(e, e.boss ? Math.min(d, e.max * .006) : d); } };
     for (let i = 0; i < n; i++) { const a = S.t * 2.2 * (i % 2 ? -1 : 1) + i / n * 6.283, rr = R * (i % 2 ? .78 : 1); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr); }
     if (T == 2) for (let i = 0; i < 6; i++) { const a = -S.t * 1.4 + i / 6 * 6.283, rr = 340 * AR2(); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 1); } }
-  if (W_.dsb) { S.cd.dsb -= dt; if (S.cd.dsb <= 0) { const ts = near(12, 700); if (!ts.length) S.cd.dsb = .3; else { const T = FT('dsb'); S.cd.dsb = 4.2 * cm();
+  if (W_.dsb) { DSRC = 'dsb'; S.cd.dsb -= dt; if (S.cd.dsb <= 0) { const ts = near(12, 700); if (!ts.length) S.cd.dsb = .3; else { const T = FT('dsb'); S.cd.dsb = 4.2 * cm();
       const d = (160 + 20 * WL('dsb')) * dm() * fm('dsb'), grp = T == 1 && ts.length > 6 ? [ts.slice(0, 6), ts.slice(6)] : [ts.slice(0, 6)];
       for (const g of grp) { let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
-        S.dsb.push({ x: cx, y: cy, t: 0, T: .9, R: 150 * AR() * (T == 2 ? 1.6 : 1), d: d * (T == 2 ? 1.4 : 1), ln: T == 2 ? 14 : 6 }); }
+        S.dsb.push({ x: cx, y: cy, t: 0, T: .9, R: 150 * AR2() * (T == 2 ? 1.6 : 1), d: d * (T == 2 ? 1.4 : 1), ln: T == 2 ? 14 : 6 }); }
       sfxPlay('spirit'); } } }
-  for (const b of arr5('dsb')) { b.t += dt; if (b.t >= b.T && !b.hit) { b.hit = 1;
+  for (const b of arr5('dsb')) { DSRC = 'dsb'; b.t += dt; if (b.t >= b.T && !b.hit) { b.hit = 1;
       for (const e of S.en) if (!e.dead && Math.hypot(e.x - b.x, e.y - b.y) < b.R + e.r) { hitE(e, e.boss ? Math.min(b.d, e.max * .03) : b.d); shove(e, b.x, b.y, 40); }
       boom(b.x, b.y, b.R, b.fs ? '#d8f0ff' : '#bfe0ff'); aFlash(.5); kick(10);
       if (!b.fs) for (let i = 0; i < (b.ln || 6); i++) { const a = Math.random() * 6.283, r = b.R * (.4 + Math.random() * 1.1); S.dsl.push({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, t: -.12 * i, d: b.d * .35 }); } } }
   S.dsb = arr5('dsb').filter(b => b.t < b.T + .5);
-  for (const l of arr5('dsl')) { const was = l.t; l.t += dt; if (was < 0 && l.t >= 0) { for (const e of S.en) if (!e.dead && Math.hypot(e.x - l.x, e.y - l.y) < 55 + e.r) hitE(e, e.boss ? Math.min(l.d, e.max * .01) : l.d); sfxPlay('thunder'); } }
+  for (const l of arr5('dsl')) { DSRC = 'dsb'; const was = l.t; l.t += dt; if (was < 0 && l.t >= 0) { for (const e of S.en) if (!e.dead && Math.hypot(e.x - l.x, e.y - l.y) < 55 + e.r) hitE(e, e.boss ? Math.min(l.d, e.max * .01) : l.d); sfxPlay('thunder'); } }
   S.dsl = arr5('dsl').filter(l => l.t < .3);
   // Kaioken Wolf Fang Barrage: a burning aura plus dash strikes on the nearest enemies
-  if (W_.kwf) { const T = FT('kwf'), d = (22 + 5 * WL('kwf')) * dm() * fm('kwf'), R = 85 * AR();
+  if (W_.kwf) { DSRC = 'kwf'; const T = FT('kwf'), d = (22 + 5 * WL('kwf')) * dm() * fm('kwf'), R = 85 * AR();
     S.cd.kwfa = (S.cd.kwfa || 0) - dt; if (S.cd.kwfa <= 0) { S.cd.kwfa = .3; for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) hitE(e, d * .25); }
     S.cd.kwf = (S.cd.kwf ?? 1) - dt; if (S.cd.kwf <= 0) { const ts = near(T == 2 ? 12 : T ? 9 : 6, 380); if (!ts.length) S.cd.kwf = .2; else { S.cd.kwf = 1.5 * cm(); p.atk = p.ad = .4;
         for (const [i, e] of ts.entries()) { arr5('kws').push({ x0: p.x, y0: p.y, x1: e.x, y1: e.y, t: -i * .04, l: .28 });
@@ -204,33 +204,33 @@ function updW5(dt) {
         if (T) p.hp = Math.min(p.max, p.hp + 1 + ts.length * .3); sfxPlay('dash'); } } }
   for (const s of arr5('kws')) s.t += dt; S.kws = arr5('kws').filter(s => s.t < s.l);
   // Sweet Ghost Parade: candy ghosts (and at two wishes, a giant one that sweeps the screen)
-  const candyHit = (e, d, heal) => { if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: d * .5 }); hitE(e, e.boss ? Math.min(d, e.max * .006) : d); return; }
+  const candyHit = (e, d, heal) => { if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: d * .5, src: DSRC }); hitE(e, e.boss ? Math.min(d, e.max * .006) : d); return; }
     e.hp = 0; killE(e); S.cpop.push({ x: e.x, y: e.y, l: .5, c: Math.random() < .5 ? '#ff7ac8' : '#ffd23a' }); if (Math.random() < heal) S.ch4.push({ x: e.x, y: e.y, l: 12 }); };
-  if (W_.sgp) { const T = FT('sgp'), cap = T ? 12 : 7; S.cd.sgp = (S.cd.sgp ?? .5) - dt;
+  if (W_.sgp) { DSRC = 'sgp'; const T = FT('sgp'), cap = T ? 12 : 7; S.cd.sgp = (S.cd.sgp ?? .5) - dt;
     if (S.cd.sgp <= 0 && arr5('sg').length < cap) { S.cd.sgp = (T ? .45 : .8) * cm(); const a = Math.random() * 6.283; S.sg.push({ x: p.x + Math.cos(a) * 18, y: p.y + Math.sin(a) * 18, t: 0, l: 5, s: Math.random() * 6, a }); }
     if (T == 2) { S.cd.sgb = (S.cd.sgb ?? 4) - dt; if (S.cd.sgb <= 0) { S.cd.sgb = 6 * cm(); const a = Math.random() * 6.283; S.sgb = { x: p.x - Math.cos(a) * 520, y: p.y - Math.sin(a) * 520, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, t: 2.5 }; } } }
-  for (const g of arr5('sg')) { g.t += dt; g.l -= dt;
+  for (const g of arr5('sg')) { DSRC = 'sgp'; g.t += dt; g.l -= dt;
     if (!g.e || g.e.dead) { let b = null, bd = 520; for (const e of S.en) { if (e.dead || !onScr(e)) continue; const dd = Math.hypot(e.x - g.x, e.y - g.y); if (dd < bd) { bd = dd; b = e; } } g.e = b; }
     if (g.e) { const dx = g.e.x - g.x, dy = g.e.y - g.y, dd = Math.hypot(dx, dy) || 1; g.a = Math.atan2(dy, dx); g.x += dx / dd * 170 * dt; g.y += dy / dd * 170 * dt;
       if (dd < g.e.r + 8) { g.l = 0; candyHit(g.e, (16 + 4 * WL('sgp')) * dm() * fm('sgp'), FT('sgp') ? .08 : .04); } }
     else { g.x += Math.cos(g.t * 2 + g.s) * 40 * dt; g.y += Math.sin(g.t * 1.6 + g.s) * 40 * dt; } }
   S.sg = arr5('sg').filter(g => g.l > 0);
-  if (S.sgb) { const b = S.sgb; b.t -= dt; b.x += b.vx * dt; b.y += b.vy * dt; const d = (16 + 4 * WL('sgp')) * dm() * fm('sgp') * 2;
+  if (S.sgb) { DSRC = 'sgp'; const b = S.sgb; b.t -= dt; b.x += b.vx * dt; b.y += b.vy * dt; const d = (16 + 4 * WL('sgp')) * dm() * fm('sgp') * 2;
     for (const e of S.en) if (!e.dead && onScr(e) && Math.hypot(e.x - b.x, e.y - b.y) < 90 + e.r && !(e.sgbH > S.t)) { e.sgbH = S.t + 1; candyHit(e, d, .08); }
     if (b.t <= 0) S.sgb = null; }
   // Hellzone Tri-Cage: triangle cages on crowds, ramping damage, then detonation
-  if (W_.htc) { const T = FT('htc'), d = (12 + 3 * WL('htc')) * dm() * fm('htc'); S.cd.htc = (S.cd.htc ?? .5) - dt;
+  if (W_.htc) { DSRC = 'htc'; const T = FT('htc'), d = (12 + 3 * WL('htc')) * dm() * fm('htc'); S.cd.htc = (S.cd.htc ?? .5) - dt;
     if (S.cd.htc <= 0) { const ts = near(14, 650); if (!ts.length) S.cd.htc = .3; else { S.cd.htc = 2.6 * cm();
         for (const g of T ? [ts.slice(0, 7), ts.slice(7)] : [ts]) { if (!g.length) continue; let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
           arr5('cage').push({ x: cx, y: cy, R: 120 * AR2() * (T == 2 ? 1.2 : 1), t: 0, T: 3, tk: 0, d, pull: T == 2, big: T == 2 ? 2.4 : 1.4, a0: Math.random() * 6.283 }); }
         sfxPlay('orb'); } } }
-  for (const c of arr5('cage')) { c.t += dt; c.tk -= dt;
+  for (const c of arr5('cage')) { DSRC = 'htc'; c.t += dt; c.tk -= dt;
     if (c.tk <= 0) { c.tk = .25; const ramp = 1 + c.t; for (const e of S.en) { if (e.dead) continue; const dx = c.x - e.x, dy = c.y - e.y, dd = Math.hypot(dx, dy) || 1; if (dd > c.R) continue;
         hitE(e, e.boss ? Math.min(c.d * ramp, e.max * .004) : c.d * ramp); if (c.pull && !e.boss) { e.x += dx / dd * Math.min(dd, 18); e.y += dy / dd * Math.min(dd, 18); } } }
     if (c.t >= c.T && !c.done) { c.done = 1; const R = c.R * (c.pull ? 1.3 : 1); for (const e of S.en) if (!e.dead && Math.hypot(e.x - c.x, e.y - c.y) < R + e.r) hitE(e, e.boss ? Math.min(c.d * 6 * c.big, e.max * .02) : c.d * 6 * c.big); boom(c.x, c.y, R, '#d8a0ff'); kick(6); } }
   S.cage = arr5('cage').filter(c => !c.done);
   // Galactic Donut (Gotenks' Ki Burst)
-  const G = S.gdn; if (G) { G.t += dt; const k = Math.min(1, G.t / G.T), R = G.R * (1 - .8 * k);
+  const G = S.gdn; if (G) { DSRC = 'ult'; G.t += dt; const k = Math.min(1, G.t / G.T), R = G.R * (1 - .8 * k);
     for (const e of S.en) { if (e.dead) continue; const dx = G.x - e.x, dy = G.y - e.y, d = Math.hypot(dx, dy) || 1; if (d > G.R + e.r) continue;
       if (!e.boss) { e.st = Math.max(e.st || 0, .3); if (d > R) { e.x += dx / d * Math.min(d - R, 300 * dt); e.y += dy / d * Math.min(d - R, 300 * dt); } } }
     if (G.t >= G.T) { for (const e of S.en) if (!e.dead && Math.hypot(e.x - G.x, e.y - G.y) < G.R * .6 + e.r) hitE(e, G.d * (e.boss ? 3.5 : 2)); boom(G.x, G.y, G.R * .6, '#fff2b0'); kick(14); S.gdn = null; } }

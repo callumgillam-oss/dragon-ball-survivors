@@ -105,13 +105,22 @@ hud = function () {
   ctx.textAlign = 'left'; ctx.font = 'bold 9px ' + F; ctx.fillStyle = 'rgba(255,210,122,.8)'; ctx.fillText('STAGE ' + (S.stage || 1), rx + 2, y + 15);
   ctx.restore();
   // boss bar
-  const bs = S.en.find(e => e.boss);
-  if (bs) { const bw2 = Math.min(W * .7, 460), bx2 = (W - bw2) / 2, by2 = y + 76;
-    ctx.textAlign = 'center'; ctx.font = '17px ' + IM; ctx.lineWidth = 4; ctx.strokeStyle = '#3a0a02'; ctx.lineJoin = 'round'; const nm = TYPES[bs.k].n.toUpperCase();
-    ctx.strokeText(nm, W / 2, by2 - 4); ctx.fillStyle = '#ffd27a'; ctx.fillText(nm, W / 2, by2 - 4);
-    scouterBar(bx2, by2, bw2, 13, bs.hp / bs.max, '#e9a8ff', '#7a2bd0', 0);
-    const marks = bs.k == 'veg' ? [.6, .25] : bs.k == 'nap' ? [.5] : [];
-    ctx.strokeStyle = '#fff4e0'; ctx.lineWidth = 2; for (const mk of marks) { const mx2 = bx2 + bw2 * mk; ctx.beginPath(); ctx.moveTo(mx2, by2 - 2); ctx.lineTo(mx2 - 3, by2 + 15); ctx.stroke(); } }
+  // every boss on the field gets its own name and bar: one big bar, or a compact grid of up to 2 per row
+  const bss = S.en.filter(e => e.boss && !e.dead && e.hp > 0 && TYPES[e.k]);
+  if (bss.length) {
+    const n = bss.length, one = n == 1, cols = one ? 1 : 2, tw = Math.min(W - 24 - SI * 2, one ? 460 : 520), gap = 12,
+      bw2 = one ? Math.min(W * .7, 460) : (tw - gap * (cols - 1)) / cols, bh = one ? 13 : 10, fs = one ? 17 : n > 4 ? 12 : 14, rowH = one ? 0 : fs + bh + 9;
+    bss.forEach((bs, i) => {
+      const r = Math.floor(i / cols), c = i % cols, inRow = Math.min(cols, n - r * cols),
+        rowW = inRow * bw2 + (inRow - 1) * gap, bx2 = (W - rowW) / 2 + c * (bw2 + gap), by2 = y + 76 + r * rowH, cx2 = bx2 + bw2 / 2;
+      ctx.textAlign = 'center'; ctx.font = fs + 'px ' + IM; ctx.lineWidth = one ? 4 : 3; ctx.strokeStyle = '#3a0a02'; ctx.lineJoin = 'round';
+      let nm = TYPES[bs.k].n.toUpperCase(); if (!one) while (nm.length > 4 && ctx.measureText(nm).width > bw2) nm = nm.slice(0, -2) + '…';
+      ctx.strokeText(nm, cx2, by2 - 4); ctx.fillStyle = '#ffd27a'; ctx.fillText(nm, cx2, by2 - 4);
+      scouterBar(bx2, by2, bw2, bh, bs.hp / bs.max, '#e9a8ff', '#7a2bd0', 0);
+      const marks = bs.k == 'veg' ? [.6, .25] : bs.k == 'nap' ? [.5] : [];
+      ctx.strokeStyle = '#fff4e0'; ctx.lineWidth = 2; for (const mk of marks) { const mx2 = bx2 + bw2 * mk; ctx.beginPath(); ctx.moveTo(mx2, by2 - 2); ctx.lineTo(mx2 - 3, by2 + bh + 2); ctx.stroke(); }
+    });
+  }
   // ability slots: capsule orbs with level pips
   let ix = m, iy = H - 48 - SB;
   for (const g of ['w', 'ps']) for (const k in S[g]) { const l = S[g][k]; if (!l) continue; const ev = S.evo[k], x0 = ix + 17, y0 = iy + 17;
@@ -152,7 +161,8 @@ function drawChamberPointer() {
 function edgePointer(wx, wy, label, glow, fill, icon) {
   const p = S.p, x = wx - p.x + W / 2, y = wy - p.y + H / 2;
   if (x > -40 && y > -40 && x < W + 40 && y < H + 40) return;
-  const a = Math.atan2(y - H / 2, x - W / 2), ex = Math.max(78, Math.min(W - 78, W / 2 + Math.cos(a) * 1000)), ey = Math.max(ST + 130, Math.min(H - 70, H / 2 + Math.sin(a) * 1000)), d = Math.round(Math.hypot(wx - p.x, wy - p.y) / 10);
+  const a = Math.atan2(y - H / 2, x - W / 2), ex = Math.max(78, Math.min(W - 78, W / 2 + Math.cos(a) * 1000)), btnSide = SET.hand == 'left' ? ex < 140 : ex > W - 140,   // keep clear of the Ki Burst / sound / pause buttons
+    ey = Math.max(ST + 130, Math.min(btnSide ? H - 250 - SB : H - 70, H / 2 + Math.sin(a) * 1000)), d = Math.round(Math.hypot(wx - p.x, wy - p.y) / 10);
   LT(); gl(glow, ex, ey, 26, .5 + .2 * Math.sin(S.t * 6)); NM();
   ctx.save(); ctx.translate(ex, ey); ctx.save(); ctx.rotate(a); ctx.fillStyle = fill; ctx.strokeStyle = 'rgba(30,10,0,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-8, -12); ctx.lineTo(-3, 0); ctx.lineTo(-8, 12); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
   if (icon) ctx.drawImage(icon, -9, -9, 18, 18);

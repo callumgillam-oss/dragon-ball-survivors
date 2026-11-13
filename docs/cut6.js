@@ -35,7 +35,7 @@ introCity = function (c, t, T) {
   const s = i6s(), gy = H * .72, K = i6K(), tS = .5, tB = .95, tF = 1.45, tL = 3.0, tA = 3.25;
   i6cue(t, tS, 'i6shot'); i6cue(t, tB, 'boom'); i6cue(t, tF, 'i6fly'); i6cue(t, tL, 'i6land'); i6cue(t, tA + .45, 'i6menace');
   let sh = 0; if (t > tB && t < tB + .8) sh = 1 - (t - tB) / .8; else if (t > tL && t < tL + .3) sh = .35 * (1 - (t - tL) / .3);
-  c.save(); if (sh > 0) c.translate((Math.random() - .5) * 18 * sh * s, (Math.random() - .5) * 18 * sh * s);
+  c.save(); if (sh > 0) c.translate((Math.random() - .5) * 18 * sh * s * (SET.shake ? 1 : 0), (Math.random() - .5) * 18 * sh * s * (SET.shake ? 1 : 0));
   // dusk sky, low sun haze, cloud bands
   let g = c.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, '#231d44'); g.addColorStop(.45, '#6a3f6e'); g.addColorStop(.8, '#d8785a'); g.addColorStop(1, '#f6b878'); c.fillStyle = g; c.fillRect(-40, -40, W + 80, H + 80);
   g = c.createRadialGradient(W * .22, gy - 10 * s, 0, W * .22, gy - 10 * s, 220 * s); g.addColorStop(0, 'rgba(255,236,170,.95)'); g.addColorStop(.25, 'rgba(255,180,110,.5)'); g.addColorStop(1, 'rgba(255,140,90,0)'); c.fillStyle = g; c.fillRect(-40, -40, W + 80, H + 80);
@@ -101,7 +101,7 @@ introBuu = function (c, t, T) {
   const s = i6s(), gy = H * .72, K = i6K(), tF = 1.0, tL = 2.5, tH = 2.9, tG = 3.2, tR = 4.5, tJ = 5.25;
   i6cue(t, .15, 'i6wisp'); i6cue(t, tF, 'i6fly'); i6cue(t, tL, 'i6land'); i6cue(t, tH, 'i6hatch'); i6cue(t, tR, 'dash'); i6cue(t, tJ + .3, 'tele');
   let sh = 0; if (t > tH && t < tH + 1.1) sh = .5 * (1 - (t - tH) / 1.1); else if (t > tL && t < tL + .3) sh = .35 * (1 - (t - tL) / .3);
-  c.save(); if (sh > 0) c.translate((Math.random() - .5) * 14 * sh * s, (Math.random() - .5) * 14 * sh * s);
+  c.save(); if (sh > 0) c.translate((Math.random() - .5) * 14 * sh * s * (SET.shake ? 1 : 0), (Math.random() - .5) * 14 * sh * s * (SET.shake ? 1 : 0));
   const open = iease((t - tH) / .7), bx = W * .3, br = 84 * s, hy = gy - br * .2;
   // a bruised sky with a dark vortex gathering over the ship
   let g = c.createLinearGradient(0, 0, 0, gy); g.addColorStop(0, '#1a1030'); g.addColorStop(.5, '#5c2a66'); g.addColorStop(.85, '#c0607a'); g.addColorStop(1, '#f0a070'); c.fillStyle = g; c.fillRect(-40, -40, W + 80, H + 80);

@@ -188,7 +188,7 @@ const XSH = {
 { const _uf = ultFire; ultFire = function () {
     const h = S.hero; if (h != 'vegeta' && h != 'kri' && h != 'trunks') return _uf();
     if (!RU('kiburst') || S.mode != 'play' || (S.ult || 0) < 100) return;
-    S.ultK0 = P.kills; S.ultT = S.t; S.ult = 0; S.inv = 1.4; sfx('ban'); sfxPlay('ult'); kick(16);
+    S.ultK0 = P.kills; S.ultT = S.t; S.ult = 0; S.inv = 1.4; sfx('ban'); sfxPlay('ult'); kick(16); DSRC = 'ult';
     const p = S.p, d = (90 + 8 * p.lv) * dm();
     if (h == 'vegeta' || h == 'trunks') {
       let tg = null, best = -1; for (const e of S.en) if (!e.dead && onScr(e)) { const sc = (e.boss ? 1e9 : 0) + e.hp; if (sc > best) { best = sc; tg = e; } }
@@ -204,7 +204,7 @@ const XSH = {
 { const _u = update; update = function (dt) { _u(dt); const b = S.bb; if (!b || S.mode != 'play') return;
     b.t += dt; if (b.e && !b.e.dead) { b.tx = b.e.x; b.ty = b.e.y; }
     const k = Math.min(1, b.t / b.T); b.x = b.sx + (b.tx - b.sx) * k; b.y = b.sy + (b.ty - b.sy) * k;
-    if (k >= 1) { const R = 170 * AR();
+    if (k >= 1) { const R = 170 * AR(); DSRC = 'ult';
       if (b.e && !b.e.dead) hitE(b.e, b.d * 3.5);
       for (const e of S.en) if (!e.dead && e !== b.e && Math.hypot(e.x - b.x, e.y - b.y) < R + e.r) { hitE(e, b.d * 1.2); shove(e, b.x, b.y, 50); }
       boom(b.x, b.y, R, b.c == 'or' ? '#ffc070' : '#bfe0ff'); S.bb = null; } }; }

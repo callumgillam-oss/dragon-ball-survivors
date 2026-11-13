@@ -170,7 +170,7 @@ function drawKK(t) {
     kkSky(t, t * 50);
     const R = Math.min(W * .36, H * .28), px = cxm, py = H * .64 + R * .62, last = pi == 2, ch = last ? Math.min(1, pu / (PD * .85)) : 0;
     const shk = last ? ch * 3 * s : pi == 0 && Math.sin(pu * 7) < -.9 ? 2 * s : 0, spin = pi == 1 ? -pu * 1.7 : 0;
-    ctx.save(); ctx.translate((Math.random() - .5) * shk, (Math.random() - .5) * shk);
+    ctx.save(); ctx.translate((Math.random() - .5) * shk * (SET.shake ? 1 : 0), (Math.random() - .5) * shk * (SET.shake ? 1 : 0));
     ctx.fillStyle = 'rgba(190,120,50,.25)'; ctx.beginPath(); ctx.ellipse(px, py + R * 1.12, R * 1.1, R * .14, 0, 0, 7); ctx.fill();
     ctx.save(); ctx.translate(px, py); ctx.rotate(spin); kkPlanet(R, s, true); ctx.restore();
     const top = py - R, at = (a, h) => [px + Math.cos(a) * (R + h), py + Math.sin(a) * (R + h)];

@@ -18,7 +18,7 @@ Object.assign(INFO, {
   scatter: ['Scattering Bullet', 'An orb rises and bursts into a rain of ki shards.']
 });
 Object.assign(EVO, {
-  galick: ['Final Flash', 'A colossal straight beam that blasts enemies back.', 'arm'],
+  galick: ['Final Flash', 'A colossal beam that still sweeps the crowd and blasts enemies back.', 'arm'],
   wave: ['Super Explosive Wave', 'Twin shockwaves that stun everything they hit.', 'area'],
   tri: ['Neo Tri-Beam', 'Three triangles at once, lasting longer.', 'amt'],
   wolf: ['Neo Wolf Fang Fist', 'Longer combos on more targets, and each combo heals you.', 'sen'],
@@ -70,15 +70,15 @@ function updW3(dt) {
   const p = S.p, W_ = S.w, ev = S.evo;
 
   // Galick Gun: charge, then a beam that sweeps through the crowd (Final Flash: one colossal straight beam)
-  if (W_.galick) { S.cd.galick -= dt; if (S.cd.galick <= 0) { const L = W_.galick, E = ev.galick, M = MY('galick'), a = denseDir(E ? 700 : 520, .5);
+  if (W_.galick) { DSRC = 'galick'; S.cd.galick -= dt; if (S.cd.galick <= 0) { const L = W_.galick, E = ev.galick, M = MY('galick'), a = denseDir(E ? 700 : 520, .5);
     if (a === null) S.cd.galick = .3;
     else { S.cd.galick = (E ? 2.2 : Math.max(2, 3 - .25 * L)) * cm() * (S.hero == 'vegeta' ? .8 : 1); p.atk = p.ad = .5; p.face = Math.cos(a) > 0 ? 1 : -1;
-      const arc = E ? 0 : (1.2 + .14 * L) * (M ? 1.15 : 1), extra = PX() >> 1;
+      const arc = (E ? .75 + .08 * L : 1.2 + .14 * L) * (M ? 1.15 : 1), extra = PX() >> 1;   // Final Flash keeps the sweep, narrower
       for (let i = 0; i <= extra; i++) { const off = (i - extra / 2) * .5;
-        arr('gal').push({ a0: a + off - arc / 2, a1: a + off + arc / 2, ch: .45, t: 0, T: E ? .55 : .45, back: M && !E ? 1 : 0, fin: E ? 1 : 0,
-          w: (E ? 62 + 5 * L : 24 + 4 * L) * AR() * (M ? 1.2 : 1), len: E ? 900 : 520, d: (30 + 11 * WL('galick')) * dm() * W3B.galick * (E ? 2.4 : 1), h: new Set() }); }
+        arr('gal').push({ a0: a + off - arc / 2, a1: a + off + arc / 2, ch: .45, t: 0, T: E ? .7 : .45, back: M ? 1 : 0, fin: E ? 1 : 0,
+          w: (E ? 62 + 5 * L : 24 + 4 * L) * AR() * (M ? 1.2 : 1), len: E ? 900 : 520, d: (30 + 11 * WL('galick')) * dm() * W3B.galick * (E ? 2.0 : 1), h: new Set() }); }
       sfxPlay('galick'); } } }
-  for (const b of arr('gal')) {
+  for (const b of arr('gal')) { DSRC = 'galick';
     if (b.ch > 0) { b.ch -= dt; if (b.ch <= 0) sfx('galfire'); continue; }
     b.t += dt; const k = Math.min(1, b.t / b.T), a = b.a0 + (b.a1 - b.a0) * (b.back == 2 ? 1 - k : k); b.a = a;
     for (const e of S.en) { if (e.dead || b.h.has(e) || !onScr(e)) continue;
@@ -88,13 +88,13 @@ function updW3(dt) {
   S.gal = arr('gal').filter(b => !b.done);
 
   // Explosive Wave: expanding shockwave from you with knockback (evolved: twin waves that stun)
-  if (W_.wave) { S.cd.wave -= dt; if (S.cd.wave <= 0) { const L = W_.wave, E = ev.wave, M = MY('wave');
+  if (W_.wave) { DSRC = 'wave'; S.cd.wave -= dt; if (S.cd.wave <= 0) { const L = W_.wave, E = ev.wave, M = MY('wave');
     if (!near(1, 260).length) S.cd.wave = .3;
     else { S.cd.wave = (E ? 2.2 : Math.max(2.6, 4.2 - .3 * L)) * cm(); p.atk = p.ad = .35;
-      const R = (110 + 12 * WL('wave')) * AR() * (E ? 1.25 : 1), d = (14 + 6 * WL('wave')) * dm() * W3B.wave * (E ? 1.5 : 1), n = (E ? 2 : 1) + (M ? 1 : 0);
-      for (let i = 0; i < n; i++) arr('wav').push({ x: p.x, y: p.y, R: R * (1 + i * .18), d, dl: i * .22, t: 0, T: .45, h: new Set(), st: E ? .8 : 0, kb: E ? 80 : 60, clr: M });
+      const R = (110 + 12 * WL('wave')) * AR() * (E ? 1.25 : 1), d = (14 + 6 * WL('wave')) * dm() * W3B.wave * (E ? 1.3 : 1) * (M ? .9 : 1), n = (E ? 2 : 1) + (M ? 1 : 0);
+      for (let i = 0; i < n; i++) arr('wav').push({ x: p.x, y: p.y, R: R * (1 + i * .18), d, dl: i * .22, t: 0, T: .45, h: new Set(), st: E ? .8 : 0, kb: E || M ? (E ? 80 : 60) * .2 : 60, clr: M });   // evolved / wished waves barely push (feedback 2026-11-13)
       sfx('wave'); } } }
-  for (const w of arr('wav')) {
+  for (const w of arr('wav')) { DSRC = 'wave';
     if (w.dl > 0) { w.dl -= dt; if (w.dl <= 0) { w.x = p.x; w.y = p.y; } continue; }
     w.t += dt; const k = Math.min(1, w.t / w.T), r = w.R * (1 - Math.pow(1 - k, 2)); w.r = r;
     for (const e of S.en) { if (e.dead || w.h.has(e)) continue; const dd = Math.hypot(e.x - w.x, e.y - w.y);
@@ -105,14 +105,14 @@ function updW3(dt) {
   S.wav = arr('wav').filter(w => !w.done);
 
   // Tri-Beam: a triangle zone on the crowd; each tick hits harder than the last
-  if (W_.tri) { S.cd.tri -= dt; if (S.cd.tri <= 0) { const L = W_.tri, E = ev.tri, M = MY('tri'), c = denseSpot(420, 90);
+  if (W_.tri) { DSRC = 'tri'; S.cd.tri -= dt; if (S.cd.tri <= 0) { const L = W_.tri, E = ev.tri, M = MY('tri'), c = denseSpot(420, 90);
     if (!c) S.cd.tri = .3;
     else { S.cd.tri = (E ? 2.4 : Math.max(2, 3 - .2 * L)) * cm(); p.atk = p.ad = .4; p.face = c.x > p.x ? 1 : -1;
       const n = (E ? 3 : 1) + (PX() >> 1), s = (70 + 8 * WL('tri')) * AR(), d = (3 + 1.2 * WL('tri')) * dm() * W3B.tri;
       const spots = [c]; if (n > 1) { const others = S.en.filter(e => !e.dead && onScr(e) && Math.hypot(e.x - c.x, e.y - c.y) > s * 1.2).sort(() => Math.random() - .5); spots.push(...others.slice(0, n - 1)); }
       for (const q of spots) arr('tris').push({ x: q.x, y: q.y, s, d, t: 0, T: E ? 2.2 : 1.6, k: 0, n: 0, rot: Math.random() * 2, fol: M ? q : null, burst: M });
       sfx('tri'); } } }
-  for (const z of arr('tris')) {
+  for (const z of arr('tris')) { DSRC = 'tri';
     z.t += dt; z.k -= dt; z.rot += dt * .8;
     if (z.fol && !z.fol.dead) { z.x += (z.fol.x - z.x) * Math.min(1, dt * 2); z.y += (z.fol.y - z.y) * Math.min(1, dt * 2); }
     if (z.k <= 0) { z.k = .2; const m = 1 + .15 * z.n++;
@@ -122,12 +122,12 @@ function updW3(dt) {
   S.tris = arr('tris').filter(z => !z.done);
 
   // Wolf Fang Fist: rapid afterimage strikes on the closest enemies
-  if (W_.wolf) { S.cd.wolf -= dt; if (S.cd.wolf <= 0) { const L = W_.wolf, E = ev.wolf, M = MY('wolf'), n = 3 + L + PX() + (E ? 2 : 0) + (M ? 1 : 0), ts = near(n, (210 + 6 * L) * AR2());
+  if (W_.wolf) { DSRC = 'wolf'; S.cd.wolf -= dt; if (S.cd.wolf <= 0) { const L = W_.wolf, E = ev.wolf, M = MY('wolf'), n = 3 + L + PX() + (E ? 2 : 0) + (M ? 1 : 0), ts = near(n, (210 + 6 * L) * AR2());
     if (!ts.length) S.cd.wolf = .2;
     else { S.cd.wolf = (E ? 1 : Math.max(1.1, 2 - .18 * L)) * cm(); p.atk = p.ad = .3; p.face = ts[0].x > p.x ? 1 : -1;
       const d = (12 + 5 * WL('wolf')) * dm() * W3B.wolf, hits = E ? 6 : 4;
       ts.forEach((e, i) => arr('wfq').push({ e, n: hits, t: i * .05, d, st: M, heal: E })); } } }
-  for (const q of arr('wfq')) {
+  for (const q of arr('wfq')) { DSRC = 'wolf';
     q.t -= dt; if (q.t > 0) continue;
     if (q.e.dead || q.n <= 0) { q.done = 1; continue; }
     q.t = .07; q.n--; hitE(q.e, q.d); shove(q.e, p.x, p.y, 6);
@@ -138,11 +138,11 @@ function updW3(dt) {
   for (const f of arr('wfx')) f.l -= dt; S.wfx = arr('wfx').filter(f => f.l > 0);
 
   // Afterimage Strike: moving drops afterimages that explode a moment later
-  if (W_.after) { const L = W_.after, E = ev.after, M = MY('after'), mov = (p.mag || 0) > .2;
+  if (W_.after) { DSRC = 'after'; const L = W_.after, E = ev.after, M = MY('after'), mov = (p.mag || 0) > .2;
     S.aiT = (S.aiT ?? .8) - dt * (mov ? 1 : .4);
     if (S.aiT <= 0) { S.aiT = (E ? .35 : Math.max(.5, .9 - .06 * L)) * cm();
       arr('aims').push({ x: p.x, y: p.y, f: p.face || 1, t: 1, R: (46 + 5 * WL('after')) * AR2(), d: (16 + 6 * WL('after')) * dm() * W3B.after, ev: E, n: M ? 2 : 1 }); } }
-  for (const a of arr('aims')) {
+  for (const a of arr('aims')) { DSRC = 'after';
     a.t -= dt; if (a.t > 0) continue;
     for (const e of S.en) if (!e.dead && onScr(e) && Math.hypot(e.x - a.x, e.y - a.y) < a.R + e.r) hitE(e, a.d);
     pop(a.x, a.y, a.R, '#bfe6ff'); impact(a.x, a.y, a.R, 'cy', .3);
@@ -153,12 +153,12 @@ function updW3(dt) {
   S.aims = arr('aims').filter(a => !a.done);
 
   // Scattering Bullet: an orb rises, then bursts into shards that rain on enemies
-  if (W_.scatter) { S.cd.scatter -= dt; if (S.cd.scatter <= 0) { const L = W_.scatter, E = ev.scatter, M = MY('scatter');
+  if (W_.scatter) { DSRC = 'scatter'; S.cd.scatter -= dt; if (S.cd.scatter <= 0) { const L = W_.scatter, E = ev.scatter, M = MY('scatter');
     if (!near(1, 380).length) S.cd.scatter = .3;
     else { S.cd.scatter = (E ? 2 : Math.max(2.4, 3.6 - .25 * L)) * cm(); p.atk = p.ad = .4;
       arr('sca').push({ x: p.x, y: p.y, t: .45, n: Math.round((8 + 2 * L + PX() * 2) * (E ? 1.6 : 1)), d: (8 + 3 * WL('scatter')) * dm() * W3B.scatter, R: 22 * AR2() * (M ? 1.3 : 1), ev: E, ch: M });
       sfxPlay('scatter'); } } }
-  for (const o of arr('sca')) {
+  for (const o of arr('sca')) { DSRC = 'scatter';
     o.t -= dt; if (o.t > 0) continue; o.done = 1;
     const ox = o.x, oy = o.y - 70, ts = S.en.filter(e => !e.dead && onScr(e) && Math.hypot(e.x - o.x, e.y - o.y) < 380);
     for (let i = 0; i < o.n; i++) { const e = ts.length ? ts[(Math.random() * ts.length) | 0] : null, a = Math.random() * 6.283, r = 60 + Math.random() * 200;
@@ -166,7 +166,7 @@ function updW3(dt) {
     sfx('scatpop');
   }
   S.sca = arr('sca').filter(o => !o.done);
-  for (const s of arr('shd')) {
+  for (const s of arr('shd')) { DSRC = 'scatter';
     s.t += dt; if (s.t < s.T) continue; s.done = 1;
     for (const e of S.en) if (!e.dead && Math.hypot(e.x - s.tx, e.y - s.ty) < s.R + e.r) hitE(e, s.d);
     if (s.ch) splash(s.tx, s.ty, s.R * 1.8, s.d * .4);

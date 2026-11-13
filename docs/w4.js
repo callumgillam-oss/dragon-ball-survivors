@@ -43,14 +43,14 @@ const INF = () => (S.pe && S.pe.inf) || 0;
 function updW4(dt) {
   const p = S.p, W_ = S.w, ev = S.evo;
   // Shining Sword Attack: a quick flurry of slashes toward the nearest enemy, then a ki blast
-  if (W_.sword) { S.cd.sword -= dt; if (S.cd.sword <= 0) { const L = W_.sword, E = ev.sword, M = MY('sword'), R = (78 + 6 * L) * AR() * (M ? 1.4 : 1), ts = near(1, R * 2.2);
+  if (W_.sword) { DSRC = 'sword'; S.cd.sword -= dt; if (S.cd.sword <= 0) { const L = W_.sword, E = ev.sword, M = MY('sword'), R = (78 + 6 * L) * AR() * (M ? 1.4 : 1), ts = near(1, R * 2.2);
     if (!ts.length) S.cd.sword = .2;
     else { S.cd.sword = (E ? 1 : Math.max(1.05, 1.7 - .12 * L)) * cm() * (S.hero == 'trunks' ? .85 : 1);
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (10 + 4.5 * WL('sword')) * dm() * W4B.sword, n = (E ? 5 : 3) + (PX() >> 1);
       p.atk = p.ad = .35; p.face = Math.cos(a) > 0 ? 1 : -1;
       for (let i = 0; i < n; i++) arr('sws').push({ a: a + (i % 2 ? .35 : -.35) * (i ? 1 : 0), R, d, t: i * .07, T: .16, h: null });
       arr('sws').push({ fin: 1, a, R, d: d * (E ? 3 : 1.6), t: n * .07 + .05, T: .3, E, st: M }); sfx('slash'); } } }
-  for (const s of arr('sws')) {
+  for (const s of arr('sws')) { DSRC = 'sword';
     if (s.t > 0) { s.t -= dt; continue; }
     if (!s.h) { s.h = 1; s.x = p.x; s.y = p.y;
       if (s.fin) { const bx = p.x + Math.cos(s.a) * s.R * .9, by = p.y + Math.sin(s.a) * s.R * .9, BR = (s.E ? 95 : 55) * AR2();
@@ -65,7 +65,7 @@ function updW4(dt) {
   // Android Barrier: a dome around you. It eats enemy shots (a few per pulse; evolved: all, and fires them back)
   // and pulses to push enemies away.
   const B = S.bar || (S.bar = { r: 0, pulse: 0, blk: 0 });
-  if (W_.barrier) { const L = W_.barrier, E = ev.barrier, M = MY('barrier'), R = (70 + 6 * L) * AR2();
+  if (W_.barrier) { DSRC = 'barrier'; const L = W_.barrier, E = ev.barrier, M = MY('barrier'), R = (70 + 6 * L) * AR2();
     B.r = R; S.cd.barrier -= dt; B.pulse = Math.max(0, B.pulse - dt);
     if (S.cd.barrier <= 0) { S.cd.barrier = (E ? 2.2 : Math.max(2.4, 3.8 - .25 * L)) * cm(); B.pulse = .35; B.blk = E ? 1e9 : 2 + L;
       const d = (8 + 4 * WL('barrier')) * dm() * W4B.barrier * (E ? 1.5 : 1);
@@ -89,7 +89,7 @@ function drawW4(cx, cy, t) {
     for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + t * .4; ctx.moveTo(px + Math.cos(a) * R, py + Math.sin(a) * R); ctx.lineTo(px + Math.cos(a + 1.047) * R, py + Math.sin(a + 1.047) * R); } ctx.stroke(); }
   for (const f of arr('swf')) { const k = f.l / .2; LT(); gl('cy', f.x0 - cx, f.y0 - cy, 12, k); NM();
     if (f.x1 !== undefined) { ctx.strokeStyle = `rgba(255,230,150,${k})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(f.x0 - cx, f.y0 - cy); ctx.lineTo(f.x1 - cx, f.y1 - cy); ctx.stroke(); } }
-  for (const s of arr('sws')) { if (s.t > 0 || !s.h) continue;
+  for (const s of arr('sws')) { DSRC = 'sword'; if (s.t > 0 || !s.h) continue;
     if (s.fin) { const k = s.T / .3; LT(); gl(s.E ? 'or' : 'cy', s.x - cx, s.y - cy, s.BR * (1.3 - .3 * k), .7 * k); NM(); continue; }
     const k = s.T / .16, x = s.x - cx, y = s.y - cy;
     ctx.save(); ctx.lineCap = 'round';

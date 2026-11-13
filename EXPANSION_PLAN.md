@@ -786,6 +786,29 @@ note numbers in `snd6.js` and easy to retune or swap.
 
 ---
 
+### 12.3 Post-launch playtest pass (2026-11-13)  `[x]`
+Your first iPhone playtest notes. New layer `docs/v7.js` (loaded last) plus direct edits where the code lives.
+Shipped without bot balance runs, at your request: you judge the numbers.
+- **UI:** every boss on the field gets a name and bar (2-column grid when there are several); owned attacks/passives
+  strip on the power-up and pause screens (touch and slide for names); power-up offers show "✓ You have X" and a green
+  ring when you own the evolution partner; end screen damage tally per attack (Ki Burst, transformation burst and
+  Dragon Ball pickups included); locked hero shows a LOCKED tag and greys out the levels; chest edge arrows; redrawn
+  Time Chamber (tiled floor, pillars, time ring, hourglass); Ginyu challenge buttons no longer flash brown.
+- **Damage tags:** a global `DSRC` is set inside each attack's update block (and carried on shared projectiles as `src`),
+  and `hitE` adds the HP actually removed to `S.dmg7`.
+- **Attacks:** Special Beam Cannon is in every hero's pool. Final Flash keeps a narrower sweep (x2.0 dmg, was x2.4) and its
+  wish back-sweep now survives evolving. Explosive Wave evolved/wished: knockback x0.2, damage x0.87 / x0.9.
+  Kaioken gravity well pulls to the aura's edge, then slows inside (was pulling enemies onto you).
+- **Balance:** Level 2 mobs +25% HP and extra spawns at the start, fading out by 3:00; Recoome x0.88 HP; Jeice, Burter,
+  Guldo, Ginyu x1.15. Android 19 reworked (released energy ring after absorbing, telegraphed charge that drains,
+  overcharge at 55%) with x0.85 HP. Senzu regen 0.9 → 0.5 per level. Spirit Bomb (and Dragon Spirit Bomb) radius uses
+  60% of the Area bonus. Dragon Balls spawn up to 35% slower early, back to normal by 5:00. Shop +20%.
+- **Settings:** difficulty fixed at Hard (toggle removed); Character art removed; Reduced flashing now dims every
+  full-screen light flash (cutscenes, intros, wishes); cutscene shakes respect Screen shake; Reset all progress
+  (two confirmations, settings kept).
+- **Feel:** Level 2 shooters idle when standing still; Ki Burst and pause fire on touch-down so they work while
+  another finger is walking.
+
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
 2. **Phase A ships now** as a 2.1 patch, before the big update. ✓
