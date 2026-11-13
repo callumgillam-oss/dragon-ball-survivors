@@ -1967,7 +1967,7 @@ function drawIntro(){
  c.restore()}
 function introEnd(){if(S.mode!='intro')return;S.mode='play';joy=null;ban(STAGES[S.stage].open)}
 
-function loop(ts){if(rsPend)rsApply();const dt=Math.min(.05,(ts-last)/1000||0);last=ts;if(S.mode=='play')update(dt);else if(S.mode=='intro'){S.intro.t+=dt;if(S.intro.t>=INTRO_T[S.stage-1])introEnd()}else if(S.mode=='win'){S.fx.forEach(f=>{f.l-=dt;if(!f.ring){f.x+=f.vx*dt;f.y+=f.vy*dt}});S.fx=S.fx.filter(f=>f.l>0);S.flash-=dt}draw();adapt(dt);requestAnimationFrame(loop)}
+function loop(ts){if(!window.DBS_READY){requestAnimationFrame(loop);return}if(rsPend)rsApply();const dt=Math.min(.05,(ts-last)/1000||0);last=ts;if(S.mode=='play')update(dt);else if(S.mode=='intro'){S.intro.t+=dt;if(S.intro.t>=INTRO_T[S.stage-1])introEnd()}else if(S.mode=='win'){S.fx.forEach(f=>{f.l-=dt;if(!f.ring){f.x+=f.vx*dt;f.y+=f.vy*dt}});S.fx=S.fx.filter(f=>f.l>0);S.flash-=dt}draw();adapt(dt);requestAnimationFrame(loop)}
 
 /* ===== v8: level-up rarity ===== */
 const RAR=[{n:'Common',m:1,w:0},{n:'Uncommon',m:1.25,w:22},{n:'Rare',m:1.5,w:8},{n:'Epic',m:2,w:3},{n:'Legendary',m:2.6,w:1},{n:'Mythic',m:3,w:0}];
@@ -2373,6 +2373,9 @@ function bkRestore(){const d=bkParse($('bk_in').value);if(!d){bkScreen('That cod
  const b=document.createElement('button');b.style.textAlign='center';b.innerHTML='💾 Save &amp; Backup'+(store.ok?'':' <small style="color:#ff9a8a">(saving unavailable here!)</small>');b.onclick=()=>bkScreen();c.appendChild(b)}}
 
 menu();requestAnimationFrame(loop);
+// If the game's script files never finish loading (a stalled request on refresh), don't sit frozen: offer a clean reload
+function bootReload(){const go=()=>location.reload();try{Promise.all([navigator.serviceWorker?navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))):0,window.caches?caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))):0]).then(go,go)}catch(e){go()}}
+setTimeout(()=>{if(!window.DBS_READY)show('<div class="card"><h2>Still loading…</h2><p>The game&#39;s files didn&#39;t finish downloading. Your saved run is safe.</p><button class="go" onclick="bootReload()">↻ Reload the game</button></div>')},10000);
 /* ===== v14: gamepad support (Razer Kishi and other standard controllers) ===== */
 const GP={x:0,y:0,on:false,id:'',blocked:false,prev:[],navDir:0,navT:0,ovSince:0,ovVis:false};
 function gpPads(){try{return(navigator.getGamepads?navigator.getGamepads():[])||[]}catch(e){GP.blocked=true;return[]}}
