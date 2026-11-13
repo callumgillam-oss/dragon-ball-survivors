@@ -564,7 +564,7 @@ achievements), fusion tiers and the three new recipes in `docs/w5.js`. Notes fro
   9,500. Endless and Insane want a near-full shop (~17,000).**
 - Level payouts scale up for Levels 3-4 so the climb takes about the same number of runs per level.
 
-### 10.0 Phase H balance pass (in progress)
+### 10.0 Phase H balance pass  `[x]`
 - **Level-up offers are weighted** (`docs/bal5.js`): upgrades to what you own ×1.8, a passive that evolves an attack you
   own ×2.2, an attack whose passive you own ×1.3, Majin Mark ×0.7. With 20 attacks and 10 passives a purely random
   pick rarely completed an evolution pair. A first try at ×2.5/×3/×1.8 made every level far too easy.
@@ -605,11 +605,22 @@ achievements), fusion tiers and the three new recipes in `docs/w5.js`. Notes fro
     (+700); beat Dabura with 3 heroes (**Piccolo: Demon King Robes**) and Majin Vegeta with 3 heroes (+1,200); clear it
     with 2 heroes (**Gotenks: Super Gotenks Purple**), 4 heroes (+3,000) and all 7 (+5,000).
   - Outfits switch with the "🎨 Outfit" button under the hero carousel and show everywhere (menu, banner, in game).
-- **Was open:** Level 3 was sparse during the grind: in campaign 5, runs 7-14 each earned **no** unlocks (fixed above). Many Level 3-4
+- **Was open:** Level 3 was sparse during the grind: in campaign 5, runs 7-14 each earned **no** unlocks (fixed above).
+- **Early mob surge softened:** Level 3-4 mob health now starts lower and ramps up between 4:00 and 8:00 (Level 3
+  1.0× → 1.15×, Level 4 1.1× → 1.4×). Fat Buu gets +40% instead of Level 4's +80% boss health, and regenerates
+  0.2%/s (he could heal back from 27% to 53% against a build that couldn't reach him).
+- **Campaign 6 (current settings):** Vegeta run 5, Frieza run 7 (Level 2 swings a lot between campaigns), Perfect Cell
+  run 17 (10 attempts), Kid Buu run 22 (5 attempts; then about 1 win in 5), shop finished around run 25 (8 Level 4 runs
+  in). During the Level 3 grind, 7 of 10 runs earned an unlock (campaign 5: 0 of 8).
+- **Seen once, not reproduced:** in campaign 6 three Gohan Level 4 runs survived to 15:00 with very few kills and never
+  beat Dabura. Direct Gohan Level 4 runs behaved normally; worth watching in human play.
+- **Ship check:** a simulated 2.1 save is wiped on first load (welcome card, Zeni, upgrades and unlocks cleared,
+  settings and hero choice kept), and the fresh menu shows only the starter heroes and Level 1. `sw.js` cache name is
+  bumped to `dbs-v3.0`, so returning players fetch every 3.0 file. Many Level 3-4
   losses are deaths at 3:40-4:50 to the mob surge before the second boss, which may feel worse to a human than losing
   to a boss.
 
-### 10.1 Phase H: shop price pass  `[~]`
+### 10.1 Phase H: shop price pass  `[x]`
 Your goal: the shop shouldn't be finished until a player has had a couple of Level 4 runs, and it's fine for Levels 1-2
 to get easy by then. The first few levels of every item cost about what they did, so early runs feel the same; the top
 levels cost far more, and the core stats got extra levels. Total cost **17,780 → 49,825 Zeni** (a first try at 38,600 was

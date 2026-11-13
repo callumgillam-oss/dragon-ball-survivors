@@ -29,5 +29,8 @@ for (const [k, mx, base, gr] of [['hp', 15, 35, 1.34], ['dmg', 15, 60, 1.34], ['
 // Levels 3-4 are judged with the unlock pool a player really has at that point (smaller than "everything"),
 // where they proved too easy (beaten within 1-3 attempts). Level 3: bosses +50%, mobs 1.05x → 1.15x.
 // Level 4 must stay a step up even with the shop nearly full: bosses +80%, mobs 1.05x → 1.4x.
-{ const _b = DIFF.boss; DIFF.boss = k => _b(k) * (L4BOSS[k] ? 1.8 : L3BOSS[k] ? 1.5 : 1); }
-{ const _h = DIFF.hp; DIFF.hp = t => _h(t) * (S.stage == 4 ? 1.4 / 1.05 : S.stage == 3 ? 1.15 / 1.05 : 1); }
+{ const _b = DIFF.boss; DIFF.boss = k => _b(k) * (k == 'bu1' ? 1.4 : L4BOSS[k] ? 1.8 : L3BOSS[k] ? 1.5 : 1); }   // Fat Buu heals, so he gets less
+// Mob health starts gentler and ramps up between 4:00 and 8:00, so runs aren't lost to a wall of mobs at 4 minutes
+// (that felt worse than losing to a boss); the late game keeps its pressure.
+const L34R = t => Math.max(0, Math.min(1, (t - 240) / 240));
+{ const _h = DIFF.hp; DIFF.hp = t => _h(t) * (S.stage == 4 ? (1.1 + .3 * L34R(t)) / 1.05 : S.stage == 3 ? (1 + .15 * L34R(t)) / 1.05 : 1); }

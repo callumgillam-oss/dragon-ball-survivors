@@ -141,7 +141,7 @@ AI.mveg = function (e, dt) {
 // Fat Buu: turns nearby mobs into candy that floats to him and heals him, regenerates unless you keep hitting him, belly slams
 AI.bu1 = function (e, dt) {
   const p = S.p; chase(e, dt, 60); e.t3 = (e.t3 ?? 3) - dt; e.t4 = (e.t4 ?? 5) - dt; e.t5 = (e.t5 ?? 4) - dt;
-  if (S.t - (e.lh || 0) > 4) { e.hp = Math.min(e.max, e.hp + e.max * .003 * dt); e.rg = 1; } else e.rg = 0;
+  if (S.t - (e.lh || 0) > 4) { e.hp = Math.min(e.max, e.hp + e.max * .002 * dt); e.rg = 1; } else e.rg = 0;
   if (e.t3 <= 0) { e.t3 = 3; fan(e, 4, 210, 'pk', 11); }
   if (e.t5 <= 0) { e.t5 = 6; zone(e.x, e.y, 150, .9, 28); }
   if (e.t4 <= 0) { e.t4 = 8; let n = 0; e.cb = [];
