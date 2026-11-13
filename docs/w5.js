@@ -164,7 +164,7 @@ function updW5(dt) {
   if (W_.fkame) { DSRC = 'fkame'; S.cd.fkame -= dt; if (S.cd.fkame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fkame = .2; else { const T = FT('fkame'); S.cd.fkame = 2.8 * cm();
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (70 + 10 * WL('fkame')) * dm() * fm('fkame'); p.atk = p.ad = .9; p.face = Math.cos(a) > 0 ? 1 : -1;
       beam({ a: T ? a - .25 : a, t: 1.1, T: 1.1, w: 130 * AR2() * (T ? 1.2 : 1), len: 1200, d, pal: T == 2 ? 'fin2' : 'fin', kb: 30, clr: 1, rot: T ? .45 : 0, tm: fm('fkame') });
-      if (T == 2) { for (const o of [-.5, .5]) beam({ a: a + o, t: .9, T: .9, w: 70 * AR2(), len: 1000, d: d * .6, pal: 'fin', kb: 20, tm: 1 }); S.fsw = { t: 1.1, d: d * 1.5 }; }
+      if (T == 2) { for (const o of [-.5, .5]) beam({ a: a + o, t: .9, T: .9, w: 70 * AR2(), len: 1000, d: d * .4, pal: 'fin', kb: 20, tm: 1 }); S.fsw = { t: 1.1, d: d }; }
       sfxPlay('beam'); kick(6); } } }
   if (S.fsw) { DSRC = 'fkame'; S.fsw.t -= dt; if (S.fsw.t <= 0) { const R = 260 * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) { hitE(e, e.boss ? Math.min(S.fsw.d, e.max * .02) : S.fsw.d); shove(e, p.x, p.y, 70); } boom(p.x, p.y, R, '#fff2b0'); kick(12); S.fsw = null; } }
   if (W_.fskame) { DSRC = 'fskame'; S.cd.fskame -= dt; if (S.cd.fskame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fskame = .2; else { const T = FT('fskame'); S.cd.fskame = 2.2 * cm();
@@ -172,17 +172,17 @@ function updW5(dt) {
       for (const o of T ? [-.16, 0, .16] : [-.11, .11]) beam({ a: a + o, t: .85, T: .85, w: 76 * AR2(), len: 1050, d, pal: 'fs', kb: 22, tm: fm('fskame'), rot: T == 2 ? -o * .25 : 0 });
       if (T == 2) arr5('dsb').push({ x: ts[0].x, y: ts[0].y, t: .35, T: .9, R: 130 * AR2(), d: d * 2.5, fs: 1 });
       sfxPlay('beam'); } } }
-  if (W_.mlight) { DSRC = 'mlight'; S.cd.mlight -= dt; if (S.cd.mlight <= 0) { const T = FT('mlight'), n = T ? 6 : 4; S.cd.mlight = 2.4 * cm(); const a0 = Math.random() * 6.283, d = (28 + 5 * WL('mlight')) * dm() * fm('mlight'); p.atk = p.ad = .6;
-      for (let i = 0; i < n; i++) beam({ a: a0 + i * 6.283 / n, t: 1.15, T: 1.15, w: 54 * AR2(), len: 900, d, pal: 'sbc', kb: 10, rot: 1.3, tm: fm('mlight') });
+  if (W_.mlight) { DSRC = 'mlight'; S.cd.mlight -= dt; if (S.cd.mlight <= 0) { const T = FT('mlight'), n = T ? 5 : 4; S.cd.mlight = 2.4 * cm(); const a0 = Math.random() * 6.283, d = (22 + 4 * WL('mlight')) * dm() * fm('mlight'); p.atk = p.ad = .6;
+      for (let i = 0; i < n; i++) beam({ a: a0 + i * 6.283 / n, t: 1.15, T: 1.15, w: 54 * AR2(), len: 900, d, pal: 'sbc', kb: 10, rot: 1, tm: fm('mlight') });
       if (T == 2) { const R = 170 * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) { hitE(e, e.boss ? Math.min(d * 1.5, e.max * .006) : d * 1.5); if (!e.boss) e.st = Math.max(e.st || 0, .7); } S.fpl = { t: .45, R }; }
       sfxPlay('beam'); } }
   if (S.fpl) { S.fpl.t -= dt; if (S.fpl.t <= 0) S.fpl = null; }
   for (const b of S.beams) { if (!b.fz) continue; b.tk -= dt; if (b.tk <= 0) { b.tk = .22; b.h.clear(); } if (b.rot) b.a += b.rot * dt; }
-  if (W_.tks) { DSRC = 'tks'; const T = FT('tks'), n = T ? 12 : 8, ph = (S.t % 2.4) / 2.4, R = (80 + 220 * Math.sin(ph * Math.PI)) * AR2(), d = (24 + 5 * WL('tks')) * dm() * fm('tks');
+  if (W_.tks) { DSRC = 'tks'; const T = FT('tks'), n = T ? 10 : 8, ph = (S.t % 2.4) / 2.4, R = (80 + 220 * Math.sin(ph * Math.PI)) * AR2(), d = (17 + 4 * WL('tks')) * dm() * fm('tks');
     S.tkd = []; const disc = (x, y, big) => { S.tkd.push({ x, y, big });
       for (const e of S.en) { if (e.dead || (e.tkc || 0) > S.t || Math.hypot(e.x - x, e.y - y) > 24 * AR2() * (big ? 1.4 : 1) + e.r) continue; e.tkc = S.t + .3; hitE(e, e.boss ? Math.min(d, e.max * .006) : d); } };
     for (let i = 0; i < n; i++) { const a = S.t * 2.2 * (i % 2 ? -1 : 1) + i / n * 6.283, rr = R * (i % 2 ? .78 : 1); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr); }
-    if (T == 2) for (let i = 0; i < 6; i++) { const a = -S.t * 1.4 + i / 6 * 6.283, rr = 340 * AR2(); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 1); } }
+    if (T == 2) for (let i = 0; i < 4; i++) { const a = -S.t * 1.4 + i / 4 * 6.283, rr = 340 * AR2(); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 1); } }
   if (W_.dsb) { DSRC = 'dsb'; S.cd.dsb -= dt; if (S.cd.dsb <= 0) { const ts = near(12, 700); if (!ts.length) S.cd.dsb = .3; else { const T = FT('dsb'); S.cd.dsb = 4.2 * cm();
       const d = (160 + 20 * WL('dsb')) * dm() * fm('dsb'), grp = T == 1 && ts.length > 6 ? [ts.slice(0, 6), ts.slice(6)] : [ts.slice(0, 6)];
       for (const g of grp) { let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
@@ -196,9 +196,9 @@ function updW5(dt) {
   for (const l of arr5('dsl')) { DSRC = 'dsb'; const was = l.t; l.t += dt; if (was < 0 && l.t >= 0) { for (const e of S.en) if (!e.dead && Math.hypot(e.x - l.x, e.y - l.y) < 55 + e.r) hitE(e, e.boss ? Math.min(l.d, e.max * .01) : l.d); sfxPlay('thunder'); } }
   S.dsl = arr5('dsl').filter(l => l.t < .3);
   // Kaioken Wolf Fang Barrage: a burning aura plus dash strikes on the nearest enemies
-  if (W_.kwf) { DSRC = 'kwf'; const T = FT('kwf'), d = (22 + 5 * WL('kwf')) * dm() * fm('kwf'), R = 85 * AR2();
+  if (W_.kwf) { DSRC = 'kwf'; const T = FT('kwf'), d = (30 + 7 * WL('kwf')) * dm() * fm('kwf'), R = 100 * AR2();
     S.cd.kwfa = (S.cd.kwfa || 0) - dt; if (S.cd.kwfa <= 0) { S.cd.kwfa = .3; for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) hitE(e, d * .25); }
-    S.cd.kwf = (S.cd.kwf ?? 1) - dt; if (S.cd.kwf <= 0) { const ts = near(T == 2 ? 12 : T ? 9 : 6, 380); if (!ts.length) S.cd.kwf = .2; else { S.cd.kwf = 1.5 * cm(); p.atk = p.ad = .4;
+    S.cd.kwf = (S.cd.kwf ?? 1) - dt; if (S.cd.kwf <= 0) { const ts = near(T == 2 ? 12 : T ? 10 : 8, 380); if (!ts.length) S.cd.kwf = .2; else { S.cd.kwf = 1.5 * cm(); p.atk = p.ad = .4;
         for (const [i, e] of ts.entries()) { arr5('kws').push({ x0: p.x, y0: p.y, x1: e.x, y1: e.y, t: -i * .04, l: .28 });
           hitE(e, e.boss ? Math.min(d * 2, e.max * .008) : d * 2); if (T == 2) { for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < 50 * AR2() + o.r) hitE(o, d); boom(e.x, e.y, 50 * AR2(), '#ff8a3a'); } }
         if (T) p.hp = Math.min(p.max, p.hp + 1 + ts.length * .3); sfxPlay('dash'); } } }
@@ -285,7 +285,7 @@ function drawW5(cx, cy, t) {
     for (let i = 0; i < 6; i++) { px = x + (Math.random() - .5) * 26 * (1 - i / 6); py += 220 / 6; ctx.lineTo(px, py); }
     ctx.strokeStyle = `rgba(90,170,255,${a * .5})`; ctx.lineWidth = 9; ctx.stroke(); ctx.strokeStyle = `rgba(235,250,255,${a})`; ctx.lineWidth = 3; ctx.stroke(); ctx.restore(); LT(); gl('cy', x, y, 40, a * .8); NM(); }
   // Kaioken Wolf Fang Barrage: burning aura + flaming dash streaks
-  if (S.w.kwf) { const R = 85 * AR2(); LT(); gl('rd', W / 2, H / 2, R * 1.2, .35 + .08 * Math.sin(t * 14)); NM();
+  if (S.w.kwf) { const R = 100 * AR2(); LT(); gl('rd', W / 2, H / 2, R * 1.2, .35 + .08 * Math.sin(t * 14)); NM();
     ctx.save(); ctx.strokeStyle = `rgba(255,90,40,${.45 + .2 * Math.sin(t * 9)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(W / 2, H / 2, R, 0, 7); ctx.stroke(); ctx.restore(); }
   for (const k of S.kws || []) { if (k.t < 0) continue; const a = 1 - k.t / k.l; ctx.save(); ctx.lineCap = 'round';
     ctx.strokeStyle = `rgba(255,120,40,${.8 * a})`; ctx.lineWidth = 9 * a + 2; ctx.beginPath(); ctx.moveTo(k.x0 - cx, k.y0 - cy); ctx.lineTo(k.x1 - cx, k.y1 - cy); ctx.stroke();

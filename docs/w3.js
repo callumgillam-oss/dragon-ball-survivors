@@ -101,7 +101,7 @@ function updW3(dt) {
     if (w.dl > 0) { w.dl -= dt; if (w.dl <= 0) { w.x = p.x; w.y = p.y; } continue; }
     w.t += dt; const k = Math.min(1, w.t / w.T), r = 12 + (w.R - 12) * k; w.r = r;
     const hits = S.en.filter(e => !e.dead && !w.h.has(e)).map(e => [e, Math.hypot(e.x - w.x, e.y - w.y)]).filter(([e, dd]) => dd < r + e.r && dd > r - 30 - e.r).sort((a, b) => a[1] - b[1]);
-    for (const [e] of hits) { if (w.pw < WAVE_MIN) break; w.h.add(e); hitE(e, w.d * w.pw); shove(e, w.x, w.y, w.kb * Math.max(.4, w.pw)); if (w.st && !e.boss) e.st = Math.max(e.st || 0, w.st); w.pw *= e.boss ? .6 : .9; }
+    for (const [e] of hits) { if (w.pw < WAVE_MIN) break; w.h.add(e); hitE(e, w.d * w.pw); shove(e, w.x, w.y, w.kb * Math.max(.4, w.pw)); if (w.st && !e.boss) e.st = Math.max(e.st || 0, w.st); w.pw *= e.boss ? .6 : .93; }
     if (w.clr) for (const q of S.eb) if (Math.abs(Math.hypot(q.x - w.x, q.y - w.y) - r) < 20) q.l = 0;
     if (k >= 1 || w.pw < WAVE_MIN) w.done = 1;
   }

@@ -2097,7 +2097,7 @@ function bombTick(dt){
  const L=S.w.bomb,E=S.evo.bomb,M=MY('bomb'),ts=near(40,520);
  if(!ts.length){S.cd.bomb=.5;return}
  S.cd.bomb=(E?4.5:Math.max(5,12-1.2*L))*cm();
- const R=(90+10*WL('bomb'))*(E?1.5:1)*AR2(),cnt=(E?2:1)+(PX()>>1),d=(55+25*WL('bomb'))*dm()*(E?1.6:1),taken=[];
+ const R=(90+10*WL('bomb'))*(E?1.2:1)*AR2(),cnt=(E?2:1)+(PX()>>1),d=(55+25*WL('bomb'))*dm()*(E?1.35:1),taken=[];
  for(let i=0;i<cnt;i++){let best=null,bs=-1;
   for(const e of ts.slice(0,25)){if(taken.some(q=>Math.hypot(q.x-e.x,q.y-e.y)<R*.8))continue;let sc=0;for(const o of ts)if(Math.hypot(o.x-e.x,o.y-e.y)<R)sc+=o.boss?8:1;if(sc>bs){bs=sc;best=e}}
   if(!best)best=ts[Math.floor(Math.random()*ts.length)];

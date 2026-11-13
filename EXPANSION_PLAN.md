@@ -817,6 +817,14 @@ Shipped without bot balance runs, at your request: you judge the numbers.
   and the fused beams (Final / Final Shine Kamehameha, Makankosappo Light, Final Shine bomb) use 60% of the Area bonus.
   Evolved Solar Flare (whole screen) 34+8/lv → 18+5/lv. Makankosappo Light (all-round sweeping beams) 40+7/lv → 28+5/lv.
 - **UI:** "Evolves with" on power-ups hides partners not unlocked yet (owned ones always show).
+- **Attack audit (headless):** each attack alone at Lv5 on a fixed screen of 100 enemies (Level 3, full shop), measuring
+  damage/s, how many of the 100 it reaches, and kills/s against 500-HP mobs that keep refilling. Outliers fixed:
+  evolved Spirit Bomb (10.2 kills/s, next best 5.7): radius x1.5 → x1.2, damage x1.6 → x1.35 (now 5.5).
+  At 2 wishes, Makankosappo Light (35 kills/s), Final Kamehameha (28.5) and the Kaioken/Spirit disc fusion (27.7) emptied the screen
+  every few seconds: Makankosappo Light 5 beams (was 6), 22+4/lv, sweep 1.0 rad/s → 19.7; Final Kamehameha side beams
+  x0.4 (was x0.6) and end shockwave x1 (was x1.5) → 14.8; disc fusion 17+4/lv, 10 discs + 4 outer (was 12 + 6) → 17.5.
+  Buffs: Explosive Wave loses 7% per enemy (was 10%); Kaioken Wolf Fang Barrage 30+7/lv, aura radius 100, 8/10 dash
+  targets (was 6/9).
 
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
