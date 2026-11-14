@@ -10,7 +10,7 @@ const W3 = ['galick', 'wave', 'tri', 'wolf', 'after', 'scatter'];
 const WAVE_SPD = 230, WAVE_MIN = .12;   // Explosive Wave: pulse speed (px/s) and the power left when it fizzles out
 const AFT_DLY = 1.4;   // Afterimage Strike: seconds before an afterimage explodes (was 1)
 const AFT_EVO = { d: 1.5, reach: 320, r: 55 };   // Instant Transmission Strike: damage multiplier, teleport reach, blast radius at the target
-const W3B = { galick: .68, wave: 1, tri: .9, wolf: 1, after: 1, scatter: 1 };
+const W3B = { galick: .544, wave: 1, tri: .9, wolf: 1, after: 1, scatter: 1 };
 
 Object.assign(INFO, {
   galick: ['Galick Gun', "Vegeta's beam: charges, then sweeps across the thickest crowd."],
@@ -97,7 +97,7 @@ function updW3(dt) {
       // A slow pulse (feedback 2026-11-13): rolls outwards at a walking-pace speed and loses 10% of its power on every enemy it
       // passes through (a boss soaks 40%), fading out once spent, so it thins a crowd instead of wiping the whole screen.
       const R = (110 + 12 * WL('wave')) * AR2() * (E ? 1.25 : 1), d = (14 + 6 * WL('wave')) * dm() * W3B.wave * (E ? 1.3 : 1) * (M ? .9 : 1), n = (E ? 2 : 1) + (M ? 1 : 0);
-      for (let i = 0; i < n; i++) { const Ri = R * (1 + i * .18); arr('wav').push({ x: p.x, y: p.y, R: Ri, d, pw: 1, dl: i * .35, t: 0, T: Ri / WAVE_SPD, h: new Set(), st: E ? .8 : 0, kb: E || M ? (E ? 80 : 60) * .2 : 60, clr: M }); }   // evolved / wished waves barely push (feedback 2026-11-13)
+      for (let i = 0; i < n; i++) { const Ri = R * (1 + i * .18); arr('wav').push({ x: p.x, y: p.y, R: Ri, d, pw: 1, dl: i * .35, t: 0, T: Ri / WAVE_SPD, h: new Set(), st: E ? .8 : 0, kb: E ? 42 : M ? 36 : 95, clr: M }); }   // pushes further (2026-11-14): base 60 → 95, evolved 16 → 42, mythic 12 → 36
       sfx('wave'); } } }
   for (const w of arr('wav')) { DSRC = 'wave';
     if (w.dl > 0) { w.dl -= dt; if (w.dl <= 0) { w.x = p.x; w.y = p.y; } continue; }

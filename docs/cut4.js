@@ -132,7 +132,7 @@ function drawBossCut() {
     if (age < .06) { ctx.fillStyle = `rgba(230,220,255,${.25 * FLM()})`; ctx.fillRect(0, 0, W, H); } }
   // the boss: a silhouette until the reveal
   ctx.save(); ctx.translate(bx + (rev ? 0 : (Math.random() - .5) * 2.5), by); ctx.scale(Z, Z);
-  if (fin && !rev) silhouette(() => enemy(e, 0, 0)); else enemy(e, 0, 0);
+  if (fin && !rev) { const hb = e.r * Z * 4.5; silhouette(() => enemy(e, 0, 0), [bx - hb, by - hb * 1.2, hb * 2, hb * 2.2]); } else enemy(e, 0, 0);
   ctx.restore();
   if (fin && !rev) { LT(); gl('wh', bx, by - e.r * Z * .9, 6 * Z, .9); NM(); }   // glowing eyes in the dark
   // reveal: shockwave + flash
@@ -181,7 +181,16 @@ function drawSSCut() {
   if (cSeen('ssj')) { ctx.font = 'bold 12px "Trebuchet MS",sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillText('tap to skip', W - 14, H * .11 + 18); }
   ctx.restore();
 }
-{ const _d = draw; draw = function () { _d(); if (S.mode != 'play' && S.mode != 'pause') return; if (V2.bc) drawBossCut(); else if (V2.sc) drawSSCut(); }; }
+// The world under a cutscene is frozen (update returns early), so it's drawn once and that frame is reused (2026-11-14:
+// Level 3/4 transformations ran at ~40 fps on iPhone redrawing the whole battlefield under an 80% dark overlay).
+const CUTW = { c: null, ok: 0 };
+{ const _d = draw; draw = function () {
+    const cut = (S.mode == 'play' || S.mode == 'pause') && (V2.bc || V2.sc);
+    if (cut && CUTW.ok && CUTW.c.width == cv.width && CUTW.c.height == cv.height) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(CUTW.c, 0, 0); ctx.restore(); }
+    else { _d(); if (cut && SET.cutCache !== false) { if (!CUTW.c) CUTW.c = mk(1, 1); if (CUTW.c.width != cv.width || CUTW.c.height != cv.height) { CUTW.c.width = cv.width; CUTW.c.height = cv.height; }
+        const x = CUTW.c.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.drawImage(cv, 0, 0); CUTW.ok = 1; } }
+    if (!cut && CUTW.ok) { CUTW.ok = 0; CUTW.c.width = CUTW.c.height = 1; }   // free the copy
+    if (S.mode != 'play' && S.mode != 'pause') return; if (V2.bc) drawBossCut(); else if (V2.sc) drawSSCut(); }; }
 
 /* ---------- skipping ---------- */
 function cutSkip() {
@@ -197,12 +206,17 @@ addEventListener('keydown', e => { if (S.mode != 'play' || !(V2.bc || V2.sc)) re
 // Draws whatever fn paints as a solid black silhouette. ctx.filter does nothing on iPhone Safari, so instead:
 // park the frame so far, paint fn onto a clear canvas, black out its pixels, then put the frame back behind it.
 const SIL_B = mk(1, 1);
-function silhouette(fn) {
-  if (SIL_B.width != cv.width || SIL_B.height != cv.height) { SIL_B.width = cv.width; SIL_B.height = cv.height; }
-  const b = SIL_B.getContext('2d'); b.clearRect(0, 0, SIL_B.width, SIL_B.height); b.drawImage(cv, 0, 0);
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.restore();
-  fn();
+// box = [x, y, w, h] in screen units: only that patch of the frame is parked and repainted (2026-11-14: the whole-screen
+// version copied the full canvas twice a frame, which held final-form reveals to ~40 fps on iPhone). Drawing is clipped to it.
+function silhouette(fn, box) {
+  const X = box ? Math.max(0, Math.floor(box[0] * DPR)) : 0, Y = box ? Math.max(0, Math.floor(box[1] * DPR)) : 0;
+  const Wd = box ? Math.min(cv.width - X, Math.ceil(box[2] * DPR)) : cv.width, Hd = box ? Math.min(cv.height - Y, Math.ceil(box[3] * DPR)) : cv.height;
+  if (Wd <= 0 || Hd <= 0) return;
+  if (SIL_B.width < Wd || SIL_B.height < Hd) { SIL_B.width = Math.max(SIL_B.width, Wd); SIL_B.height = Math.max(SIL_B.height, Hd); }
+  const b = SIL_B.getContext('2d'); b.clearRect(0, 0, Wd, Hd); b.drawImage(cv, X, Y, Wd, Hd, 0, 0, Wd, Hd);
+  const m = ctx.getTransform(); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(X, Y, Wd, Hd); ctx.beginPath(); ctx.rect(X, Y, Wd, Hd); ctx.clip(); ctx.setTransform(m);
+  fn(); ctx.restore();
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
-  ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.globalCompositeOperation = 'destination-over'; ctx.drawImage(SIL_B, 0, 0); ctx.restore();
+  ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = '#000'; ctx.fillRect(X, Y, Wd, Hd);
+  ctx.globalCompositeOperation = 'destination-over'; ctx.drawImage(SIL_B, 0, 0, Wd, Hd, X, Y, Wd, Hd); ctx.restore();
 }

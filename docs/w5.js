@@ -9,12 +9,12 @@ const W5 = ['ghost', 'candy'];
 const W5B = { ghost: 1, candy: 1 };   // per-attack damage multipliers for balancing
 Object.assign(INFO, {
   ghost: ['Ghost Kamikaze', 'Cheeky ghosts drift to enemies, latch on and explode.'],
-  candy: ['Candy Beam', 'Zaps random enemies into candy. Bosses and elites take damage over time instead.'],
+  candy: ['Candy Beam', 'A pink ray down the thickest line of enemies: the first few it touches turn into candy, the rest take damage. Bosses and elites take damage over time.'],
   mm: ['Majin Mark', 'A risky curse: +10% damage and +5% XP per level, but enemies move 5% faster per level.']
 });
 Object.assign(EVO, {
   ghost: ['Super Ghost Kamikaze Attack', 'Twice the ghosts and bigger blasts, and every ghost splits in two when it pops.', 'mm'],
-  candy: ['Candy Storm', 'Far more beams, far more often, and candy heals you more.', 'mm']
+  candy: ['Candy Storm', 'A fan of three wide, long candy rays, fired more often, and candy heals you more.', 'mm']
 });
 Object.assign(MYTH, {
   ghost: 'Mythic: ghosts fly twice as fast and their blasts stun',
@@ -125,11 +125,11 @@ LOCKED_HEROES.push(['h:gotenks', 'Gotenks', 'Defeat Super Buu', 'gotenks']);
 // Fusion tuning (2026-11-13): a fusion costs two attack slots, so with no wish it should clear faster than any single
 // evolved attack (attack audit: ~8-10 kills/s vs 4-6), ~12-14 at one wish and 15-20 at two, without wiping the screen.
 // Per fusion: damage multiplier for [no wish, one wish, two wishes], on top of FTM.
-const FB5 = { fkame: [1.4, 1, 1.05], fskame: [1.6, 2.2, 1.4], mlight: [1.5, 1.12, 1], tks: [2, 1.55, 1.05], dsb: [2, 2.3, 1.1], kwf: [1.85, 2.5, 1.05], sgp: [1, 1, 1], htc: [1.3, 2.6, .8] };
+const FB5 = { fkame: [1.4, 1, 1.05], fskame: [1.6, 2.2, 1.4], mlight: [1.2, .9, .8], tks: [2.7, 2.1, 1.42], dsb: [2, 2.3, 1.1], kwf: [1.85, 2.5, 1.05], sgp: [1, 1, 1], htc: [1.3, 2.6, .8] };
 const SGP5 = { cd: [.28, .2, .25], cap: [16, 22, 20], spd: [240, 260, 260], chain: [3, 4, 4] };   // Sweet Ghost Parade: seconds between ghosts, most out, speed
 const DSB5 = { cd: [1.8, 3, 3.2] };                    // Dragon Spirit Bomb: seconds between bombs
 const HTC5 = { cd: 2.2, groups: [3, 4, 2] };              // Hellzone Tri-Cage: seconds between casts, cages per cast
-const KWF = { aura: .35, cd: 1, dash: 3, burst: .7 };
+const KWF = { aura: .35, cd: 1, dash: 3, burst: .7, R: 125, reach: 440, br: [50, 50, 68] };   // 2026-11-14: aura 100 → 125, reach 380 → 440, bursts 40/55 → 50/68
 /* ---------- per-frame ---------- */
 function updW5(dt) {
   const p = S.p, W_ = S.w, ev = S.evo;
@@ -149,16 +149,24 @@ function updW5(dt) {
       if (E && !g.mini) for (const q of [-1, 1]) S.gh.push({ x: g.x + q * 8, y: g.y, t: 0, l: 3, s: Math.random() * 6, mini: 1, a: 0 }); }
   }
   S.gh = arr5('gh').filter(g => !g.done);
-  // Candy Beam: zap random enemies on screen into candy
+  // Candy Beam (reworked 2026-11-14): it used to zap 1-4 random enemies every 2-3 s, which a late-game crowd never noticed.
+  // Now it's a real beam: a pink ray fired down the thickest line of enemies. The nearest few it touches (2 + level, more
+  // evolved) turn into candy and the rest of the line takes damage; bosses and elites take damage over time. Levels widen and
+  // lengthen it; evolved fires a fan of three. (An uncapped version out-killed every evolved attack in a Level 4 crowd.)
   if (W_.candy) { DSRC = 'candy'; const L = W_.candy, E = ev.candy, M = MY('candy'); S.cd.candy -= dt;
-    if (S.cd.candy <= 0) { const pool = S.en.filter(e => !e.dead && onScr(e) && Math.hypot(e.x - p.x, e.y - p.y) < 440);
-      if (!pool.length) S.cd.candy = .25;
-      else { S.cd.candy = (E ? 1.2 : Math.max(1.7, 3.3 - .3 * L)) * cm(); const n = Math.min(pool.length, 1 + (L >> 1) + PX() + (E ? 3 : 0)), dd = (6 + 3 * WL('candy')) * dm() * W5B.candy * (E ? 1.5 : 1);
-        for (let i = 0; i < n; i++) { const j = Math.random() * pool.length | 0, e = pool.splice(j, 1)[0]; S.cbm.push({ x: e.x, y: e.y, l: .25 });
-          if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: dd, src: DSRC }); continue; }
-          e.hp = 0; killE(e); S.cpop.push({ x: e.x, y: e.y, l: .5, c: Math.random() < .5 ? '#ff7ac8' : '#ffd23a' });
-          if (M) { for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < 50 * AR2() + o.r) hitE(o, dd * 1.5); }
-          if (Math.random() < (E ? .08 : .04)) S.ch4.push({ x: e.x, y: e.y, l: 12 }); }
+    if (S.cd.candy <= 0) { const len = (E ? 480 : 360 + 25 * L) * AR2(), a = aimA('candy', denseDir(len, .3), len);
+      if (a === null || a === undefined) S.cd.candy = .25;
+      else { S.cd.candy = (E ? 2.2 : Math.max(2.4, 3.6 - .25 * L)) * cm(); p.atk = p.ad = .45; p.face = Math.cos(a) > 0 ? 1 : -1;
+        const w = (E ? 40 : 22 + 3 * L + 3 * PX()) * AR2(), dd = (6 + 3 * WL('candy')) * dm() * W5B.candy * (E ? 1.5 : 1);
+        const cap = (E ? 5 : 2) + L + PX();   // each ray candies this many (nearest first); the rest of the line just takes damage
+        for (const o of E ? [-.32, 0, .32] : [0]) { const b = a + o; S.cbm.push({ x: p.x + Math.cos(b) * len, y: p.y + Math.sin(b) * len, l: .35, T: .35, w, st: 1 });
+          const hit = S.en.filter(e => !e.dead && !(e.cbH > S.t) && lineHit(p.x, p.y, b, len, w, e)).sort((u, v) => Math.hypot(u.x - p.x, u.y - p.y) - Math.hypot(v.x - p.x, v.y - p.y)); let nC = 0;
+          for (const e of hit) { e.cbH = S.t + .3;
+            if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: dd, src: DSRC }); continue; }
+            if (nC >= cap) { hitE(e, dd * 3); continue; } nC++;
+            e.hp = 0; killE(e); if (S.cpop.length < 60) S.cpop.push({ x: e.x, y: e.y, l: .5, c: Math.random() < .5 ? '#ff7ac8' : '#ffd23a' });
+            if (M) { for (const q of S.en) if (!q.dead && q !== e && Math.hypot(q.x - e.x, q.y - e.y) < 50 * AR2() + q.r) hitE(q, dd * 1.5); }
+            if (Math.random() < (E ? .05 : .025)) S.ch4.push({ x: e.x, y: e.y, l: 12 }); } }
         sfxPlay('candy'); } } }
   for (const c of arr5('cdot')) { DSRC = 'candy'; c.t -= dt; c.tk -= dt; if (c.tk <= 0 && !c.e.dead) { c.tk = .5; DSRC = c.src || 'candy'; hitE(c.e, c.d); } }
   S.cdot = arr5('cdot').filter(c => c.t > 0 && !c.e.dead);
@@ -187,12 +195,16 @@ function updW5(dt) {
   if (S.fpl) { S.fpl.t -= dt; if (S.fpl.t <= 0) S.fpl = null; }
   for (const b of S.beams) { if (!b.fz) continue; b.tk -= dt; if (b.tk <= 0) { b.tk = .22; b.h.clear(); } if (b.rot) b.a += b.rot * dt; }
   if (W_.tks) { DSRC = 'tks'; const T = FT('tks'), n = T ? 10 : 8, ph = (S.t % 2.4) / 2.4, R = (80 + 220 * Math.sin(ph * Math.PI)) * AR2(), d = (17 + 4 * WL('tks')) * dm() * fm('tks');
-    S.tkd = []; const disc = (x, y, big) => { S.tkd.push({ x, y, big });
-      for (const e of S.en) { if (e.dead || (e.tkc || 0) > S.t || Math.hypot(e.x - x, e.y - y) > 24 * AR2() * (big ? 1.4 : 1) + e.r) continue; e.tkc = S.t + .3; hitE(e, e.boss ? Math.min(d, e.max * .006) : d); } };
-    for (let i = 0; i < n; i++) { const a = S.t * 2.2 * (i % 2 ? -1 : 1) + i / n * 6.283, rr = R * (i % 2 ? .78 : 1); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr); }
-    if (T == 2) for (let i = 0; i < 4; i++) { const a = -S.t * 1.4 + i / 4 * 6.283, rr = 340 * AR2(); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 1); } }
+    S.tkd = []; const disc = (x, y, big, a, rr, dir) => { S.tkd.push({ x, y, big, a, rr, dir });
+      for (const e of S.en) { if (e.dead || (e.tkc || 0) > S.t || Math.hypot(e.x - x, e.y - y) > 30 * AR2() * (big ? 1.4 : 1) + e.r) continue; e.tkc = S.t + .3; hitE(e, e.boss ? Math.min(d, e.max * .006) : d); } };
+    for (let i = 0; i < n; i++) { const dir = i % 2 ? -1 : 1, a = S.t * 2.2 * dir + i / n * 6.283, rr = R * (i % 2 ? .78 : 1); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 0, a, rr, dir); }
+    if (T == 2) for (let i = 0; i < 4; i++) { const a = -S.t * 1.4 + i / 4 * 6.283, rr = 340 * AR2(); disc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 1, a, rr, -1); } }
   if (W_.dsb) { DSRC = 'dsb'; S.cd.dsb -= dt; if (S.cd.dsb <= 0) { const ts = near(12, 700); if (!ts.length) S.cd.dsb = .3; else { const T = FT('dsb'); S.cd.dsb = DSB5.cd[T] * cm();
-      const d = (160 + 20 * WL('dsb')) * dm() * fm('dsb'), grp = T == 1 && ts.length > 6 ? [ts.slice(0, 6), ts.slice(6)] : [ts.slice(0, 6)];
+      const d = (160 + 20 * WL('dsb')) * dm() * fm('dsb'), R0 = 150 * AR2() * (T == 2 ? 1.6 : 1), grp = [ts.slice(0, 6)];
+      if (T == 1) {   // 2026-11-14: the second bomb lands on another crowd at least ~1.7 bomb widths from the first
+        const c0 = grp[0].reduce((a, e) => [a[0] + e.x / grp[0].length, a[1] + e.y / grp[0].length], [0, 0]);
+        const far = S.en.filter(e => !e.dead && onScr(e) && Math.hypot(e.x - c0[0], e.y - c0[1]) > R0 * 1.7).sort((a, b) => Math.hypot(a.x - S.p.x, a.y - S.p.y) - Math.hypot(b.x - S.p.x, b.y - S.p.y)).slice(0, 6);
+        if (far.length) grp.push(far); else { const a = Math.random() * 6.283; grp.push([{ x: c0[0] + Math.cos(a) * R0 * 1.8, y: c0[1] + Math.sin(a) * R0 * 1.8 }]); } }
       for (const g of grp) { let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
         S.dsb.push({ x: cx, y: cy, t: 0, T: .9, R: 150 * AR2() * (T == 2 ? 1.6 : 1), d: d * (T == 2 ? 1.4 : 1), ln: T == 2 ? 14 : 6 }); }
       sfxPlay('spirit'); } } }
@@ -205,14 +217,16 @@ function updW5(dt) {
   S.dsl = arr5('dsl').filter(l => l.t < .3);
   // Kaioken Wolf Fang Barrage: a burning aura plus dash strikes on the nearest enemies
   // Kaioken Wolf Fang Barrage tuning (2026-11-13: lifted from ~2 to 4+ kills/s at one wish; every dash now bursts)
-  if (W_.kwf) { DSRC = 'kwf'; const T = FT('kwf'), d = (30 + 7 * WL('kwf')) * dm() * fm('kwf'), R = 100 * AR2();
+  if (W_.kwf) { DSRC = 'kwf'; const T = FT('kwf'), d = (30 + 7 * WL('kwf')) * dm() * fm('kwf'), R = KWF.R * AR2();
     S.cd.kwfa = (S.cd.kwfa || 0) - dt; if (S.cd.kwfa <= 0) { S.cd.kwfa = .3; for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) hitE(e, d * KWF.aura); }
-    S.cd.kwf = (S.cd.kwf ?? 1) - dt; if (S.cd.kwf <= 0) { const ts = near(T == 2 ? 12 : T ? 10 : 8, 380); if (!ts.length) S.cd.kwf = .2; else { S.cd.kwf = KWF.cd * cm(); p.atk = p.ad = .4;
+    S.cd.kwf = (S.cd.kwf ?? 1) - dt; if (S.cd.kwf <= 0) { const ts = near(T == 2 ? 12 : T ? 10 : 8, KWF.reach); if (!ts.length) S.cd.kwf = .2; else { S.cd.kwf = KWF.cd * cm(); p.atk = p.ad = .4;
         for (const [i, e] of ts.entries()) { arr5('kws').push({ x0: p.x, y0: p.y, x1: e.x, y1: e.y, t: -i * .04, l: .28 });
           hitE(e, e.boss ? Math.min(d * KWF.dash, e.max * .008) : d * KWF.dash);
-          { const BR = (T == 2 ? 55 : 40) * AR2(), bd = d * (T == 2 ? 1.2 : KWF.burst); for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < BR + o.r) hitE(o, o.boss ? Math.min(bd, o.max * .004) : bd); if (T == 2 || i < 4) boom(e.x, e.y, BR, '#ff8a3a'); } }
+          { const BR = KWF.br[T] * AR2(), bd = d * (T == 2 ? 1.2 : KWF.burst); for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < BR + o.r) hitE(o, o.boss ? Math.min(bd, o.max * .004) : bd);
+            if (T == 2 || i < 4) boom(e.x, e.y, BR, '#ff8a3a'); else arr5('kwb').push({ x: e.x, y: e.y, R: BR, t: -i * .04 }); } }
         if (T) p.hp = Math.min(p.max, p.hp + 1 + ts.length * .3); sfxPlay('dash'); } } }
   for (const s of arr5('kws')) s.t += dt; S.kws = arr5('kws').filter(s => s.t < s.l);
+  for (const b of arr5('kwb')) b.t += dt; S.kwb = arr5('kwb').filter(b => b.t < .3);
   // Sweet Ghost Parade: candy ghosts (and at two wishes, a giant one that sweeps the screen)
   const candyHit = (e, d, heal) => { if (e.boss || e.elite) { S.cdot.push({ e, t: 3, tk: 0, d: d * .5, src: DSRC }); hitE(e, e.boss ? Math.min(d, e.max * .006) : d); return; }
     e.hp = 0; killE(e); S.cpop.push({ x: e.x, y: e.y, l: .5, c: Math.random() < .5 ? '#ff7ac8' : '#ffd23a' }); if (Math.random() < heal) S.ch4.push({ x: e.x, y: e.y, l: 12 }); };
@@ -234,7 +248,11 @@ function updW5(dt) {
   // Hellzone Tri-Cage: triangle cages on crowds, ramping damage, then detonation
   if (W_.htc) { DSRC = 'htc'; const T = FT('htc'), d = (12 + 3 * WL('htc')) * dm() * fm('htc'); S.cd.htc = (S.cd.htc ?? .5) - dt;
     if (S.cd.htc <= 0) { const ng = HTC5.groups[T], gs = ng == 1 ? 14 : 7, ts = near(gs * ng, 650); if (!ts.length) S.cd.htc = .3; else { S.cd.htc = HTC5.cd * cm();
+        const RC = 120 * AR2() * (T == 2 ? 1.2 : 1), put = [];
         for (let gi = 0; gi < ng; gi++) { const g = ts.slice(gi * gs, (gi + 1) * gs); if (!g.length) continue; let cx = 0, cy = 0; for (const e of g) { cx += e.x; cy += e.y; } cx /= g.length; cy /= g.length;
+          // 2026-11-14: cages spread apart (centres at least 1.5 cage radii from each other) instead of stacking on one crowd
+          for (let it = 0; it < 3; it++) for (const q of put) { const dx = cx - q[0], dy = cy - q[1], dd = Math.hypot(dx, dy); if (dd < RC * 1.5) { const a = dd > 1 ? Math.atan2(dy, dx) : gi * 2.4; cx = q[0] + Math.cos(a) * RC * 1.5; cy = q[1] + Math.sin(a) * RC * 1.5; } }
+          put.push([cx, cy]);
           arr5('cage').push({ x: cx, y: cy, R: 120 * AR2() * (T == 2 ? 1.2 : 1), t: 0, T: 3, tk: 0, d, pull: T == 2, big: T == 2 ? 2.4 : 1.4, a0: Math.random() * 6.283 }); }
         sfxPlay('orb'); } } }
   for (const c of arr5('cage')) { DSRC = 'htc'; c.t += dt; c.tk -= dt;
@@ -267,7 +285,12 @@ function ghostShape(c, x, y, s, t, sd, a, mini, pk) {
 }
 function drawW5(cx, cy, t) {
   for (const g of S.gh || []) ghostShape(ctx, g.x - cx, g.y - cy, g.mini ? .9 : 1.3, t, g.s, g.a, g.mini);
-  for (const b of S.cbm || []) { const k = b.l / .25, x1 = b.x - cx, y1 = b.y - cy, mx = (W / 2 + x1) / 2, my = (H / 2 + y1) / 2 - 30;   // Candy Beam: a pink ribbon with a sparkle where it lands
+  for (const b of S.cbm || []) { if (!b.st) continue; const k = b.l / b.T, x0 = S.p.x - cx, y0 = S.p.y - cy - 8, x1 = b.x - cx, y1 = b.y - cy, a = Math.atan2(y1 - y0, x1 - x0), ww = b.w * (.55 + .45 * k);   // Candy Beam: a wide pink ray, candy-striped
+    ctx.save(); ctx.lineCap = 'round';
+    for (const [lw, c] of [[ww * 1.25, `rgba(255,90,190,${.28 * k})`], [ww * .8, `rgba(255,140,215,${.75 * k})`], [ww * .32, `rgba(255,246,252,${k})`]]) { ctx.strokeStyle = c; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+    ctx.strokeStyle = `rgba(255,214,90,${.8 * k})`; ctx.lineWidth = Math.max(2, ww * .12); ctx.setLineDash([10, 14]); ctx.lineDashOffset = -S.t * 220; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+    LT(); gl('pu', x0 + Math.cos(a) * 14, y0 + Math.sin(a) * 14, ww * .9, .7 * k); gl('pu', x1, y1, ww * .8, .5 * k); NM(); }
+  for (const b of S.cbm || []) { if (b.st) continue; const k = b.l / .25, x1 = b.x - cx, y1 = b.y - cy, mx = (W / 2 + x1) / 2, my = (H / 2 + y1) / 2 - 30;   // (older single zaps)
     ctx.save(); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(W / 2, H / 2 - 12); ctx.quadraticCurveTo(mx, my, x1, y1);
     ctx.strokeStyle = `rgba(255,90,190,${.35 * k})`; ctx.lineWidth = 12 * k + 2; ctx.stroke();
     ctx.strokeStyle = `rgba(255,130,210,${.95 * k})`; ctx.lineWidth = 5.5 * k + 1; ctx.stroke();
@@ -280,7 +303,13 @@ function drawW5(cx, cy, t) {
     ctx.save(); ctx.fillStyle = '#7dff9a'; ctx.strokeStyle = OL; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.ellipse(x, y, 6, 4.4, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect(x - 1, y - 3, 2, 6); ctx.fillRect(x - 3, y - 1, 6, 2); ctx.restore(); }
   for (const c of S.cdot || []) { if (c.e.dead) continue; LT(); gl('rd', c.e.x - cx, c.e.y - cy, c.e.r * 1.4, .25 + .1 * Math.sin(t * 12)); NM(); }
   // Twin Kienzan Storm discs
-  if (S.w.tks) for (const d of S.tkd || []) { const x = d.x - cx, y = d.y - cy, r = 22 * AR2() * (d.big ? 1.4 : 1), n = 14; LT(); gl('or', x, y, r * 1.3, .4); NM();
+  // 2026-11-14: bigger blades, each trailing a golden slash along its orbit so the storm reads as one spinning weapon
+  if (S.w.tks) { const px = S.p.x - cx, py = S.p.y - cy; ctx.save(); ctx.lineCap = 'round';
+    for (const d of S.tkd || []) { if (d.a === undefined) continue; const r = 28 * AR2() * (d.big ? 1.4 : 1), sp = d.big ? .5 : .62;
+      for (const [w, c] of [[r * 1.1, 'rgba(255,170,40,.16)'], [r * .5, 'rgba(255,225,130,.34)'], [3, 'rgba(255,255,235,.75)']]) {
+        ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(px, py, d.rr, d.a - d.dir * sp, d.a, d.dir < 0); ctx.stroke(); } }
+    ctx.restore(); }
+  if (S.w.tks) for (const d of S.tkd || []) { const x = d.x - cx, y = d.y - cy, r = 28 * AR2() * (d.big ? 1.4 : 1), n = 14; LT(); gl('or', x, y, r * 1.5, .55); NM();
     ctx.save(); ctx.translate(x, y); ctx.scale(1, d.big ? .42 : .36); ctx.rotate(t * 20);   // flat serrated blades seen edge-on
     ctx.beginPath(); for (let i = 0; i < n * 2; i++) { const a = i * Math.PI / n, q = i & 1 ? r * .9 : r * 1.14; i ? ctx.lineTo(Math.cos(a) * q, Math.sin(a) * q) : ctx.moveTo(Math.cos(a) * q, Math.sin(a) * q); } ctx.closePath();
     const g = ctx.createRadialGradient(0, 0, r * .15, 0, 0, r * 1.1); g.addColorStop(0, '#ffffff'); g.addColorStop(.5, '#fff3b0'); g.addColorStop(1, '#ff9a1f');
@@ -298,11 +327,13 @@ function drawW5(cx, cy, t) {
     for (let i = 0; i < 6; i++) { px = x + (Math.random() - .5) * 26 * (1 - i / 6); py += 220 / 6; ctx.lineTo(px, py); }
     ctx.strokeStyle = `rgba(90,170,255,${a * .5})`; ctx.lineWidth = 9; ctx.stroke(); ctx.strokeStyle = `rgba(235,250,255,${a})`; ctx.lineWidth = 3; ctx.stroke(); ctx.restore(); LT(); gl('cy', x, y, 40, a * .8); NM(); }
   // Kaioken Wolf Fang Barrage: burning aura + flaming dash streaks
-  if (S.w.kwf) { const R = 100 * AR2(); LT(); gl('rd', W / 2, H / 2, R * 1.2, .35 + .08 * Math.sin(t * 14)); NM();
+  if (S.w.kwf) { const R = KWF.R * AR2(); LT(); gl('rd', W / 2, H / 2, R * 1.2, .35 + .08 * Math.sin(t * 14)); NM();
     ctx.save(); ctx.strokeStyle = `rgba(255,90,40,${.45 + .2 * Math.sin(t * 9)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(W / 2, H / 2, R, 0, 7); ctx.stroke(); ctx.restore(); }
   for (const k of S.kws || []) { if (k.t < 0) continue; const a = 1 - k.t / k.l; ctx.save(); ctx.lineCap = 'round';
     ctx.strokeStyle = `rgba(255,120,40,${.8 * a})`; ctx.lineWidth = 9 * a + 2; ctx.beginPath(); ctx.moveTo(k.x0 - cx, k.y0 - cy); ctx.lineTo(k.x1 - cx, k.y1 - cy); ctx.stroke();
     ctx.strokeStyle = `rgba(255,240,200,${a})`; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore(); LT(); gl('or', k.x1 - cx, k.y1 - cy, 22, a); NM(); }
+  for (const b of S.kwb || []) { if (b.t < 0) continue; const u = b.t / .3, x = b.x - cx, y = b.y - cy;   // the barrage's flame bursts (cheap: a glow and a ring)
+    LT(); gl('or', x, y, b.R * (.6 + .6 * u), .75 * (1 - u)); NM(); ctx.strokeStyle = `rgba(255,170,70,${.85 * (1 - u)})`; ctx.lineWidth = 3 * (1 - u) + 1; ctx.beginPath(); ctx.arc(x, y, b.R * (.4 + .6 * u), 0, 7); ctx.stroke(); }
   // Sweet Ghost Parade: pink ghosts, and the giant one
   for (const g of S.sg || []) ghostShape(ctx, g.x - cx, g.y - cy, 1.2, t, g.s, g.a, 0, 1);
   if (S.sgb) { const b = S.sgb; ctx.save(); ctx.globalAlpha = Math.min(1, b.t * 2); ghostShape(ctx, b.x - cx, b.y - cy, 5.5, t, 0, Math.atan2(b.vy, b.vx), 0, 1); ctx.restore(); }

@@ -184,7 +184,7 @@ const INFO={
  flare:['Solar Flare','Blinds and freezes nearby enemies.'],
  zen:['Zenkai Boost','+20% damage to all attacks.'],
  spd:['Weighted Training','+10% movement speed.'],
- sen:['Senzu Bean','+20 max HP, full heal, slow regen.']};
+ sen:['Senzu Bean','+45 max HP and a full heal.']};
 let S;
 function init(){
  resetNames();
@@ -271,8 +271,8 @@ function update(dt){
  if(joy){const dx=joy.x-joy.ox,dy=joy.y-joy.oy,d=Math.hypot(dx,dy);if(d>8){const k=Math.min(1,d/50)/d;mx=dx*k;my=dy*k}else{mx=my=0}}
  else{const l=Math.hypot(mx,my);if(l){mx/=l;my/=l}}
  if(GP.x||GP.y){mx=GP.x;my=GP.y}
- const sp=135*(1+.13*S.pe.spd+UPL('spd')*META.spd)*(S.ssj?1.3:1)*(S.slow>0?.45:1);p.x+=mx*sp*dt;p.y+=my*sp*dt;p.mag=Math.hypot(mx,my);S.mvx=mx;S.mvy=my;p.atk=Math.max(0,(p.atk||0)-dt);if(mx&&!(p.atk>0))p.face=mx>0?1:-1;
- p.hp=Math.min(p.max,p.hp+(.12+.35*S.pe.sen+heroRegen())*dt);
+ const sp=135*(1+.104*S.pe.spd+UPL('spd')*META.spd)*(S.ssj?1.3:1)*(S.slow>0?.45:1);p.x+=mx*sp*dt;p.y+=my*sp*dt;p.mag=Math.hypot(mx,my);S.mvx=mx;S.mvy=my;p.atk=Math.max(0,(p.atk||0)-dt);if(mx&&!(p.atk>0))p.face=mx>0?1:-1;
+ p.hp=Math.min(p.max,p.hp+(.12+heroRegen())*dt);   // Senzu Bean no longer adds regen (2026-11-14): it gives more max HP instead
 
  // spawning
  S.spawn-=dt;
@@ -355,8 +355,10 @@ function update(dt){
  for(const b of S.eb){b.x+=b.vx*dt;b.y+=b.vy*dt;b.l-=dt;if(Math.hypot(b.x-p.x,b.y-p.y)<14){hurtP(b.dm||10);b.l=0}}
  // gems
  const mag=(70+6*p.lv+30*S.pe.rad)*(1+.1*(META.magnet||0));
+ // gems can't be outrun (2026-11-14): once pulled they fly at least 1.6x your current speed and keep accelerating
+ const pv=S.gpx!==undefined&&dt>0?Math.min(1500,Math.hypot(p.x-S.gpx,p.y-S.gpy)/dt):0;S.gpx=p.x;S.gpy=p.y;
  for(const g of S.gem){const dx=p.x-g.x,dy=p.y-g.y,d=Math.hypot(dx,dy);
-  if(d<mag){g.x+=dx/d*320*dt;g.y+=dy/d*320*dt}
+  if(d<mag||g.mg){g.mg=(g.mg||0)+dt;const gs=Math.max(320,pv*1.6)+700*g.mg,s=Math.min(d,gs*dt);g.x+=dx/d*s;g.y+=dy/d*s}
   if(d<14){g.got=1;addXp(g.v*.5*(S.stage>=2&&!S.endless?.8:1))}}
  for(const f of S.fx){f.l-=dt;if(!f.ring){f.x+=f.vx*dt;f.y+=f.vy*dt}}
  S.en=S.en.filter(e=>!e.dead);S.sh=S.sh.filter(s=>s.l>0);S.eb=S.eb.filter(b=>b.l>0);
@@ -1324,7 +1326,7 @@ const WISHES={
  senzu:['Senzu bean harvest','Four Senzu Beans appear beside you.']};
 function updBalls(dt){
  const p=S.p;
- if(S.dbN<7&&S.balls.length<3){S.dbT-=dt/(S.stage<=2?1.2:1);if(S.dbT<=0){S.dbT=(S.set2==1?32:26)*(S.stage>=3?.8:1)*(1-.042*S.pe.rad)*(1+.35*Math.max(0,1-S.t/300));spawnBall()}}
+ if(S.dbN<7&&S.balls.length<3){S.dbT-=dt/(S.stage<=2?1.2:1);if(S.dbT<=0){S.dbT=(S.set2==1?32:26)*(S.stage>=3?.8:1)*(1-.042*S.pe.rad)*(1+.35*Math.max(0,1-S.t/300))*1.2;spawnBall()}}
  for(const b of S.balls)if(Math.hypot(b.x-p.x,b.y-p.y)<28){b.got=1;ballGot(b)}
  S.balls=S.balls.filter(b=>!b.got);
  if(S.wishPend&&S.mode=='play')startWish();
@@ -1859,7 +1861,7 @@ let adT=0;
 // step down gently, never below 1.25x, and apply the change at the start of the next frame.
 let playT=0;
 function adapt(dt){if(S.mode!='play'){fEma=16;adT=0;playT=0;return}playT+=dt;if(GFX!='auto'||playT<6)return;fEma+=(dt*1000-fEma)*.04;adT+=dt;if(adT<3)return;adT=0;
- if(fEma>24&&DPRCAP>1.25){DPRCAP=Math.max(1.25,+(Math.min(DPRCAP,window.devicePixelRatio||1)-.25).toFixed(2));rs()}}
+ if(fEma>20&&DPRCAP>1.25){DPRCAP=Math.max(1.25,+(Math.min(DPRCAP,window.devicePixelRatio||1)-.25).toFixed(2));rs()}}
 let last=0;
 
 // ===== v13: intro cutscenes (Nimbus flight-in for level 1, pod crash-landing for level 2) =====
@@ -1994,7 +1996,7 @@ const slots=()=>`<div class="slots">Attacks ${own('w')}/${LIM.w} · Passives ${o
 function offerPool(){const all=[];for(const g of['w','ps']){const full=own(g)>=LIM[g];for(const k in S[g])if(S[g][k]<5&&(!full||S[g][k]>0))all.push([g,k])}return all}
 function addPow(g,k,r){const m=RAR[r].m,my=r==5;
  if(g=='w'){const o=my?S.rm:S.rn;o[k]=(o[k]||0)+(m-1);S.rn[k]=Math.min(WCAP,S.rn[k]||0);S.rm[k]=Math.min(MCAP,S.rm[k]||0);S.rw[k]=(S.rn[k]||0)+(S.rm[k]||0)}
- else{const o=my?S.pm:S.pn;o[k]=(o[k]||0)+m;S.pn[k]=Math.min(PCAP[k],S.pn[k]||0);S.pm[k]=Math.min(MCAP,S.pm[k]||0);S.pe[k]=S.pn[k]+S.pm[k];if(k=='sen'){S.p.max+=Math.round(30*m);S.p.hp=S.p.max}}}
+ else{const o=my?S.pm:S.pn;o[k]=(o[k]||0)+m;S.pn[k]=Math.min(PCAP[k],S.pn[k]||0);S.pm[k]=Math.min(MCAP,S.pm[k]||0);S.pe[k]=S.pn[k]+S.pm[k];if(k=='sen'){S.p.max+=Math.round(45*m);S.p.hp=S.p.max}}}
 function pick(g,k,r=0){
  if(g=='e'){S.evo[k]=1;INFO[k][0]='★ '+EVO[k][0]}
  else{S[g][k]++;addPow(g,k,r|0);
@@ -2046,11 +2048,11 @@ const MYTH={
 function bonusText(g,k,r){
  const m=RAR[r].m,P=n=>Math.round(n*100)/100;
  if(g=='w')return r==5?'+'+MYTHLV+' power levels · '+MYTH[k]:r?`Rarity bonus: +${Math.round((m-1)*100)}% power from this level`:'Standard power';
- const t={zen:`+${Math.round(20*m)}% damage`,spd:`+${Math.round(13*m)}% speed`,sen:`+${Math.round(30*m)} max HP, faster regen, full heal`,cdr:`-${Math.round(9*m)}% cooldowns`,arm:`-${Math.round(7*m)}% damage taken`,rad:`+${Math.round(16*m)}% XP, wider pickup`,area:`+${Math.round(12*m)}% area`,amt:`+${P(m*.5)} projectiles`};
+ const t={zen:`+${Math.round(20*m)}% damage`,spd:`+${Math.round(10.4*m)}% speed`,sen:`+${Math.round(45*m)} max HP, full heal`,cdr:`-${Math.round(9*m)}% cooldowns`,arm:`-${Math.round(7*m)}% damage taken`,rad:`+${Math.round(16*m)}% XP, wider pickup`,area:`+${Math.round(12*m)}% area`,amt:`+${P(m*.5)} projectiles`};
  return t[k]||''}
 function addPow(g,k,r){const m=RAR[r].m,my=r==5;
  if(g=='w'){if(my){S.myth[k]=1;S.rm[k]=Math.min(MCAP,(S.rm[k]||0)+MYTHLV)}else S.rn[k]=Math.min(WCAP,(S.rn[k]||0)+(m-1));S.rw[k]=(S.rn[k]||0)+(S.rm[k]||0)}
- else{const o=my?S.pm:S.pn;o[k]=(o[k]||0)+m;S.pn[k]=Math.min(PCAP[k],S.pn[k]||0);S.pm[k]=Math.min(MCAP,S.pm[k]||0);S.pe[k]=S.pn[k]+S.pm[k];if(k=='sen'){S.p.max+=Math.round(30*m);S.p.hp=S.p.max}}}
+ else{const o=my?S.pm:S.pn;o[k]=(o[k]||0)+m;S.pn[k]=Math.min(PCAP[k],S.pn[k]||0);S.pm[k]=Math.min(MCAP,S.pm[k]||0);S.pe[k]=S.pn[k]+S.pm[k];if(k=='sen'){S.p.max+=Math.round(45*m);S.p.hp=S.p.max}}}
 
 // ---- helpers ----
 // crowd control: push non-boss enemies away (rate-limited so a volley can't launch them across the map)
@@ -2111,8 +2113,11 @@ function updNew(dt){
  for(const e of S.en){if(e.dead)continue;if(e.mk>0)e.mk-=dt;
   if(!gz&&!auR&&!S.fields.length&&e.s0===undefined&&!(e.bl>0))continue;
   if(e.s0===undefined)e.s0=e.spd;let f=1;
-  if(auR&&Math.hypot(e.x-p.x,e.y-p.y)<auR+e.r)f=Math.min(f,e.boss?.88:ev.aura?.5:.68);
-  if(gz){const d=Math.hypot(e.x-p.x,e.y-p.y),edge=auR*.85;if(d<gz){if(d>edge){f=Math.min(f,e.boss?.85:.7);if(!e.boss){const k=Math.min(55*dt,d-edge);e.x+=(p.x-e.x)/d*k;e.y+=(p.y-e.y)/d*k}}else f=Math.min(f,e.boss?.9:.8)}}
+  // Mythic gravity well (2026-11-14): pulls enemies onto the burning edge of the aura from outside AND inside.
+  // Outside the edge they're slowed and dragged in; inside there's no slow at all, just a gentle push out to the edge.
+  if(auR&&!gz&&Math.hypot(e.x-p.x,e.y-p.y)<auR+e.r)f=Math.min(f,e.boss?.88:ev.aura?.5:.68);
+  if(gz){const d=Math.hypot(e.x-p.x,e.y-p.y)||1,edge=auR*.85;if(d<gz){if(d>edge){f=Math.min(f,e.boss?.85:.7);if(!e.boss){const k=Math.min(55*dt,d-edge);e.x+=(p.x-e.x)/d*k;e.y+=(p.y-e.y)/d*k}}
+   else if(!e.boss){const k=Math.min(40*dt,edge-d);e.x-=(p.x-e.x)/d*k;e.y-=(p.y-e.y)/d*k}}}
   if(e.bl>0){e.bl-=dt;f=Math.min(f,e.boss?.5:.1)}   // evolved Solar Flare: blinded enemies crawl at 10% speed instead of being stun-locked
   for(const q of S.fields)if(Math.hypot(e.x-q.x,e.y-q.y)<q.r+e.r){f=Math.min(f,e.boss?.8:.55);break}
   e.spd=e.s0*f}
@@ -2179,7 +2184,7 @@ function drawNew(cx,cy,t){
  for(const s of S.mas){const x=s.x-cx,y=s.y-cy,L=Math.hypot(s.vx,s.vy)||1;
   ctx.strokeStyle='rgba(255,140,30,.6)';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s.vx/L*18,y-s.vy/L*18);ctx.stroke();
   ctx.strokeStyle='rgba(255,240,160,.95)';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s.vx/L*12,y-s.vy/L*12);ctx.stroke();gl('or',x,y,9,.8)}
- for(const o of S.orbs){const x=o.x-cx,y=o.y-cy,L=Math.hypot(o.vx,o.vy)||1,tl=Math.min(16,L/32);for(let i=6;i>=1;i--)gl('pu',x-o.vx/L*i*tl,y-o.vy/L*i*tl,13-i*1.5,.42-.05*i);gl('pu',x,y,20,.85);gl('wh',x,y,9,1)}
+ {const many=S.orbs.length>12,st=many?2:1,wa=many?.6:1;for(const o of S.orbs){const x=o.x-cx,y=o.y-cy,L=Math.hypot(o.vx,o.vy)||1,tl=Math.min(16,L/32);for(let i=6;i>=1;i-=st)gl('pu',x-o.vx/L*i*tl,y-o.vy/L*i*tl,13-i*1.5,(.42-.05*i)*(many?1.4:1));gl('pu',x,y,20,.85*wa);gl('wh',x,y,9,wa)}}   // a big Hellzone Storm swarm: half the trail glows, softer cores
  for(const s of S.str){const x=s.x-cx,y=s.y-cy;
   if(!s.f){const k=1-s.t/s.T;ctx.strokeStyle='rgba(255,240,120,'+(.35+.4*k)+')';ctx.lineWidth=2+k*2;ctx.beginPath();ctx.arc(x,y,s.R*(.55+.45*k),0,7);ctx.stroke();gl('or',x,y,s.R*k,.35)}
   else{const k=Math.max(0,s.l/.25);gl('wh',x,y,s.R*1.5,k*.8);ctx.beginPath();ctx.moveTo(x+(Math.random()-.5)*10,y-H);const sg=9;for(let i=1;i<=sg;i++){const u=i/sg;ctx.lineTo(x+(i==sg?0:(Math.random()-.5)*34*(1-u)),y-H*(1-u))}
@@ -2418,7 +2423,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script src="perf9.js"></script><script src="death9.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script src="perf9.js"></script><script src="death9.js"></script><script src="tune10.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>

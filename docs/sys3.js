@@ -40,7 +40,9 @@ function pk3Drop(e) {
 function pk3Get(q) {
   q.got = 1; ban(PK3[q.k].n); sfxPlay('chest');
   if (q.k == 'tf') { S.tfT = 5; aFlash(.6); }
-  else { for (const g of S.gem) { g.vc = 1; g.vt = 0; } }
+  else {   // Capsule Vacuum (2026-11-14): gems set off nearest-first in a rapid stream (~1.3 s), not all at once
+    const p = S.p, L = S.gem.map(g => [g, Math.hypot(g.x - p.x, g.y - p.y)]).sort((a, b) => a[1] - b[1]), gap = Math.min(.03, 1.3 / Math.max(1, L.length));
+    L.forEach(([g], i) => { g.vc = 1; g.vt = -i * gap; }); }
 }
 // Time Freeze: non-bosses stand still (and can't hurt you); bosses move at half speed.
 // The enemy loop skips anything with e.st > 0, so each frame we top their stun up by exactly dt.
@@ -54,7 +56,7 @@ function pk3Get(q) {
         for (const e of S.en) if (!e.dead && (!e.boss || half)) e.st = (e.st || 0) + dt;
       }
       for (const g of S.gem) if (g.vc) {
-        g.vt += dt; const dx = p.x - g.x, dy = p.y - g.y, d = Math.hypot(dx, dy) || 1, s = Math.min(d, (500 + 1800 * g.vt) * dt);
+        g.vt += dt; if (g.vt < 0) continue; const dx = p.x - g.x, dy = p.y - g.y, d = Math.hypot(dx, dy) || 1, s = Math.min(d, (500 + 1800 * g.vt) * dt);
         g.x += dx / d * s; g.y += dy / d * s;
       }
     }
@@ -143,7 +145,7 @@ function sealPick(k) {
 const LB = [
   { k: 'd', n: 'Power', d: '+4% damage', ic: '💥', f: () => { S.wishDmg = (S.wishDmg || 0) + .04; } },
   { k: 'a', n: 'Reach', d: '+3% area', ic: '🌀', f: () => { S.pe.area += .25; S.lb.a += .25; }, cap: () => S.lb.a >= 5 },
-  { k: 's', n: 'Swiftness', d: '+2% movement speed', ic: '💨', f: () => { S.pe.spd += 2 / 13; S.lb.s += 2 / 13; }, cap: () => S.lb.s >= 20 / 13 - .01 },   // no cooldowns here: they're capped globally
+  { k: 's', n: 'Swiftness', d: '+2% movement speed', ic: '💨', f: () => { S.pe.spd += 2 / 10.4; S.lb.s += 2 / 10.4; }, cap: () => S.lb.s >= 20 / 10.4 - .01 },   // no cooldowns here: they're capped globally
   { k: 'h', n: 'Vitality', d: '+5 max HP and a full heal', ic: '❤️', f: () => { S.p.max += 5; S.p.hp = S.p.max; } }
 ];
 { const _ap = addPow; addPow = function (g, k, r) { _ap(g, k, r); if (g == 'ps' && S.lb && (k == 'area' || k == 'spd')) S.pe[k] += k == 'area' ? S.lb.a : S.lb.s; }; }

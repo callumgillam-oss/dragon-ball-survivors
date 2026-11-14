@@ -164,12 +164,15 @@ for (const f of [1, 2, 3]) { const _f = AI['fr' + f]; AI['fr' + f] = function (e
 // Impact bursts drawn in world space: a bright flash, an expanding ring and a few spikes, coloured per ability.
 const IMPC = { pu: ['pu', '233,168,255'], cy: ['cy', '150,220,255'], or: ['or', '255,200,90'], wh: ['wh', '255,255,240'] };
 function impact(x, y, r, c, T) { const L = (V2.imp || (V2.imp = [])); if (L.length < (GFX == 'low' ? 20 : 48)) L.push({ x, y, r, c: c || 'or', t: 0, T: T || .28, a: Math.random() * 6.28 }); }
-function orbHit(x, y, R) { impact(x, y, R * 1.1, 'pu', .32); sfxPlay('orb'); }
+// Hellzone orb hits (2026-11-14): Hellzone Storm throws dozens of these a second and their stacked white cores flashed the
+// screen even on Reduced. Now they're soft (no white core) and only a handful show at once.
+function orbHit(x, y, R) { const L = V2.imp || []; let n = 0; for (const q of L) if (q.soft) n++;
+  if (n < (S.evo && S.evo.hell ? 5 : 8)) { impact(x, y, R * .95, 'pu', .26); const q = V2.imp && V2.imp[V2.imp.length - 1]; if (q && q.x == x && q.y == y) q.soft = 1; } sfxPlay('orb'); }
 function updImpacts(dt) { if (V2.imp) { for (const q of V2.imp) q.t += dt; V2.imp = V2.imp.filter(q => q.t < q.T); } }
 function drawImpacts(cx, cy) {
   if (!V2.imp || !V2.imp.length) return; LT();
   for (const q of V2.imp) { const k = q.t / q.T, x = q.x - cx, y = q.y - cy, C = IMPC[q.c] || IMPC.or, rr = q.r * (.35 + .85 * Math.sqrt(k));
-    gl(C[0], x, y, q.r * 1.3 * (1 - k * .5), (1 - k) * .9); if (k < .35) gl('wh', x, y, q.r * .55, (1 - k / .35));
+    gl(C[0], x, y, q.r * 1.3 * (1 - k * .5), (1 - k) * (q.soft ? .45 : .9)); if (k < .35 && !q.soft) gl('wh', x, y, q.r * .55, (1 - k / .35));
     ctx.strokeStyle = 'rgba(' + C[1] + ',' + (1 - k) + ')'; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(x, y, rr, 0, 7); ctx.stroke();
     ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = q.a + i * 1.047, r0 = rr * .5, r1 = rr * (1.1 + .3 * (i & 1)); ctx.moveTo(x + Math.cos(a) * r0, y + Math.sin(a) * r0); ctx.lineTo(x + Math.cos(a) * r1, y + Math.sin(a) * r1); } ctx.stroke(); }
   NM();

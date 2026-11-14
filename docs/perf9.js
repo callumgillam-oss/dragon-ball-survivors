@@ -95,3 +95,29 @@ const FPS9 = { next: 0, n: 0, t0: 0, fps: 0, dms: 0, dsum: 0 };
       `<button class="srow" onclick="togSet('fpsShow')"><span>FPS counter</span><b>${SET.fpsShow ? 'On' : 'Off'}</b><small>Shows frame rate at the bottom</small></button>`;
     if (gfx) gfx.insertAdjacentHTML('afterend', rows); else g.insertAdjacentHTML('afterbegin', rows);
   }; }
+
+
+/* ---------- 2026-11-14: frames that don't need redrawing ----------
+   On iPhone the level-up screen dropped to the 40s while drawing took only ~2 ms: the cost was the phone compositing a
+   full-resolution canvas (re-uploaded every frame) under the animated upgrade cards. The scene is frozen on that screen
+   and on pause, so after a short settle the canvas is simply left as it is until play resumes (or the size changes). */
+{ const _d = draw; draw = function () {
+    const still = S && (S.mode == 'lvl' || S.mode == 'pause') && !V2.bc && !V2.sc;
+    if (still) { const key = S.mode + '|' + cv.width + '|' + cv.height + '|' + (SET.fpsShow ? 1 : 0), now = performance.now();
+      if (FPS9.sk !== key) { FPS9.sk = key; FPS9.st = now; }
+      if (now - FPS9.st > 350) return; }
+    else FPS9.sk = null;
+    _d();
+  }; }
+// Legendary / Mythic upgrade cards slid their gradient with background-position (a full repaint every frame on iOS);
+// the pair shine too. Both now move a layer with transform, which the GPU does for free.
+{ const st = document.createElement('style'); st.textContent = `
+.up.r4,.up.r5{isolation:isolate;overflow:hidden;position:relative;animation:u6in .26s ease-out both}
+.up.r4::before,.up.r5::before{content:'';position:absolute;top:0;bottom:0;left:0;width:200%;z-index:-1;pointer-events:none;will-change:transform;animation:lg9 2.2s linear infinite}
+.up.r4::before{background:linear-gradient(110deg,#5a3a08,#8a5a10,#5a3a08,#8a5a10,#5a3a08)}
+.up.r5::before{background:linear-gradient(110deg,#5a0f08,#a8281a,#5a0f08,#a8281a,#5a0f08);animation-duration:1.6s}
+@keyframes lg9{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.card .up.pair7::after{background-size:100% 100%!important;will-change:transform;animation:pair9 2.4s ease-in-out infinite!important}
+@keyframes pair9{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){.up.r4::before,.up.r5::before,.card .up.pair7::after{animation:none!important;transform:none}}`;
+  document.head.append(st); }

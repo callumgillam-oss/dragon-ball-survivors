@@ -213,14 +213,20 @@ const SPOTS = [[-6, -4, 1.6], [5, -1, 1.2], [-2, 4, 1.1], [7, 6, 1.4], [-8, 8, 1
 function spots(c, sx, sy, s) { c.fillStyle = 'rgba(20,40,14,.85)'; for (const [x, y, r] of SPOTS) { c.beginPath(); c.ellipse(sx + x * s, sy + y * s, r * s, r * .8 * s, 0, 0, 7); c.fill(); } }
 function bossArt4(c, x, y, r, t, e) {
   const o = B4[e.k], boom = e.boomT > 0 ? 1 + (10 - e.boomT) * .045 : 1, k = r / 20 * o.sc * boom, w = o.w, hs = o.hs, tall = o.tall || 1, sd = e.sd || 0;
-  const bob = Math.sin(t * 5 + sd) * 1.1, sw = Math.sin(t * 5 + sd), hy = -16;
+  // Walk cycle (2026-11-14): the androids used to only bob in place. The stride now follows how far they actually moved
+  // (so feet don't skate), blending into a slow breathing idle when they stop: alternate knee lifts, arms swinging
+  // against the legs, a dip on each step and a lean into the direction of travel.
+  const mvd = e._wx === undefined ? 0 : Math.min(12, Math.hypot(e.x - e._wx, e.y - e._wy)), mdx = e._wx === undefined ? 0 : e.x - e._wx; e._wx = e.x; e._wy = e.y;
+  e._wm = (e._wm || 0) + ((mvd > .25 ? 1 : 0) - (e._wm || 0)) * .15; e._wp = (e._wp || 0) + mvd * .15; e._wl = (e._wl || 0) + (Math.max(-1, Math.min(1, mdx / 2)) - (e._wl || 0)) * .12;
+  const wm = e._wm, ph = e._wp, idle = Math.sin(t * 2.2 + sd);
+  const bob = -Math.abs(Math.sin(ph)) * 1.8 * wm + idle * .5 * (1 - wm), sw = Math.sin(ph) * wm + idle * .15 * (1 - wm), hy = -16 + idle * .3 * (1 - wm);
   const SK = tones(o.sk, o.cell ? '#14300c' : '#4a1a10'), SU = tones(o.su), AR = tones(o.ar, o.cell ? '#14300c' : '#241a40'), A2 = tones(o.a2, '#200a08'), BT = tones(o.bt), BT2 = tones(o.bt2), BL = tones(o.belt), HC = o.hc ? tones(o.hc, '#2a1004') : null;
   if (o.rage && e.hp < e.max * o.thr) { LT(); gl(o.rage, x, y, r * 2.4, .5 + .1 * Math.sin(t * 10)); NM(); }
   if (e.sup) { LT(); gl('cy', x, y, r * 2.6, .45 + .2 * Math.sin(t * 20)); NM(); }
   if (e.k == 'a19' && e.abs > 0) {   // absorb cone in front of him
     ctx.save(); ctx.fillStyle = 'rgba(190,150,255,' + (.16 + .08 * Math.sin(t * 12)) + ')'; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, r * 5, e.fa - 1.4, e.fa + 1.4); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(220,200,255,.6)'; ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.stroke(); ctx.setLineDash([]); ctx.restore(); }
-  c.save(); c.translate(x, y + bob); c.scale(k, k * tall); c.lineJoin = 'round'; c.lineCap = 'round'; c.lineWidth = 1.5; c.strokeStyle = OL;
+  c.save(); c.translate(x, y + bob); c.rotate(e._wl * .07 * wm + sw * .03); c.scale(k, k * tall); c.lineJoin = 'round'; c.lineCap = 'round'; c.lineWidth = 1.5; c.strokeStyle = OL;
   // back layer: wings, tail, long hair
   if (o.wings) { const fl = Math.sin(t * 8 + sd) * .12; for (const q of [-1, 1]) { c.save(); c.rotate(q * (.25 + fl));
       hpoly(c, [[q * 4, -6], [q * 16, -22], [q * 24, -18], [q * 20, -4], [q * 12, 4]], tones(o.wings, '#0a0a0a'), { lw: 1.3 });
@@ -229,13 +235,16 @@ function bossArt4(c, x, y, r, t, e) {
     hpoly(c, [[-30, 4 + tw * 1.3], [-36, -6 + tw], [-27, -1 + tw * 1.3]], tones('#e8d070', '#5a4010'), { lw: 1.2 }); }
   if (o.head == 'long') hpoly(c, [[-11, -26], [11, -26], [12.6, -10], [10.4, -2], [-10.4, -2], [-12.6, -10]], HC);
   if (o.head == 'bob') hpoly(c, [[-11.4, -27], [11.4, -27], [12.4, -14], [11, -7], [-11, -7], [-12.4, -14]], HC);
-  if (o.skirt) hpoly(c, [[-9, 8], [9, 8], [11.2, 18], [-11.2, 18]], SU, { lw: 1.3 });
-  // legs + boots
-  for (const q of [-1, 1]) { const lx = q * 4.4 * w, st = q * sw * .9, by = 24 + st;
-    hpoly(c, [[lx - 3.8 * w, 9], [lx + 3.8 * w, 9], [lx + 3.4 * w, 21 + st], [lx - 3.4 * w, 21 + st]], o.skirt ? SK : o.cell ? AR : SU);
-    if (o.cell) spots(c, lx, 15 + st, .5);
-    hpoly(c, [[lx - 4.8 * w, by - 5.4], [lx + 4.8 * w, by - 5.4], [lx + 5.8 * w, by + 1.6], [lx - 5.8 * w, by + 1.6]], BT);
-    hpoly(c, [[lx - 4.8 * w, by - 5.4], [lx + 4.8 * w, by - 5.4], [lx + 4.8 * w, by - 3.4], [lx - 4.8 * w, by - 3.4]], BT2, { lw: 1, ns: 0 }); }
+  // legs + boots: hip → knee → ankle limbs; the lifted leg bends its knee out and up
+  c.fillStyle = 'rgba(0,0,0,.22)'; c.beginPath(); c.ellipse(0, 26.5, 15 * w, 3.4, 0, 0, 7); c.fill();
+  for (const q of [-1, 1]) { const lift = Math.max(0, q * sw) * (wm > .05 ? 1 : 0), hx = q * 4.4 * w, ax = hx + q * lift * .8, ay = 20.6 - lift * 4.6, kx = hx + q * lift * 2, ky = 14.6 - lift * 2.4, by = ay + 3.4;
+    hlimb(c, [[hx, 8.4], [kx, ky], [ax, ay]], 7.4 * w, o.skirt ? tones('#2a2a34') : o.cell ? AR : SU);
+    if (o.cell) spots(c, kx, ky, .5);
+    hpoly(c, [[ax - 4.6 * w, by - 5.6], [ax + 4.6 * w, by - 5.6], [ax + 5.6 * w, by + 1.6 - lift * .6], [ax - 5.6 * w, by + 1.6 - lift * .6]], BT);
+    hpoly(c, [[ax - 4.6 * w, by - 5.6], [ax + 4.6 * w, by - 5.6], [ax + 4.6 * w, by - 3.6], [ax - 4.6 * w, by - 3.6]], BT2, { lw: 1, ns: 0 });
+    c.fillStyle = 'rgba(255,255,255,.22)'; c.beginPath(); c.ellipse(ax - 2 * w, by - 1.4, 1.8 * w, .9, 0, 0, 7); c.fill(); }   // boot shine
+  if (o.skirt) { hpoly(c, [[-9.2, 7.6], [9.2, 7.6], [11.6 + sw * .6, 17.4], [-11.6 + sw * .6, 17.4]], SU, { lw: 1.3 });   // 18's skirt over the legs, with a hem line
+    c.strokeStyle = 'rgba(255,255,255,.25)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-10.6 + sw * .6, 15.6); c.lineTo(10.6 + sw * .6, 15.6); c.stroke(); c.strokeStyle = OL; }
   // torso
   hpoly(c, [[-9.4 * w, -7], [9.4 * w, -7], [10 * w, 13], [-10 * w, 13]], o.cell && e.k != 'ce3' ? AR : SU);
   if (o.cell) { if (e.k == 'ce3') { hpoly(c, [[-6 * w, -7], [6 * w, -7], [5 * w, 9], [-5 * w, 9]], AR, { lw: 1.2 }); spots(c, 0, 0, .8); for (const q of [-1, 1]) hpoly(c, [[q * 9.4 * w, -7], [q * 6.4 * w, -7], [q * 5.6 * w, 4], [q * 9 * w, 6]], tones('#86cc5c', '#14300c'), { lw: 1 }); }
@@ -246,8 +255,12 @@ function bossArt4(c, x, y, r, t, e) {
     if (e.k == 'a19' || e.k == 'a20' || e.k == 'a16') { hell(c, -4 * w, -2, 2.6, 2.6, tones('#d83030', '#400808')); c.fillStyle = '#fff'; c.font = 'bold 3px sans-serif'; c.textAlign = 'center'; c.fillText('RR', -4 * w, -1); }
     if (e.k == 'a16') { c.strokeStyle = 'rgba(10,40,10,.55)'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, -7); c.lineTo(0, 6); c.moveTo(-8 * w, 0); c.lineTo(8 * w, 0); c.stroke(); c.strokeStyle = OL; }
     hpoly(c, [[-9.6 * w, 6.4], [9.6 * w, 6.4], [9.6 * w, 9.6], [-9.6 * w, 9.6]], BL, { lw: 1.3 }); }
+  if (!o.cell) { c.save(); c.beginPath(); c.rect(-10 * w, -7, 20 * w, 20); c.clip(); c.fillStyle = 'rgba(10,10,30,.2)'; c.beginPath(); c.moveTo(3 * w, -7); c.quadraticCurveTo(7 * w, 3, 4 * w, 13); c.lineTo(10 * w, 13); c.lineTo(10 * w, -7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.13)'; c.beginPath(); c.ellipse(-5 * w, -2, 2.6 * w, 5, -.2, 0, 7); c.fill(); c.restore();
+    if (e.k == 'a17') { c.strokeStyle = 'rgba(240,240,240,.85)'; c.lineWidth = 1.6; for (const q of [-1, 1]) { c.beginPath(); c.moveTo(q * 3.4, -7); c.lineTo(q * 5.6, 6); c.stroke(); } c.strokeStyle = OL; }   // 17's open overshirt edges
+    if (e.k == 'a16') { c.fillStyle = 'rgba(200,255,190,.25)'; for (const q of [-1, 1]) { c.beginPath(); c.ellipse(q * 4.6 * w, -3.4, 2.6 * w, 1.6, 0, 0, 7); c.fill(); } } }   // 16's armour plate shine
   // arms (Android 16's right arm is missing while his Rocket Punch is out)
-  for (const q of [-1, 1]) { const sx = q * 10.4 * w, hx = q * (14 * w + .6), hy2 = 7 + q * sw * 1.3, mx = q * 13.8 * w, my = 1;
+  for (const q of [-1, 1]) { const sx = q * 10.4 * w, swing = -q * sw * 3.2, hx = q * (14 * w + .6) - q * Math.max(0, swing) * .5, hy2 = 7 + swing, mx = q * 13.8 * w, my = 1 + swing * .4;
     if (e.k == 'a16' && q == 1 && e.arm > 0) { hell(c, sx + q * 2, -3, 3.4, 3.4, tones('#8a8a98', '#20202a')); continue; }
     const absorbing = e.k == 'a19' && e.abs > 0;
     hlimb(c, [[sx, -5], [mx, my], [hx, hy2]], e.k == 'a16' || e.k == 'ce2' ? 7.4 : 5.8, o.cell ? SK : e.k == 'a18' || e.k == 'a17' ? AR : SK);
@@ -408,8 +421,11 @@ function bg3(cx, cy) {
   for (const [, x] of xs) ctx.fillRect(x - hw, 0, 2, H);
   ctx.fillStyle = '#3c3e48'; for (const [, y] of ys) for (const [, x] of xs) ctx.fillRect(x - hw, y - hw, RW, RW);   // junction boxes
   ctx.fillStyle = 'rgba(240,200,80,.7)';
-  for (const [gy, y] of ys) for (let x = -((cx % 60) + 60) % 60; x < W; x += 60) if (!onX(x + cx + 15) && hash(Math.floor((x + cx) / 60), gy) > .2) ctx.fillRect(x, y - 2, 30, 4);
-  for (const [gx, x] of xs) for (let y = -((cy % 60) + 60) % 60; y < H; y += 60) if (!onX(y + cy + 15) && hash(gx, Math.floor((y + cy) / 60)) > .2) ctx.fillRect(x - 2, y, 4, 30);
+  // dashes are indexed by whole 60 px cells (2026-11-14: floor((x + cx) / 60) on a float camera sometimes landed one cell low,
+  // so dashes blinked on and off as you moved; iPhone's fractional positions hit it constantly)
+  { const i0 = Math.floor(cx / 60), j0 = Math.floor(cy / 60);
+    for (const [gy, y] of ys) for (let i = i0; i * 60 - cx < W; i++) { const x = i * 60 - cx; if (!onX(i * 60 + 15) && hash(i, gy) > .2) ctx.fillRect(x, y - 2, 30, 4); }
+    for (const [gx, x] of xs) for (let j = j0; j * 60 - cy < H; j++) { const y = j * 60 - cy; if (!onX(j * 60 + 15) && hash(gx, j) > .2) ctx.fillRect(x - 2, y, 4, 30); } }
   ctx.fillStyle = 'rgba(236,236,230,.62)';   // zebra crossings on all four sides of each junction
   for (const [gy, y] of ys) for (const [gx, x] of xs) for (let i = 0; i < 5; i++) { const o = -hw + 8 + i * 15.5, w = hash(gx * 7 + i, gy) > .12;
     if (w) { ctx.fillRect(x - hw - 24, y + o, 18, 7); ctx.fillRect(x + hw + 6, y + o, 18, 7); ctx.fillRect(x + o, y - hw - 24, 7, 18); ctx.fillRect(x + o, y + hw + 6, 7, 18); } }
