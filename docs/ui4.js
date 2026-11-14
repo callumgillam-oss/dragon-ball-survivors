@@ -73,17 +73,17 @@ addEventListener('keydown', e => { if (S && S.mode == 'menu' && document.querySe
 document.head.insertAdjacentHTML('beforeend', `<style>
 .hcar{position:relative;display:flex;align-items:center;gap:4px;margin:8px 0 0}
 .hcar .ha{flex:none;width:34px;height:52px;padding:0;font:800 30px/1 system-ui,sans-serif;border-radius:10px;z-index:20}
-.hview{position:relative;flex:1;height:150px;overflow:hidden;touch-action:pan-y;user-select:none}
+.hview{position:relative;flex:1;height:166px;overflow:hidden;touch-action:pan-y;user-select:none}
 .htrack{position:absolute;inset:0}
-.hcd{position:absolute;left:50%;top:0;width:120px;margin-left:-60px;text-align:center;cursor:pointer;transform-origin:50% 60%}
+.hcd{position:absolute;left:50%;top:16px;width:120px;margin-left:-60px;text-align:center;cursor:pointer;transform-origin:50% 60%}
 .hcd canvas{position:static;inset:auto;display:block;width:120px;height:120px;margin:0 auto;border-radius:50%;background:radial-gradient(circle,#5a3a10 0,#2a1606 65%,rgba(0,0,0,0) 70%)}
 .hcd.on canvas{background:radial-gradient(circle,#8a5a10 0,#3a2006 62%,rgba(0,0,0,0) 70%);filter:drop-shadow(0 0 10px #ffb300)}
 .hcd b{display:block;font-size:15px;margin-top:-4px}.hcd.lk b{opacity:.75}
 .hdots{position:absolute;left:0;right:0;bottom:-10px;display:flex;justify-content:center;gap:5px}
 .hdt{width:7px;height:7px;border-radius:50%;background:#6a4a20}.hdt.lk{background:#3a2a14}.hdt.on{background:#ffd27a;box-shadow:0 0 6px #ffb300}
 .hcar+.hdesc,.hdesc{margin:14px 0 8px}
-@media (max-width:600px){.hview{height:132px}.hcd{width:104px;margin-left:-52px}.hcd canvas{width:104px;height:104px}}
-@media (orientation:landscape) and (max-height:360px){.hview{height:96px}.hcd{width:72px;margin-left:-36px}.hcd canvas{width:72px;height:72px}}
+@media (max-width:600px){.hview{height:148px}.hcd{width:104px;margin-left:-52px}.hcd canvas{width:104px;height:104px}}
+@media (orientation:landscape) and (max-height:360px){.hview{height:106px}.hcd{top:10px;width:72px;margin-left:-36px}.hcd canvas{width:72px;height:72px}}
 </style>`);
 // the save can finish loading before this (last) script runs; redraw the menu so every layer's additions appear
 if (PROG_READY && S && S.mode == 'menu' && !svWelcomeOn) menu();
