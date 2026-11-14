@@ -1,5 +1,5 @@
 /* =====================================================================
-   DRAGON BALL SURVIVORS — PERFORMANCE: Level 3/4 mobs as cached frames
+   DRAGON BALL SURVIVORS — PERFORMANCE: cached Level 3/4 mobs, frame-rate cap, FPS counter
    Cell-saga drones/larvae and Buu-saga fighters/imps/blobs were redrawn from
    ~20 paths each, every frame: 230 of them cost ~15 ms on a desktop (far more
    on phones). Like Level 1's art, each mob is now painted once per animation
@@ -56,3 +56,42 @@ function mobStamp(fn, e, x, y, f) {
 { const _3 = drawL3Mob; drawL3Mob = function (e, x, y, f, C) { if (C || SET.mobCache === false) return _3(e, x, y, f, C); mobStamp(_3, e, x, y, f); }; }
 { const _4 = drawL4Mob; drawL4Mob = function (e, x, y, f, C) { if (C || SET.mobCache === false) return _4(e, x, y, f, C); mobStamp(_4, e, x, y, f); }; }
 
+
+/* ---------- frame rate: 60 / 30 cap, and an FPS counter ----------
+   The cap paces whole frames by time (so 120/144 Hz screens get 60, and 30 is 30 on any screen). The game
+   itself always steps in 1/60 s slices: a 30 fps frame runs two of them, so movement, hits and balance are
+   exactly the same at either setting — only drawing is halved. */
+const FPS9 = { next: 0, n: 0, t0: 0, fps: 0, dms: 0, dsum: 0 };
+{ const _l = loop; loop = function (ts) {
+    if (window.DBS_READY) {
+      const iv = 1000 / (SET.fps30 ? 30 : 60);
+      if (ts < FPS9.next - 2) { requestAnimationFrame(loop); return; }   // too soon: wait for the next display frame
+      FPS9.next = Math.max(FPS9.next + iv, ts);
+    }
+    _l(ts);
+    // counter: frames actually drawn in the last second, and the average time spent drawing them
+    FPS9.n++; if (!FPS9.t0) FPS9.t0 = ts;
+    if (ts - FPS9.t0 >= 1000) { FPS9.fps = Math.round(FPS9.n * 1000 / (ts - FPS9.t0)); FPS9.dms = FPS9.dsum / FPS9.n; FPS9.n = 0; FPS9.dsum = 0; FPS9.t0 = ts; }
+  }; }
+{ const _u = update; update = function (dt) {   // long frames are simulated as several 1/60 s steps
+    const n = dt > 1.25 / 60 ? Math.min(3, Math.round(dt * 60)) : 1;
+    if (n == 1) return _u(dt);
+    for (let i = 0; i < n; i++) { _u(dt / n); if (S.mode != 'play') break; }
+  }; }
+{ const _a = adapt; adapt = function (dt) { return _a(SET.fps30 ? dt / 2 : dt); }; }   // a capped 33 ms frame isn't a slow device
+{ const _d = draw; draw = function () {
+    const a = performance.now(); _d(); FPS9.dsum += performance.now() - a;
+    if (!SET.fpsShow || !FPS9.fps) return;
+    const tgt = SET.fps30 ? 30 : 60, ok = FPS9.fps >= tgt * .92, meh = FPS9.fps >= tgt * .75, s = FPS9.fps + ' FPS · ' + FPS9.dms.toFixed(1) + ' ms';
+    ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.font = 'bold 12px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center';
+    const w = ctx.measureText(s).width + 14, y = H - SB - 8;
+    ctx.fillStyle = 'rgba(10,4,0,.6)'; ctx.fillRect(W / 2 - w / 2, y - 14, w, 19);
+    ctx.fillStyle = ok ? '#8ff08a' : meh ? '#ffd27a' : '#ff8a7a'; ctx.fillText(s, W / 2, y); ctx.restore();
+  }; }
+{ const _st = settings; settings = function (back) {
+    _st(back); const c = ov.querySelector('.card'); if (!c) return; const g = c.querySelector('.sgrid'); if (!g) return;
+    const gfx = [...g.querySelectorAll('button.srow')].find(b => (b.getAttribute('onclick') || '') == 'cycleGfx()');
+    const rows = `<button class="srow" onclick="togSet('fps30')"><span>Frame rate</span><b>${SET.fps30 ? '30 FPS' : '60 FPS'}</b><small>${SET.fps30 ? 'Saves battery, steadier on older phones' : 'Smoothest'}</small></button>` +
+      `<button class="srow" onclick="togSet('fpsShow')"><span>FPS counter</span><b>${SET.fpsShow ? 'On' : 'Off'}</b><small>Shows frame rate at the bottom</small></button>`;
+    if (gfx) gfx.insertAdjacentHTML('afterend', rows); else g.insertAdjacentHTML('afterbegin', rows);
+  }; }
