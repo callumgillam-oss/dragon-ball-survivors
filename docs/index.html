@@ -312,8 +312,8 @@ function update(dt){
  }
  if(W_.flare){DSRC='flare';
   S.cd.flare-=dt;
-  if(S.cd.flare<=0){const L=W_.flare;S.cd.flare=(S.evo.flare?3:Math.max(5,13-1.4*L))*cm();aFlash(1);
-   for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<(S.evo.flare?900:600)*AR2()){const sd=(1+.4*WL('flare'))*(S.evo.flare?1.6:1)*(MY('flare')?1.25:1);if(S.evo.flare)e.bl=Math.max(e.bl||0,sd);else e.st=sd*(e.boss?.5:1);if(MY('flare'))e.mk=5;hitE(e,(S.evo.flare?30+8*WL('flare'):9+4*WL('flare'))*WB.flare*dm())/* Taiyoken Burst ~1.65x (2026-11-14 audit: 2.4 kills/s, the weakest evolution) */}}
+  if(S.cd.flare<=0){const L=W_.flare;S.cd.flare=(S.evo.flare?4:Math.max(5,13-1.4*L))*cm();aFlash(1);
+   for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<(S.evo.flare?900:600)*AR2()){const sd=(1+.4*WL('flare'))*(S.evo.flare?1.6:1)*(MY('flare')?1.25:1);if(S.evo.flare)e.bl=Math.max(e.bl||0,Math.min(sd,2.5*(MY('flare')?1.25:1)));/* blind 2.5 s of each 4 s cycle: a ~5 s blind on a 4 s timer kept the whole screen at 10% speed (2.6 damage taken/s vs 30-80 for other evolutions) */else e.st=sd*(e.boss?.5:1);if(MY('flare'))e.mk=5;hitE(e,(S.evo.flare?23+6.5*WL('flare'):9+4*WL('flare'))*WB.flare*dm())/* Taiyoken Burst +30% (2026-11-14 audit), now that its blind has gaps */}}
  }
  for(const s of S.sh){DSRC=s.src||'blast';
   if(s.hm)homeS(s,dt);s.x+=s.vx*dt;s.y+=s.vy*dt;s.l-=dt;
