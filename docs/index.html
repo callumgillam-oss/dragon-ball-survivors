@@ -286,7 +286,7 @@ function update(dt){
  // tense moments: alternating wall / ring, faster as the run goes on
  S.evT=(S.evT??55)-dt;
  if(S.evT<=0&&!S.en.some(e=>e.boss)){S.evT=Math.max(30,48-S.t/30)*DIFF.evGap;S.evN=(S.evN||0)+1;
-  if(S.evN%2){wall();ban('RAPTOR WALL! FIND THE GAP')}else{swarm();ban('SURROUNDED! BREAK THROUGH THE GAP')}}
+  if(S.evN%2){wall();ban(({3:'LARVA WALL',4:'BLOB WALL'}[S.stage]||'RAPTOR WALL')+'! FIND THE GAP')}else{swarm();ban('SURROUNDED! BREAK THROUGH THE GAP')}}
  // weapons
  const W_=S.w;
  S.cd.blast-=dt;
@@ -1216,7 +1216,7 @@ STAGES[1].sched.push([60,'swarm','SAIBAMEN SWARM!'],[175,'swarm','THEY ARE EVERY
 function swarm(){const R=Math.hypot(W,H)/2+40,n=Math.round(R*6.283/34),g=Math.random()*6.283,gw=.55;
  for(let i=0;i<n;i++){const a=i/n*6.283;if(Math.abs(Math.atan2(Math.sin(a-g),Math.cos(a-g)))<gw/2)continue;
   spawnE(S.stage==2?'fs':S.t>150?'blue':'sai');const e=S.en[S.en.length-1];e.x=S.p.x+Math.cos(a)*R;e.y=S.p.y+Math.sin(a)*R}}
-// Fast wall of raptors sweeping across the screen with a short gap in it
+// Fast wall of raptors (larvae on Level 3, blob bits on Level 4) sweeping across the screen with a short gap in it
 function wall(){const p=S.p,R=Math.hypot(W,H)/2+60,a=Math.random()*6.283,ca=Math.cos(a),sa=Math.sin(a),n=20+Math.floor(S.t/20),sp=215,gi=2+Math.floor(Math.random()*(n-4)),life=(R*2+120)/sp;
  for(let i=0;i<n;i++){if(Math.abs(i-gi)<=1)continue;const off=(i-(n-1)/2)*38;
   spawnE('rap');const e=S.en[S.en.length-1];e.x=p.x+ca*R-sa*off;e.y=p.y+sa*R+ca*off;e.hp=e.max=e.max*.5;e.line={vx:-ca*sp,vy:-sa*sp,t:life}}}
@@ -2418,7 +2418,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script src="death9.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
