@@ -135,8 +135,12 @@ function updW3(dt) {
   for (const q of arr('wfq')) { DSRC = 'wolf';
     q.t -= dt; if (q.t > 0) continue;
     if (q.e.dead || q.n <= 0) { q.done = 1; continue; }
-    q.t = .07; q.n--; hitE(q.e, q.d); shove(q.e, p.x, p.y, 6);
-    if (S.fx.length < 150) arr('wfx').push({ x: q.e.x, y: q.e.y, a: Math.random() * 6.283, l: .18 });
+    // 2026-11-14: the slashes used to share the global particle cap (S.fx < 150), which is always full late in a run, so
+    // Wolf Fang kills looked like something invisible. They have their own cap now, the first hit of each combo draws a
+    // dash streak from you to the target, and the last hit pops.
+    const first = q.n == (q.n0 || (q.n0 = q.n)); q.t = .07; q.n--; hitE(q.e, q.d); shove(q.e, p.x, p.y, 6);
+    if (arr('wfx').length < 90) arr('wfx').push({ x: q.e.x, y: q.e.y, a: Math.random() * 6.283, l: .22, T: .22, w: 1, fin: q.n == 0 });
+    if (first && S.wfx.length < 110) S.wfx.push({ x: q.e.x, y: q.e.y, a: 0, l: .2, T: .2, wolfTp: [p.x, p.y] });
     if (q.n == 0) { if (q.st && !q.e.boss) q.e.st = Math.max(q.e.st || 0, .6); if (q.heal) p.hp = Math.min(p.max, p.hp + 1); sfx('wolf'); }
   }
   S.wfq = arr('wfq').filter(q => !q.done);
@@ -206,7 +210,15 @@ function drawW3(cx, cy, t) {
     ctx.strokeStyle = 'rgba(255,250,200,' + (.6 + .4 * pulse) * (1 - k * .4) + ')'; ctx.lineWidth = 3 + 3 * heat; ctx.stroke();
     LT(); gl('or', x, y, z.s * .5, .25 + .35 * heat); NM(); }
   // Wolf Fang Fist slashes + Instant Transmission streaks
-  for (const f of arr('wfx')) { const x = f.x - cx, y = f.y - cy, k = f.l / (f.tp ? .25 : .18);
+  for (const f of arr('wfx')) { const x = f.x - cx, y = f.y - cy, k = f.l / (f.T || (f.tp ? .25 : .18));
+    if (f.wolfTp) { ctx.save(); ctx.lineCap = 'round'; ctx.strokeStyle = `rgba(255,150,60,${.45 * k})`; ctx.lineWidth = 10 * k + 2; ctx.beginPath(); ctx.moveTo(f.wolfTp[0] - cx, f.wolfTp[1] - cy); ctx.lineTo(x, y); ctx.stroke();
+      ctx.strokeStyle = `rgba(255,240,200,${k})`; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore(); continue; }   // dash streak
+    if (f.w) { LT(); gl('or', x, y, f.fin ? 30 : 18, (f.fin ? .9 : .55) * k); NM(); ctx.save(); ctx.lineCap = 'round';   // bigger claw rake with a glow
+      const c = Math.cos(f.a), s = Math.sin(f.a), L = 18 * (1.2 - .2 * k);
+      for (const [lw, col] of [[6, `rgba(255,140,40,${.7 * k})`], [2.4, `rgba(255,248,220,${k})`]]) { ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath();
+        for (let i = -1; i <= 1; i++) { const o = i * 6; ctx.moveTo(x - c * L - s * o, y - s * L + c * o); ctx.lineTo(x + c * L - s * o, y + s * L + c * o); } ctx.stroke(); }
+      if (f.fin) { ctx.strokeStyle = `rgba(255,200,110,${k})`; ctx.lineWidth = 3 * k + 1; ctx.beginPath(); ctx.arc(x, y, 30 * (1.3 - k), 0, 7); ctx.stroke(); }
+      ctx.restore(); continue; }
     if (f.tp) { ctx.strokeStyle = 'rgba(160,220,255,' + k + ')'; ctx.lineWidth = 5 * k; ctx.beginPath(); ctx.moveTo(f.tp[0] - cx, f.tp[1] - cy); ctx.lineTo(x, y); ctx.stroke(); }
     ctx.strokeStyle = 'rgba(255,190,90,' + k + ')'; ctx.lineWidth = 3; ctx.beginPath();
     for (let i = -1; i <= 1; i++) { const o = i * 5, c = Math.cos(f.a), s = Math.sin(f.a); ctx.moveTo(x - c * 14 - s * o, y - s * 14 + c * o); ctx.lineTo(x + c * 14 - s * o, y + s * 14 + c * o); } ctx.stroke(); }
