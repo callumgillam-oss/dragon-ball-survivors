@@ -147,5 +147,17 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .tgt8 .sgrid{max-height:52vh;overflow:auto}.srow.tg8c b{color:#7fe0ff}
 </style>`);
 
+/* ---------- 5) no flicker when a screen redraws itself ---------- */
+// Settings toggles (and Targeting rows) rebuild the whole card, and the card's pop-in animation restarted from
+// opacity 0 on every click: a quick black flash. When the new card has the same title as the one on screen, it
+// replaces it in place with no entrance animation. Moving to a different screen still animates.
+{ const _sh = show; show = function (h) {
+    const old = ov.style.display != 'none' && ov.querySelector('.card'), t0 = old && old.querySelector('h2') ? old.querySelector('h2').textContent : null;
+    const r = _sh(h);
+    const c = ov.querySelector('.card'), t1 = c && c.querySelector('h2') ? c.querySelector('h2').textContent : null;
+    if (c && t0 !== null && t0 === t1) { c.style.animation = 'none'; for (const u of c.querySelectorAll('button.up')) u.style.animation = 'none'; }
+    return r;
+  }; }
+
 // every script has loaded: the built-in game loop may start (see the boot watchdog in index.html)
 window.DBS_READY = 1;
