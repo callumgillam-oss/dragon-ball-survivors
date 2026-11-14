@@ -330,7 +330,8 @@ function drawMVeg(c, x, y, r, t, e) {
 }
 
 /* ---------- art: mobs ---------- */
-function drawL4Mob(e, x, y, f) {
+function drawL4Mob(e, x, y, f, C) {
+  const ctx = C || MCTX, LT = () => ctx.globalCompositeOperation = 'lighter', NM = () => ctx.globalCompositeOperation = 'source-over', gl = (k, x, y, r, a = 1) => { ctx.globalAlpha = a; ctx.drawImage(GL[k], x - r, y - r, r * 2, r * 2); ctx.globalAlpha = 1; };   // C: draw somewhere else (perf9.js caches these as images)
   const r = e.r, t = S.t, sd = e.sd ?? (e.sd = Math.random() * 6), sc = r / 12;
   ctx.save(); ctx.translate(x, y); ctx.lineJoin = 'round'; ctx.lineWidth = 1.6; ctx.strokeStyle = OL;
   if (e.k == 'bb' || e.k == 'bs') {   // pink goo with a little antenna
