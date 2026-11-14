@@ -206,9 +206,23 @@ function revealShow() {
 function revealNext() { RV.i++; if (RV.i < RV.ids.length) revealShow(); else { const b = RV.back; RV = null; show(b); } }
 
 /* ---------- menus: Achievements + Collection ---------- */
+// Achievements are split into tabs (Story / Milestones / Secrets / Challenges) instead of one long list (2026-11-14).
+// The tab you were on is remembered while the game is open.
+let ACHT = 'story';
+function achTab(c) {
+  ACHT = c;
+  for (const b of document.querySelectorAll('.achtab')) b.classList.toggle('on', b.dataset.c == c);
+  for (const g of document.querySelectorAll('.achsc .ach-g')) g.hidden = g.dataset.c != c;
+  const sc = document.querySelector('.achsc'); if (sc) sc.scrollTop = 0;
+}
 function achScreen() {
   const done = ACH.filter(achDone).length;
-  const sec = (c, title) => `<h3 class="ach-h">${title}</h3><div class="ach-g">` + ACH.filter(a => a.c == c).map(a => {
+  const cats = [['story', 'Story'], ['mile', 'Milestones'], ['secret', 'Secrets']];
+  if (ACH.some(a => a.c == 'chal')) cats.push(['chal', 'Challenges']);
+  if (!cats.some(([c]) => c == ACHT)) ACHT = 'story';
+  const tab = ([c, title]) => { const L = ACH.filter(a => a.c == c);
+    return `<button class="achtab${c == ACHT ? ' on' : ''}" data-c="${c}" onclick="achTab('${c}')">${title}<small>${L.filter(achDone).length}/${L.length}</small></button>`; };
+  const sec = (c) => `<div class="ach-g" data-c="${c}"${c == ACHT ? '' : ' hidden'}>` + ACH.filter(a => a.c == c).map(a => {
     const ok = achDone(a), hid = a.c == 'secret' && !ok;
     let bar = '';
     if (a.pg && !ok && !hid) { const [c0, g] = a.pg(), f = Math.max(0, Math.min(1, c0 / g));
@@ -218,7 +232,8 @@ function achScreen() {
       ${hid ? '' : `<div class="arw">${a.r.map(u => `<span>${unlIcon(u)}${unlName(u)}</span>`).join('')}</div>`}</div></div>`;
   }).join('') + '</div>';
   show(`<div class="card dbz achs"><div class="dhead"><span class="db4"></span><h2>Achievements</h2><div class="zeni">${done} / ${ACH.length}</div></div>
-    <div class="achsc">${sec('story', 'Story')}${sec('mile', 'Milestones')}${sec('secret', 'Secrets')}${ACH.some(a => a.c == 'chal') ? sec('chal', 'Ginyu Force Challenges') : ''}</div><button class="go" onclick="menu()">Back</button></div>`);
+    <div class="achtabs">${cats.map(tab).join('')}</div>
+    <div class="achsc">${cats.map(([c]) => sec(c)).join('')}</div><button class="go" onclick="menu()">Back</button></div>`);
 }
 // every attack and passive, with its evolution partner; future attacks listed as locked
 const COL_W = ['blast', 'kame', 'sbc', 'masenko', 'aura', 'disc', 'flare', 'bomb', 'hell', 'thunder', 'galick', 'wave', 'tri', 'wolf', 'after', 'scatter'];
@@ -337,6 +352,11 @@ body.noult #ub{display:none!important}
 .rvl{display:flex;flex-direction:column;gap:6px;margin:6px 0}.rvi{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,210,122,.35);border-radius:10px;padding:6px 10px;text-align:left;font-weight:700}
 .ic{width:34px;height:34px;flex:0 0 34px;border-radius:8px}.ic.em{display:inline-flex;align-items:center;justify-content:center;font-size:22px;background:rgba(0,0,0,.35)}
 .achs{max-width:640px}.achsc{max-height:62vh;overflow:auto;margin:0 -4px 8px;padding:0 4px}
+.achtabs{display:flex;gap:4px;margin:6px 0 8px}
+.achtab{flex:1 1 0;min-width:0;margin:0;padding:6px 4px;font-size:13px;font-weight:bold;text-align:center;border-radius:9px;background:rgba(0,0,0,.35);border:1px solid rgba(255,210,122,.3);color:#fff4e0;opacity:.75}
+.achtab small{display:block;font-size:10.5px;font-weight:normal;color:#ffd27a}
+.achtab.on{opacity:1;border-color:#ffd27a;background:linear-gradient(180deg,rgba(150,96,14,.75),rgba(80,50,8,.75))}
+.ach-g[hidden]{display:none}
 .ach-h{margin:10px 0 6px;font-size:14px;color:#ffd27a;letter-spacing:.06em;text-transform:uppercase}.ach-h small{opacity:.7}
 .ach-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px}
 .ach{text-align:left;display:flex;gap:8px;align-items:flex-start;background:rgba(0,0,0,.3);border:1px solid rgba(255,210,122,.25);border-radius:10px;padding:7px 8px}

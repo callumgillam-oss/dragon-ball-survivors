@@ -32,6 +32,15 @@ name whenever you ship.
 
 The bot plays like a strong player, so a human lands a little later on every milestone.
 
+## Performance testing
+
+`tools/perf-audit.js` counts what each frame draws (canvas calls, additive glow sprites, glow area, new gradients, text)
+for one thing at a time. Copy it next to `index.html` as `_pa.js` and load it in the page, then:
+`PA.attack('blast')` (maxed: level 8, evolved, wished; fusions at tier 2), `PA.mobs(3, 'dr')` (120 of one mob),
+`PA.bg(2)` (ground only) or `PA.boss(2, 'fr3')` (one boss using its attacks). The counts are reliable even in a hidden
+tab; the millisecond figures are only a rough guide. For reference (2026-11-14), the ground is about 95 calls a frame,
+a crowd of 120 mobs about 900 in total, and the heaviest maxed attacks add 250-450 more.
+
 3.0 targets (Hard), checked with fresh-account campaigns (see `EXPANSION_PLAN.md` §10.0):
 - Vegeta falls after a few runs of upgrades; Frieza takes several more.
 - Levels 3 and 4 each take several attempts; the shop isn't finished until a player has had a few Level 4 runs.

@@ -152,7 +152,13 @@ addEventListener('resize',rs);addEventListener('orientationchange',()=>{rs();set
 if(window.visualViewport)visualViewport.addEventListener('resize',rs);rsApply();
 const hash=(x,y)=>{let h=Math.imul(x,374761393)+Math.imul(y,668265263);h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295};
 const el=(x,y,a,b)=>{ctx.beginPath();ctx.ellipse(x,y,a,b,0,0,7);ctx.fill()};
-const keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=1);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
+// Movement keys (2026-11-14): WASD and the arrow keys both walk. Keys are also read by their physical position (e.code), so
+// WASD works on AZERTY/QWERTZ keyboards; held keys are cleared when the window loses focus so nothing gets stuck; the
+// arrow keys don't scroll the page during play.
+const keys={},KCODE={KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d',ArrowUp:'arrowup',ArrowDown:'arrowdown',ArrowLeft:'arrowleft',ArrowRight:'arrowright'};
+const keySet=(e,v)=>{if(e.key)keys[e.key.toLowerCase()]=v;if(KCODE[e.code])keys[KCODE[e.code]]=v};
+addEventListener('keydown',e=>{keySet(e,1);if(e.key&&e.key.startsWith('Arrow')&&typeof S!='undefined'&&S.mode=='play')e.preventDefault()});addEventListener('keyup',e=>keySet(e,0));
+addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
 let joy=null;
 // Floating joystick: the base follows your thumb so you never have to drag toward the screen edge
 const JR=50;
@@ -242,9 +248,15 @@ function hurtP(d){if(S.hurt>0||S.inv>0)return;S.p.hp-=d*(1-.07*S.pe.arm);S.hurt=
 // Ranged shooters and bosses are exempt so nothing can plink you from out of reach.
 function onScr(e){if(e.boss||e.k=='snp'||e.k=='fs')return true;return Math.abs(e.x-S.p.x)<W/2+e.r+16&&Math.abs(e.y-S.p.y)<H/2+e.r+16}
 let DSRC='';   // which attack is dealing damage right now (end-of-run damage tally)
+// XP gems (2026-11-14): gems were never merged, so a strong build left hundreds (late in a run, thousands) on the ground,
+// each drawn with its own glow every frame and walked by the magnet code. Past 100 gems, a new gem joins one already lying
+// within 40 px; past 300 it joins the nearest one. The XP is identical, only the number of gems changes (merged gems draw bigger).
+function addGem(x,y,v){const L=S.gem;
+ if(L.length>=100){let b=null,bd=L.length>=300?Infinity:1600;for(const g of L){if(g.got||g.vc)continue;const d=(g.x-x)*(g.x-x)+(g.y-y)*(g.y-y);if(d<bd){bd=d;b=g}}if(b){b.v+=v;return}}
+ L.push({x,y,v})}
 function hitE(e,d){if(e.dead||!onScr(e))return;if(e.mk>0)d*=1.4;e.hp-=d;e.fl=.1;if(S.nums.length<40)S.nums.push({x:e.x+(Math.random()-.5)*10,y:e.y-e.r,v:Math.round(d),l:.6,c:d>=40?'#ffd23a':'#fff'});sfx('hit');spark(e);if(e.hp<=0)killE(e)}
 function killE(e){
- if(e.dead)return;e.dead=1;S.kills++;addUlt(e);sfx('pop');if(e.k=='fr1'||e.k=='fr2')morph(e);S.gem.push({x:e.x,y:e.y,v:TYPES[e.k].xp*(e.elite?8:1)});if(beanDrop(e))S.beans.push({x:e.x+8,y:e.y});if(e.boss)S.bossK=(S.bossK||0)+1;if(e.boss&&e.k!=STAGES[S.stage].final)S.chests.push({x:e.x,y:e.y,n:['nap','gin','fr1','fr2'].includes(e.k)?3:2});
+ if(e.dead)return;e.dead=1;S.kills++;addUlt(e);sfx('pop');if(e.k=='fr1'||e.k=='fr2')morph(e);addGem(e.x,e.y,TYPES[e.k].xp*(e.elite?8:1));if(beanDrop(e))S.beans.push({x:e.x+8,y:e.y});if(e.boss)S.bossK=(S.bossK||0)+1;if(e.boss&&e.k!=STAGES[S.stage].final)S.chests.push({x:e.x,y:e.y,n:['nap','gin','fr1','fr2'].includes(e.k)?3:2});
  boom(e.x,e.y,e.boss?60:18,e.k=='blue'?'#6cf':'#9f4');
  if(e.k==STAGES[S.stage].final){S.mode='win';unlock(S.stage+1);setTimeout(()=>endCard(true),1900)}
 }
@@ -268,7 +280,9 @@ function update(dt){
  DSRC='';const p=S.p;S.t+=dt;S.hurt-=dt;S.flash-=dt*1.5;if(S.ban){S.ban.t-=dt;if(S.ban.t<=0)S.ban=null}
  let mx=0,my=0;
  if(keys.a||keys.arrowleft)mx--;if(keys.d||keys.arrowright)mx++;if(keys.w||keys.arrowup)my--;if(keys.s||keys.arrowdown)my++;
- if(joy){const dx=joy.x-joy.ox,dy=joy.y-joy.oy,d=Math.hypot(dx,dy);if(d>8){const k=Math.min(1,d/50)/d;mx=dx*k;my=dy*k}else{mx=my=0}}
+ // the touch/mouse joystick only takes over while it's actually pushed: a click or a stuck pointer no longer freezes the keyboard
+ const jd=joy?Math.hypot(joy.x-joy.ox,joy.y-joy.oy):0;
+ if(jd>8){const k=Math.min(1,jd/50)/jd;mx=(joy.x-joy.ox)*k;my=(joy.y-joy.oy)*k}
  else{const l=Math.hypot(mx,my);if(l){mx/=l;my/=l}}
  if(GP.x||GP.y){mx=GP.x;my=GP.y}
  const sp=135*(1+.104*S.pe.spd+UPL('spd')*META.spd)*(S.ssj?1.3:1)*(S.slow>0?.45:1);p.x+=mx*sp*dt;p.y+=my*sp*dt;p.mag=Math.hypot(mx,my);S.mvx=mx;S.mvy=my;p.atk=Math.max(0,(p.atk||0)-dt);if(mx&&!(p.atk>0))p.face=mx>0?1:-1;
@@ -308,7 +322,9 @@ function update(dt){
  if(W_.aura){DSRC='aura';
   S.cd.aura-=dt;
   if(S.cd.aura<=0){S.cd.aura=S.evo.aura?.22:.3;const L=W_.aura,E=S.evo.aura,R=(50+10*WL('aura'))*(E?1.8:1)*AR2();
-   for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<R+e.r){hitE(e,(3+2*WL('aura'))*dm()*(E?.65:WB.aura));shove(e,p.x,p.y,E?1.5:6);/* Kaioken x20 (2026-11-14): damage halved (1.3 -> .65) and only a nudge of knockback, so mobs still reach you */if(E)p.hp=Math.min(p.max,p.hp+.12)}}
+   for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<R+e.r){hitE(e,(3+2*WL('aura'))*dm()*(E?.65:WB.aura));shove(e,p.x,p.y,E?1.5:6)}}
+   /* Kaioken x20 (2026-11-14): damage halved (1.3 -> .65) and only a nudge of knockback, so mobs still reach you. Its heal
+      (+.12 HP per enemy in the aura every .22 s, uncapped: ~20 HP/s in a crowd) is removed: Kaioken heals nothing */
  }
  if(W_.flare){DSRC='flare';
   S.cd.flare-=dt;
@@ -545,11 +561,11 @@ function draw(){
  if(S.mode=='intro'){drawIntro();return}
  const p=S.p,cx=p.x-W/2,cy=p.y-H/2,t=S.t,mv=Math.hypot(p.x-lx,p.y-ly)>.2;lx=p.x;ly=p.y;
  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.save();if(S.hurt>.3&&SET.shake)ctx.translate((Math.random()-.5)*6,(Math.random()-.5)*6);
- bg(cx,cy);bgDecor(cx,cy,t);
+ drawGround(cx,cy,t);
  LT();for(const g of S.gem){const x=g.x-cx,y=g.y-cy;if(x<-20||y<-20||x>W+20||y>H+20)continue;gl('cy',x,y,13,.45)}NM();
- for(const g of S.gem){const x=g.x-cx,y=g.y-cy,q=g.v>=8?30:g.v>=3?22:18;ctx.drawImage(GEM,x-q/2,y-q/2+Math.sin(t*4+g.x)*1.5,q,q)}
+ for(const g of S.gem){const x=g.x-cx,y=g.y-cy;if(x<-20||y<-20||x>W+20||y>H+20)continue;const q=g.v>=8?30:g.v>=3?22:18;ctx.drawImage(GEM,x-q/2,y-q/2+Math.sin(t*4+g.x)*1.5,q,q)}
  drawChests(cx,cy,t);drawBeans(cx,cy,t);drawBalls(cx,cy,t);drawArrows(cx,cy);
- for(const e of S.en.slice().sort((a,b)=>a.y-b.y)){const x=e.x-cx,y=e.y-cy;if(x<-70||y<-70||x>W+70||y>H+70)continue;enemy(e,x,y)}
+ for(const e of S.en.slice().sort((a,b)=>a.y-b.y)){const x=e.x+(e.ox||0)-cx,y=e.y+(e.oy||0)-cy;if(x<-70||y<-70||x>W+70||y>H+70)continue;enemy(e,x,y)}
  drawNums(cx,cy);ctx.fillStyle='rgba(40,20,5,.32)';el(W/2,H/2+22,17,5);
  if(S.w.aura){const R=(50+10*WL('aura'))*(S.evo.aura?1.8:1)*AR2();
   {const g=ctx.createRadialGradient(W/2,H/2,R*.35,W/2,H/2,R*1.04);g.addColorStop(0,'rgba(255,70,30,0)');g.addColorStop(.8,'rgba(255,90,40,'+(.04+.02*Math.sin(t*9))+')');g.addColorStop(.95,'rgba(255,150,70,.22)');g.addColorStop(1,'rgba(255,140,60,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(W/2,H/2,R*1.04,0,7);ctx.fill()}
@@ -558,7 +574,10 @@ function draw(){
  for(const s of S.sh){const x=s.x-cx,y=s.y-cy,L=Math.hypot(s.vx,s.vy)||1;ctx.lineCap='round';ctx.strokeStyle='rgba(20,110,230,.55)';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s.vx/L*22,y-s.vy/L*22);ctx.stroke();ctx.strokeStyle='rgba(120,210,255,.8)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-s.vx/L*16,y-s.vy/L*16);ctx.stroke();
   ctx.fillStyle='#1f82f0';ctx.strokeStyle='#0a2f6a';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,6.5,0,7);ctx.fill();ctx.stroke()}
  LT();
- for(const s of S.sh){const x=s.x-cx,y=s.y-cy;for(let i=0;i<5;i++)gl('cy',x-s.vx*i*.012,y-s.vy*i*.012,10-i*1.4,.6-.1*i);gl('wh',x,y,7)}
+ // Ki Blast glow (2026-11-14): was a 5-sprite glowing trail + core per shot (6 additive sprites; ~200 a frame with an evolved
+ // Ki Blast, a big cost on phones). The painted streak above already draws the trail, so now: one head glow, one trail glow,
+ // the core, and nothing for shots off screen.
+ for(const s of S.sh){const x=s.x-cx,y=s.y-cy;if(x<-30||y<-30||x>W+30||y>H+30)continue;gl('cy',x,y,10,.6);gl('cy',x-s.vx*.03,y-s.vy*.03,8,.4);gl('wh',x,y,7)}
  NM();for(const b of S.eb){const x=b.x-cx,y=b.y-cy;if(x<-16||y<-16||x>W+16||y>H+16)continue;ctx.drawImage(ESHOT[b.g]||ESHOT.pu,x-12,y-12,24,24)}LT();
  for(const b of S.beams)drawBeam(b,t);
  drawFx(cx,cy);
@@ -619,7 +638,7 @@ Object.assign(INFO,{
 const EVO={
  kame:['Super Kamehameha','Three huge beams, fired far more often.','zen'],
  blast:['Ki Barrage','Rapid-fire piercing volleys.','cdr'],
- aura:['Kaioken x20','A giant fiery aura that heals you.','sen'],
+ aura:['Kaioken x20','A giant, fiercer fiery aura that burns everything around you.','sen'],
  disc:['Kienzan','Six giant discs shred everything.','spd'],
  bomb:['Super Spirit Bomb','Two giant, stronger Spirit Bombs, far more often.','rad'],
  flare:['Taiyoken Burst','Screen-wide flash that damages and blinds enemies, slowing them by 90%.','arm']};
@@ -744,16 +763,32 @@ function sfx(k){if(muted||!AC)return;if(AC.state!='running'){AC.resume();return}
  const P={hit:['square',300,120,.06,.035],pop:['triangle',260,90,.12,.07],gem:['sine',700,1100,.07,.04],hurt:['sawtooth',160,60,.2,.1],lvl:['square',440,880,.35,.07],ban:['sawtooth',110,70,.6,.09],boom:['sawtooth',120,30,.35,.1]}[k];
  const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type=P[0];
  o.frequency.setValueAtTime(P[1],n);o.frequency.exponentialRampToValueAtTime(P[2],n+P[3]);g.gain.setValueAtTime(P[4],n);g.gain.exponentialRampToValueAtTime(.001,n+P[3]);o.start(n);o.stop(n+P[3]+.02)}
+// Mob spacing stays exactly as it was (a gentle .08 push), so movement, contact damage and area hits are untouched.
+// Draw spread (2026-11-14): crowds collapsed into one blob on screen. Each step, every mob also works out how much it
+// overlaps its neighbours and eases its *drawn* position up to 7 px away from them. Only the picture moves: hits,
+// contact and targeting all still use the real position, so balance is unchanged. (A stronger real push was tried and
+// made crowds harder to kite through: the bot took ~1.5x the contact damage per second on Level 1.)
+let VIDN=0;
 function separate(){
  const g=new Map(),F=Math.floor;
  for(const e of S.en){if(e.dead||e.boss||e.line)continue;const k=F(e.x/28)+','+F(e.y/28);let a=g.get(k);if(!a)g.set(k,a=[]);a.push(e)}
- for(const e of S.en){if(e.dead||e.boss||e.line)continue;const cx=F(e.x/28),cy=F(e.y/28);
+ for(const e of S.en){if(e.dead||e.boss||e.line)continue;const cx=F(e.x/28),cy=F(e.y/28);let vx=0,vy=0;
   for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const a=g.get((cx+i)+','+(cy+j));if(!a)continue;
-   for(const o of a){if(o===e)continue;const dx=e.x-o.x,dy=e.y-o.y,d=Math.hypot(dx,dy)||.1,m=(e.r+o.r)*.8;if(d<m){const f=(m-d)*.08;e.x+=dx/d*f;e.y+=dy/d*f}}}}
+   for(const o of a){if(o===e)continue;const dx=e.x-o.x,dy=e.y-o.y,d=Math.hypot(dx,dy)||.1,m=(e.r+o.r)*.8;if(d<m){const f=(m-d)*.08;e.x+=dx/d*f;e.y+=dy/d*f}
+    const mv=e.r+o.r;if(d<mv){const w=(mv-d)/mv;if(d>.5){vx+=dx/d*w;vy+=dy/d*w}else{const a2=(e._vid??(e._vid=++VIDN))*2.4;vx+=Math.cos(a2)*w;vy+=Math.sin(a2)*w}}}}
+  let tx=vx*6,ty=vy*6;const tl=Math.hypot(tx,ty);if(tl>7){tx*=7/tl;ty*=7/tl}
+  e.ox=(e.ox||0)+(tx-(e.ox||0))*.15;e.oy=(e.oy||0)+(ty-(e.oy||0))*.15}
 }
+// Floating numbers (2026-11-14): outlined text was re-rendered for every number every frame (up to 40 strokeText+fillText,
+// slow on phones). Each text+colour is now rendered once into a small image at the screen's resolution and stamped.
+const NUMC={m:new Map(),q:0};
+function numImg(v,c){const q=Math.max(1,Math.min(3,DPR)),key=v+'|'+c+'|'+q;let im=NUMC.m.get(key);if(im)return im;
+ const f='bold 13px "Trebuchet MS",sans-serif';ctx.font=f;const w=Math.ceil(ctx.measureText(v).width)+8,h=20;
+ im=mk(Math.ceil(w*q),Math.ceil(h*q));const x=im.getContext('2d');x.scale(q,q);x.font=f;x.textAlign='center';x.textBaseline='alphabetic';x.lineJoin='round';x.lineWidth=3;
+ x.strokeStyle='rgba(30,10,0,.8)';x.strokeText(v,w/2,15);x.fillStyle=c;x.fillText(v,w/2,15);im._w=w;im._h=h;
+ if(NUMC.m.size>300)NUMC.m.clear();NUMC.m.set(key,im);return im}
 function drawNums(cx,cy){
- ctx.font='bold 13px "Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.lineJoin='round';ctx.lineWidth=3;ctx.strokeStyle='rgba(30,10,0,.8)';
- for(const n of S.nums){const x=n.x-cx,y=n.y-cy-(.6-n.l)*40;ctx.globalAlpha=Math.min(1,n.l*3);ctx.strokeText(n.v,x,y);ctx.fillStyle=n.c;ctx.fillText(n.v,x,y)}
+ for(const n of S.nums){const x=n.x-cx,y=n.y-cy-(.6-n.l)*40,im=numImg(String(n.v),n.c||'#fff');ctx.globalAlpha=Math.min(1,n.l*3);ctx.drawImage(im,x-im._w/2,y-15,im._w,im._h)}
  ctx.globalAlpha=1;
 }
 function drawArrows(cx,cy){
@@ -1774,10 +1809,15 @@ function drawSpr(e,x,y,f){
 // ---- Ground decor ----
 function blot(cx,cy,st){const G=380;for(let gx=Math.floor(cx/G)-1;gx<=(cx+W)/G+1;gx++)for(let gy=Math.floor(cy/G)-1;gy<=(cy+H)/G+1;gy++){const h=hash(gx+300,gy+9);if(h<.35)continue;const x=gx*G+hash(gy,gx+4)*G-cx,y=gy*G+hash(gx+2,gy+8)*G-cy,r=170+h*160,dk=h>.68,c=st==2?(dk?'12,70,60':'200,255,200'):(dk?'90,45,15':'255,225,160');
   const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba('+c+','+(dk?.2:.14)+')');g.addColorStop(1,'rgba('+c+',0)');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2)}}
+// BGM (2026-11-14): 0 draws everything (as before); 1 = only the static ground (painted once into cached tiles by bgc10.js);
+// 2 = only the animated glows, drawn live over those tiles every frame.
+let BGM=0;
+function drawGround(cx,cy,t){bg(cx,cy);bgDecor(cx,cy,t)}   // the ground layer; bgc10.js serves it from cached tiles
 function bgDecor(cx,cy,t){
- const G=150,st=S.stage||1;blot(cx,cy,st);ctx.lineJoin='round';ctx.strokeStyle=OL;ctx.lineWidth=1.6;
+ const G=150,st=S.stage||1;if(BGM!=2)blot(cx,cy,st);ctx.lineJoin='round';ctx.strokeStyle=OL;ctx.lineWidth=1.6;
  for(let gx=Math.floor(cx/G)-2;gx<=(cx+W)/G+1;gx++)for(let gy=Math.floor(cy/G)-2;gy<=(cy+H)/G+1;gy++){
   const h=hash(gx+91,gy+17),x=gx*G+hash(gy+3,gx)*G-cx,y=gy*G+hash(gx+11,gy+5)*G-cy;
+  if(BGM==2){if(st==1){if(h>=.11&&h<.19){LT();gl('or',x+Math.sin(gx*3)*6,y,13,.25+.12*Math.sin(t*3+gx));NM()}}else if(h>=.09&&h<.18){LT();gl('cy',x,y-12,12,.3+.15*Math.sin(t*2+gx));NM()}continue}
   if(st==1){
    if(h<.04){ctx.fillStyle='rgba(60,30,10,.28)';el(x+14,y+6,34,8);
     poly(ctx,[[x-17,y+4],[x-12,y-52],[x-6,y-60],[x+8,y-58],[x+14,y-46],[x+19,y+4]],'#a8703c');
@@ -1787,7 +1827,7 @@ function bgDecor(cx,cy,t){
     ctx.fillStyle='#1a0e08';ctx.beginPath();ctx.arc(x-3,y-2,1.9,0,7);ctx.arc(x+3,y-2,1.9,0,7);ctx.fill();ctx.fillRect(x-1,y+1,2,2);
     ctx.strokeStyle='#efe6cf';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(x+12,y+4);ctx.lineTo(x+26,y+1);ctx.moveTo(x+12,y+1);ctx.lineTo(x+24,y-3);ctx.stroke();ctx.strokeStyle=OL;ctx.lineWidth=1.6}
    else if(h<.19){ctx.fillStyle='rgba(40,18,6,.35)';el(x,y,30,11);ctx.fillStyle='rgba(30,12,4,.4)';el(x,y+1,20,7);
-    LT();gl('or',x+Math.sin(gx*3)*6,y,13,.25+.12*Math.sin(t*3+gx));NM()}
+    if(!BGM){LT();gl('or',x+Math.sin(gx*3)*6,y,13,.25+.12*Math.sin(t*3+gx));NM()}}
    else if(h<.3){for(let i=0;i<4;i++){const a=hash(gx+i,gy)*6.28,d=6+hash(gx,gy+i)*14,s=2.5+hash(gx+i,gy+i)*3;ctx.fillStyle='#7d6246';ctx.beginPath();ctx.ellipse(x+Math.cos(a)*d,y+Math.sin(a)*d*.6,s,s*.7,0,0,7);ctx.fill()}}
    else if(h<.37){ctx.fillStyle='rgba(60,30,10,.28)';el(x+10,y+4,24,6);ctx.lineCap='round';
     for(const[w,cl]of[[6.5,OL],[3.5,'#7a5636']]){ctx.lineWidth=w;ctx.strokeStyle=cl;ctx.beginPath();ctx.moveTo(x,y+4);ctx.quadraticCurveTo(x+3,y-22,x-3,y-40);ctx.moveTo(x+1,y-18);ctx.lineTo(x+16,y-34);ctx.moveTo(x,y-27);ctx.lineTo(x-14,y-42);ctx.moveTo(x-2,y-35);ctx.lineTo(x+6,y-52);ctx.stroke()}ctx.lineWidth=1.6;ctx.strokeStyle=OL}
@@ -1796,7 +1836,7 @@ function bgDecor(cx,cy,t){
    if(h<.09){ctx.fillStyle='rgba(10,50,40,.3)';el(x+4,y+8,26,7);
     for(const[a,b,r]of[[-10,0,11],[10,1,10],[0,-7,13],[-3,3,12]]){const g=ctx.createRadialGradient(x+a-3,y+b-4,1,x+a,y+b,r);g.addColorStop(0,'#58c88a');g.addColorStop(1,'#1f7a55');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x+a,y+b,r,0,7);ctx.fill();ctx.stroke()}}
    else if(h<.18){ctx.strokeStyle='#1f7a55';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+4);ctx.quadraticCurveTo(x+2,y-4,x,y-10);ctx.stroke();ctx.strokeStyle=OL;ctx.lineWidth=1.3;
-    LT();gl('cy',x,y-12,12,.3+.15*Math.sin(t*2+gx));NM();ctx.fillStyle='#d8f6ff';ctx.beginPath();ctx.arc(x,y-12,3.6,0,7);ctx.fill();ctx.stroke()}
+    if(!BGM){LT();gl('cy',x,y-12,12,.3+.15*Math.sin(t*2+gx));NM()}ctx.fillStyle='#d8f6ff';ctx.beginPath();ctx.arc(x,y-12,3.6,0,7);ctx.fill();ctx.stroke()}
    else if(h<.26){ctx.fillStyle='rgba(10,50,40,.3)';el(x,y+3,12,4);ctx.fillStyle='#8fc9a6';ctx.beginPath();ctx.ellipse(x,y,9,6,0,0,7);ctx.fill();ctx.stroke()}
    else if(h<.29){ctx.fillStyle='rgba(10,50,40,.3)';el(x+6,y+8,30,7);ctx.beginPath();ctx.ellipse(x,y,22,18,0,Math.PI,0);ctx.lineTo(x+22,y+8);ctx.lineTo(x-22,y+8);ctx.closePath();ctx.fillStyle='#e8f2e2';ctx.fill();ctx.stroke();ctx.fillStyle='rgba(60,110,90,.35)';ctx.fillRect(x+8,y-14,14,22);ctx.fillStyle='#2f5a50';ctx.beginPath();ctx.ellipse(x,y+2,6,8,0,Math.PI,0);ctx.lineTo(x+6,y+8);ctx.lineTo(x-6,y+8);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle='rgba(180,240,255,.8)';ctx.beginPath();ctx.arc(x-12,y-6,3,0,7);ctx.fill();ctx.stroke()}
   }
@@ -2424,7 +2464,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script src="perf9.js"></script><script src="death9.js"></script><script src="tune10.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script src="perf9.js"></script><script src="death9.js"></script><script src="tune10.js"></script><script src="bgc10.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
