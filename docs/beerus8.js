@@ -127,19 +127,22 @@ function earthTex(R) {
     x.save(); earthBlob(x, cx, cy, r, sd, .32); x.clip();
     x.fillStyle = 'rgba(214,180,110,.75)'; earthBlob(x, cx + r * .25, cy + r * .1, r * .45, sd + 3, .4); x.fill();   // desert
     x.fillStyle = 'rgba(30,80,34,.55)'; earthBlob(x, cx - r * .35, cy - r * .2, r * .38, sd + 5, .45); x.fill();     // forest
-    x.filter = 'blur(' + Math.max(1, r * .03) + 'px)'; x.strokeStyle = 'rgba(96,74,52,.45)'; x.lineWidth = r * .12; x.lineCap = 'round'; x.beginPath(); x.moveTo(cx - r * .45, cy + r * .25); x.quadraticCurveTo(cx, cy - r * .05 + Math.sin(sd) * r * .2, cx + r * .45, cy - r * .3); x.stroke();   // mountain range
-    x.strokeStyle = 'rgba(235,230,220,.35)'; x.lineWidth = r * .04; x.stroke(); x.filter = 'none';   // snowy peaks
+    { const L = mk(Math.ceil(r * 2.4), Math.ceil(r * 2.4)), lx = L.getContext('2d'), ox = cx - r * 1.2, oy = cy - r * 1.2;   // mountain ridge, softened (pxBlur: ctx.filter is ignored on iPhone)
+      lx.translate(-ox, -oy); lx.strokeStyle = 'rgba(96,74,52,.45)'; lx.lineWidth = r * .12; lx.lineCap = 'round'; lx.beginPath(); lx.moveTo(cx - r * .45, cy + r * .25); lx.quadraticCurveTo(cx, cy - r * .05 + Math.sin(sd) * r * .2, cx + r * .45, cy - r * .3); lx.stroke();
+      lx.strokeStyle = 'rgba(235,230,220,.35)'; lx.lineWidth = r * .04; lx.stroke();   // snowy peaks
+      x.drawImage(pxBlur(L, Math.max(1, r * .03)), ox, oy); }
     x.restore();
     x.strokeStyle = 'rgba(20,60,30,.5)'; x.lineWidth = R * .004; earthBlob(x, cx, cy, r, sd, .32); x.stroke(); }
   // a polar ice cap peeking over the top
   x.fillStyle = 'rgba(240,248,255,.85)'; earthBlob(x, C - R * .55, C - R * .86, R * .1, 3.3, .3); x.fill();   // a little Arctic island
   // clouds: soft swirls and long bands
-  x.filter = 'blur(' + Math.max(1.5, R * .012) + 'px)';
+  const xE = x;
+  { const L = mk(D, D), x = L.getContext('2d');   // drawn on their own layer and softened (pxBlur: ctx.filter is ignored on iPhone)
   for (let i = 0; i < 22; i++) { const a = i * 2.39, d = R * (.15 + .8 * ((i * 37) % 17) / 17), cx = C + Math.cos(a) * d, cy = C - Math.abs(Math.sin(a)) * d * .95, w = R * (.08 + .14 * ((i * 13) % 5) / 5);
     x.fillStyle = 'rgba(255,255,255,' + (.5 + .35 * ((i * 11) % 5) / 5) + ')';
     x.beginPath(); x.ellipse(cx, cy, w, w * .22, -.15 + .3 * Math.sin(i), 0, 7); x.fill();
     x.beginPath(); x.ellipse(cx + w * .55, cy - w * .1, w * .45, w * .14, .2, 0, 7); x.fill(); }
-  x.filter = 'none';
+  xE.drawImage(pxBlur(L, Math.max(1.5, R * .012)), 0, 0); }
   // sphere shading: lit from the top left, night side bottom right, darker at the limb
   g = x.createRadialGradient(C - R * .45, C - R * .55, R * .1, C - R * .1, C - R * .1, R * 1.25); g.addColorStop(0, 'rgba(255,255,255,.16)'); g.addColorStop(.45, 'rgba(0,0,0,0)'); g.addColorStop(.8, 'rgba(2,8,30,.45)'); g.addColorStop(1, 'rgba(0,4,20,.8)');
   x.fillStyle = g; x.fillRect(0, 0, D, D);

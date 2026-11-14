@@ -9,7 +9,7 @@
      Gohan   — a last flare of hidden rage that fizzles out
      Krillin — spun head over heels, seeing stars
      Trunks  — loses his sword, falls, and fades out in a time shimmer
-     Gotenks — the fusion pops and two little fighters tumble apart
+     Gotenks — the fusion pops and Goten and Kid Trunks tumble apart
    ===================================================================== */
 'use strict';
 
@@ -59,7 +59,8 @@ function dDust(x, y, n) { for (let i = 0; i < n; i++) { const s = (i % 2 ? 1 : -
 function dHero(c, x, y, o) {
   o = o || {}; const X = DTH_X;
   X.setTransform(1, 0, 0, 1, 0, 0); X.globalCompositeOperation = 'source-over'; X.globalAlpha = 1; X.clearRect(0, 0, 192, 192);
-  dthRaw(X, DTH_O.x, DTH_O.y, DTH.face, S.t);
+  if (o.as) { const h = S.hero, ss = S.ssj; S.hero = o.as; S.ssj = 0; try { dthRaw(X, DTH_O.x, DTH_O.y, DTH.face, S.t); } finally { S.hero = h; S.ssj = ss; } }   // borrow another hero's sheet
+  else dthRaw(X, DTH_O.x, DTH_O.y, DTH.face, S.t);
   if (o.tint) { X.globalCompositeOperation = 'source-atop'; X.globalAlpha = o.tintA == null ? .6 : o.tintA; X.fillStyle = o.tint; X.fillRect(0, 0, 192, 192); X.globalCompositeOperation = 'source-over'; X.globalAlpha = 1; }
   c.save(); c.translate(x + (o.dx || 0), y + DTH_FOOT + (o.dy || 0)); c.rotate(o.rot || 0); c.scale(o.sx || 1, o.sy || 1);
   c.globalAlpha = o.a == null ? 1 : dCl(o.a);
@@ -129,7 +130,8 @@ const DTH_POSE = {
     dCue('land', 1.2, () => { dDust(-48, DTH_FOOT, 7); dDust(48, DTH_FOOT, 7); dSfx('pop'); });
     dCue('poof', 1.55, () => { for (const s of [-1, 1]) for (let i = 0; i < 9; i++) dPart(s * 48 + dSh(30), DTH_FOOT - 10 + dSh(16), dSh(40), -20 - Math.random() * 30, .7, 9 + Math.random() * 6, 'rgba(235,235,240,', { dust: 1 }); dSfx('pop'); });
     if (fade >= 1) return;
-    for (const s of [-1, 1]) dHero(c, x, y, { dx: s * 48 * k, dy: air, sx: .64, sy: .64, rot: s * (Math.PI * 1.5 + Math.PI / 2) * k * (t < 1.2 ? 1 : 1), a: 1 - fade, tint: s < 0 ? '#ffb46a' : '#a6c8ff', tintA: .25 + .5 * fade });
+    // the fusion comes apart: Goten (drawn from Goku's sheet, kid-sized) one way, Kid Trunks (Trunks's sheet) the other
+    for (const s of [-1, 1]) dHero(c, x, y, { as: s * DTH.face < 0 ? 'goku' : 'trunks', dx: s * 48 * k, dy: air, sx: .62, sy: .62, rot: s * (Math.PI * 1.5 + Math.PI / 2) * k, a: 1 - fade, tint: '#ffffff', tintA: .6 * fade });
   },
 };
 

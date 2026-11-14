@@ -10,10 +10,42 @@ UNL_ICON.nballs = '🟠';
 // players who beat Frieza before this existed get it too
 { const _in = init; init = function () { _in(); if (typeof P != 'undefined' && P.ach && P.ach.s10 && P.unl && !P.unl.nballs) { P.unl.nballs = 1; try { saveProg(); } catch (e) { } } }; }
 
+/* ---------- pixel filters that work everywhere ----------
+   ctx.filter is ignored by iPhone Safari, so one-off images (ball tints, the Beerus Earth) are filtered by hand.
+   Both run once into cached canvases, never per frame. Also used by beerus8.js. */
+// CSS hue-rotate(deg) saturate(s) brightness(b), applied in that order like the CSS filter chain
+function pxTint(c, deg, sat, bri) {
+  const x = c.getContext('2d'), im = x.getImageData(0, 0, c.width, c.height), d = im.data;
+  const co = Math.cos(deg * Math.PI / 180), si = Math.sin(deg * Math.PI / 180), cl = v => v < 0 ? 0 : v > 255 ? 255 : v;
+  const H = [.213 + co * .787 - si * .213, .715 - co * .715 - si * .715, .072 - co * .072 + si * .928,
+    .213 - co * .213 + si * .143, .715 + co * .285 + si * .140, .072 - co * .072 - si * .283,
+    .213 - co * .213 - si * .787, .715 - co * .715 + si * .715, .072 + co * .928 + si * .072];
+  const s = sat, T = [.213 + .787 * s, .715 - .715 * s, .072 - .072 * s, .213 - .213 * s, .715 + .285 * s, .072 - .072 * s, .213 - .213 * s, .715 - .715 * s, .072 + .928 * s];
+  for (let i = 0; i < d.length; i += 4) { if (!d[i + 3]) continue; const r = d[i], g = d[i + 1], b = d[i + 2];
+    const r1 = cl(H[0] * r + H[1] * g + H[2] * b), g1 = cl(H[3] * r + H[4] * g + H[5] * b), b1 = cl(H[6] * r + H[7] * g + H[8] * b);
+    d[i] = cl((T[0] * r1 + T[1] * g1 + T[2] * b1) * bri); d[i + 1] = cl((T[3] * r1 + T[4] * g1 + T[5] * b1) * bri); d[i + 2] = cl((T[6] * r1 + T[7] * g1 + T[8] * b1) * bri); }
+  x.putImageData(im, 0, 0); return c;
+}
+// CSS blur(sigma px): three box passes each way, on premultiplied alpha so soft edges don't go dark
+function pxBlur(c, sigma) {
+  const w = c.width, h = c.height, n = w * h; if (!n || sigma < .4) return c;
+  const x = c.getContext('2d'), im = x.getImageData(0, 0, w, h), d = im.data, r = Math.max(1, Math.round((Math.sqrt(4 * sigma * sigma + 1) - 1) / 2)), k = 1 / (2 * r + 1);
+  const ch = [0, 1, 2, 3].map(() => new Float32Array(n)), tmp = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const a = d[i * 4 + 3], m = a / 255; ch[0][i] = d[i * 4] * m; ch[1][i] = d[i * 4 + 1] * m; ch[2][i] = d[i * 4 + 2] * m; ch[3][i] = a; }
+  const hb = (s, t) => { for (let y = 0; y < h; y++) { const o = y * w; let acc = 0; for (let i = 0; i <= r && i < w; i++) acc += s[o + i];
+      for (let i = 0; i < w; i++) { t[o + i] = acc * k; if (i + r + 1 < w) acc += s[o + i + r + 1]; if (i - r >= 0) acc -= s[o + i - r]; } } };
+  const vb = (s, t) => { for (let xx = 0; xx < w; xx++) { let acc = 0; for (let i = 0; i <= r && i < h; i++) acc += s[i * w + xx];
+      for (let i = 0; i < h; i++) { t[i * w + xx] = acc * k; if (i + r + 1 < h) acc += s[(i + r + 1) * w + xx]; if (i - r >= 0) acc -= s[(i - r) * w + xx]; } } };
+  for (const a of ch) for (let p = 0; p < 3; p++) { hb(a, tmp); vb(tmp, a); }
+  for (let i = 0; i < n; i++) { const a = ch[3][i]; if (a < .5) { d[i * 4 + 3] = 0; continue; } const u = 255 / a;
+    d[i * 4] = ch[0][i] * u; d[i * 4 + 1] = ch[1][i] * u; d[i * 4 + 2] = ch[2][i] * u; d[i * 4 + 3] = a; }
+  x.putImageData(im, 0, 0); return c;
+}
+
 // Namekian balls: bigger-feeling, deeper amber-red with a dark stone ring
 const OBALLS = BALLS.slice();
 const NBALLS = OBALLS.map(b => { const c = mk(b.width, b.height), x = c.getContext('2d'), w = b.width;
-  x.filter = 'hue-rotate(-22deg) saturate(1.45) brightness(.92)'; x.drawImage(b, 0, 0); x.filter = 'none';
+  x.drawImage(b, 0, 0); pxTint(c, -22, 1.45, .92);
   x.strokeStyle = 'rgba(60,30,10,.85)'; x.lineWidth = w * .05; x.beginPath(); x.arc(w / 2, w / 2, w * .44, 0, 7); x.stroke();
   x.strokeStyle = 'rgba(140,255,170,.55)'; x.lineWidth = w * .02; x.beginPath(); x.arc(w / 2, w / 2, w * .47, 0, 7); x.stroke(); return c; });
 const ballSet = n => { for (let i = 0; i < 7; i++) BALLS[i] = n ? NBALLS[i] : OBALLS[i]; };
