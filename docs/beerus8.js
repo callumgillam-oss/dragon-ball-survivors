@@ -100,18 +100,62 @@ function drawBeerusHand(c, x, y, s, flick) {
   c.strokeStyle = '#f0c040'; c.lineWidth = 6; c.beginPath(); c.moveTo(-15, 36); c.lineTo(15, 36); c.stroke();
   c.restore();
 }
+// The Earth, painted once into an offscreen canvas (cached per size): deep ocean, jagged continents in layered
+// greens with deserts and mountain ridges, swirling cloud bands, a night-side shadow and a glowing atmosphere.
+const EARTH8 = { R: 0, cv: null };
+function earthBlob(x, cx, cy, r, seed, rough) {   // an irregular coastline around (cx, cy)
+  x.beginPath();
+  for (let i = 0; i <= 64; i++) { const a = i / 64 * 6.2832;
+    const k = 1 + rough * (.45 * Math.sin(a * 3 + seed) + .28 * Math.sin(a * 5 + seed * 2.3) + .17 * Math.sin(a * 9 + seed * 4.1) + .1 * Math.sin(a * 17 + seed * 7.7));
+    const px = cx + Math.cos(a) * r * k, py = cy + Math.sin(a) * r * k * .82; i ? x.lineTo(px, py) : x.moveTo(px, py); }
+  x.closePath();
+}
+function earthTex(R) {
+  R = Math.round(R); if (EARTH8.cv && EARTH8.R == R) return EARTH8.cv;
+  const D = R * 2 + 8, cv = document.createElement('canvas'); cv.width = cv.height = D; const x = cv.getContext('2d'), C = D / 2;
+  x.save(); x.beginPath(); x.arc(C, C, R, 0, 7); x.clip();
+  // ocean: deep blue with lighter shallows near the lit side
+  let g = x.createRadialGradient(C - R * .35, C - R * .45, R * .05, C, C, R); g.addColorStop(0, '#4aa6f0'); g.addColorStop(.45, '#1f63b8'); g.addColorStop(1, '#082457'); x.fillStyle = g; x.fillRect(0, 0, D, D);
+  x.globalAlpha = .07; x.strokeStyle = '#9fd4ff'; x.lineWidth = R * .006; for (let i = 0; i < 26; i++) { x.beginPath(); x.ellipse(C, C - R * (.9 - i * .07), R * (.2 + i * .05), R * .02, 0, 0, 7); x.stroke(); } x.globalAlpha = 1;   // faint ocean swell
+  // continents: [centre u, v (fraction of R), size, seed]
+  const LAND = [[-.42, -.62, .3, 1.3], [.18, -.78, .22, 2.9], [.5, -.4, .24, 4.4], [-.7, -.18, .2, 6.1], [-.05, -.3, .16, 8.2], [.32, .05, .18, 9.7], [-.35, .25, .17, 11.3]];
+  for (const [u, v, sz, sd] of LAND) { const cx = C + u * R, cy = C + v * R, r = sz * R;
+    // shallow-water halo
+    x.fillStyle = 'rgba(110,200,230,.35)'; earthBlob(x, cx, cy, r * 1.12, sd, .32); x.fill();
+    g = x.createRadialGradient(cx - r * .3, cy - r * .3, r * .1, cx, cy, r * 1.2); g.addColorStop(0, '#5fb04e'); g.addColorStop(.6, '#3d8a3a'); g.addColorStop(1, '#2a6a2c');
+    x.fillStyle = g; earthBlob(x, cx, cy, r, sd, .32); x.fill();
+    x.save(); earthBlob(x, cx, cy, r, sd, .32); x.clip();
+    x.fillStyle = 'rgba(214,180,110,.75)'; earthBlob(x, cx + r * .25, cy + r * .1, r * .45, sd + 3, .4); x.fill();   // desert
+    x.fillStyle = 'rgba(30,80,34,.55)'; earthBlob(x, cx - r * .35, cy - r * .2, r * .38, sd + 5, .45); x.fill();     // forest
+    x.filter = 'blur(' + Math.max(1, r * .03) + 'px)'; x.strokeStyle = 'rgba(96,74,52,.45)'; x.lineWidth = r * .12; x.lineCap = 'round'; x.beginPath(); x.moveTo(cx - r * .45, cy + r * .25); x.quadraticCurveTo(cx, cy - r * .05 + Math.sin(sd) * r * .2, cx + r * .45, cy - r * .3); x.stroke();   // mountain range
+    x.strokeStyle = 'rgba(235,230,220,.35)'; x.lineWidth = r * .04; x.stroke(); x.filter = 'none';   // snowy peaks
+    x.restore();
+    x.strokeStyle = 'rgba(20,60,30,.5)'; x.lineWidth = R * .004; earthBlob(x, cx, cy, r, sd, .32); x.stroke(); }
+  // a polar ice cap peeking over the top
+  x.fillStyle = 'rgba(240,248,255,.85)'; earthBlob(x, C - R * .55, C - R * .86, R * .1, 3.3, .3); x.fill();   // a little Arctic island
+  // clouds: soft swirls and long bands
+  x.filter = 'blur(' + Math.max(1.5, R * .012) + 'px)';
+  for (let i = 0; i < 22; i++) { const a = i * 2.39, d = R * (.15 + .8 * ((i * 37) % 17) / 17), cx = C + Math.cos(a) * d, cy = C - Math.abs(Math.sin(a)) * d * .95, w = R * (.08 + .14 * ((i * 13) % 5) / 5);
+    x.fillStyle = 'rgba(255,255,255,' + (.5 + .35 * ((i * 11) % 5) / 5) + ')';
+    x.beginPath(); x.ellipse(cx, cy, w, w * .22, -.15 + .3 * Math.sin(i), 0, 7); x.fill();
+    x.beginPath(); x.ellipse(cx + w * .55, cy - w * .1, w * .45, w * .14, .2, 0, 7); x.fill(); }
+  x.filter = 'none';
+  // sphere shading: lit from the top left, night side bottom right, darker at the limb
+  g = x.createRadialGradient(C - R * .45, C - R * .55, R * .1, C - R * .1, C - R * .1, R * 1.25); g.addColorStop(0, 'rgba(255,255,255,.16)'); g.addColorStop(.45, 'rgba(0,0,0,0)'); g.addColorStop(.8, 'rgba(2,8,30,.45)'); g.addColorStop(1, 'rgba(0,4,20,.8)');
+  x.fillStyle = g; x.fillRect(0, 0, D, D);
+  g = x.createRadialGradient(C, C, R * .82, C, C, R); g.addColorStop(0, 'rgba(120,190,255,0)'); g.addColorStop(1, 'rgba(140,210,255,.45)'); x.fillStyle = g; x.fillRect(0, 0, D, D);   // atmospheric haze at the edge
+  x.restore();
+  EARTH8.R = R; EARTH8.cv = cv; return cv;
+}
 function drawEarth(c, x, y, R, crack) {
   c.save();
-  const g = c.createRadialGradient(x - R * .3, y - R * .4, R * .1, x, y, R); g.addColorStop(0, '#5fb4ff'); g.addColorStop(.7, '#1f5fb8'); g.addColorStop(1, '#0a2a66');
-  c.fillStyle = g; c.beginPath(); c.arc(x, y, R, 0, 7); c.fill();
-  c.save(); c.beginPath(); c.arc(x, y, R, 0, 7); c.clip(); c.fillStyle = '#3e9a4a';
-  for (const [u, v, a, b] of [[-.35, -.6, .28, .16], [.2, -.75, .22, .12], [.45, -.45, .18, .2], [-.6, -.25, .2, .14], [.05, -.35, .14, .09]]) { c.beginPath(); c.ellipse(x + u * R, y + v * R, a * R, b * R, u, 0, 7); c.fill(); }
-  c.fillStyle = 'rgba(255,255,255,.55)'; for (const [u, v, a] of [[-.1, -.85, .3], [.4, -.6, .2], [-.5, -.45, .22]]) { c.beginPath(); c.ellipse(x + u * R, y + v * R, a * R, a * R * .12, -.2, 0, 7); c.fill(); }
-  if (crack > 0) { c.strokeStyle = 'rgba(255,170,255,' + Math.min(1, crack * 1.4) + ')'; c.lineWidth = 3 + 5 * crack; c.lineCap = 'round';
+  // atmosphere glow around the planet
+  const ag = c.createRadialGradient(x, y, R * .97, x, y, R * 1.09); ag.addColorStop(0, 'rgba(120,200,255,.55)'); ag.addColorStop(1, 'rgba(60,140,255,0)'); c.fillStyle = ag; c.beginPath(); c.arc(x, y, R * 1.09, 0, 7); c.fill();
+  const tx = earthTex(R), h = tx.width / 2; c.drawImage(tx, x - h, y - h);
+  if (crack > 0) { c.save(); c.beginPath(); c.arc(x, y, R, 0, 7); c.clip(); c.strokeStyle = 'rgba(255,170,255,' + Math.min(1, crack * 1.4) + ')'; c.lineWidth = 3 + 5 * crack; c.lineCap = 'round';
     for (let i = 0; i < 9; i++) { const a = -Math.PI / 2 + (i - 4) * .32; let px = x, py = y - R; c.beginPath(); c.moveTo(px, py);
-      for (let j = 1; j <= 5; j++) { const d = R * .32 * j * crack; px = x + Math.cos(a + Math.sin(i * 7 + j) * .25) * d * 1.1; py = y - R + Math.abs(Math.sin(a)) * 0 + d * .9 * Math.abs(Math.cos((i - 4) * .2)); c.lineTo(px, py); } c.stroke(); } }
-  c.restore();
-  c.strokeStyle = 'rgba(140,200,255,.55)'; c.lineWidth = R * .03; c.beginPath(); c.arc(x, y, R * 1.01, 0, 7); c.stroke();
+      for (let j = 1; j <= 5; j++) { const d = R * .32 * j * crack; px = x + Math.cos(a + Math.sin(i * 7 + j) * .25) * d * 1.1; py = y - R + d * .9 * Math.abs(Math.cos((i - 4) * .2)); c.lineTo(px, py); } c.stroke(); }
+    c.restore(); }
   c.restore();
 }
 
