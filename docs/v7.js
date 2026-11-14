@@ -166,7 +166,9 @@ drawSpr = function (e, x, y, f) {
   ctx.save(); ctx.translate(x, y + m[1]); if (left) ctx.scale(-1, 1); ctx.scale(sc, sc);
   if (!moving && !still) { const b = Math.sin(S.t * 3.2 + (e.sd || 0) * 2), fy = g.h - g.oy; ctx.translate(0, fy); ctx.scale(1 - .012 * b, 1 + .03 * b); ctx.translate(0, -fy); }
   if (e.k == 'rap' && e.dash > 0) ctx.rotate(.18);
-  ctx.drawImage((e.k == 'fs' && e.tm < .5 ? SPR.fsA : SPR[e.k])[st][f ? 1 : 0][fr], -g.ox, -g.oy, g.w, g.h); ctx.restore();
+  // sprite sets exist for stages 1-2 only: Endless carries Level 1/2 mobs into Levels 3/4, which crashed here (2026-11-14)
+  const set = e.k == 'fs' && e.tm < .5 ? SPR.fsA : SPR[e.k], im = set[Math.min(st, set.length - 1)][f ? 1 : 0][fr];
+  ctx.drawImage(im, -g.ox, -g.oy, g.w, g.h); ctx.restore();
 };
 
 /* ---------- treasure chests get an off-screen arrow like Dragon Balls and Time Chambers ---------- */
