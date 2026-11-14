@@ -299,7 +299,7 @@ function update(dt){
  if(W_.kame){
   S.cd.kame-=dt;
   if(S.cd.kame<=0){
-   const L=W_.kame,ts=near(1,650);S.cd.kame=(S.evo.kame?2.4:Math.max(2.4,5.2-.55*L))*cm();
+   const L=W_.kame,ts=aimT('kame',near(1,650),650);S.cd.kame=(S.evo.kame?2.4:Math.max(2.4,5.2-.55*L))*cm();
    p.atk=p.ad=.55;if(ts.length)p.face=ts[0].x>p.x?1:-1;const a=ts.length?Math.atan2(ts[0].y-p.y,ts[0].x-p.x):(p.face>0?0:Math.PI);
    kameBeams(a,L);
    
@@ -1428,7 +1428,7 @@ const BP={kame:['rgba(30,120,255,','rgba(60,170,255,','cy'],sbc:['rgba(255,150,0
 function updHero(dt){
  const p=S.p,W_=S.w;
  if(W_.sbc){S.cd.sbc-=dt;
-  if(S.cd.sbc<=0){const L=W_.sbc,E=S.evo.sbc,ts=near(1,720);
+  if(S.cd.sbc<=0){const L=W_.sbc,E=S.evo.sbc,ts=aimT('sbc',near(1,720),720);
    if(!ts.length)S.cd.sbc=.2;
    else{S.cd.sbc=(E?1.3:Math.max(1.3,2.5-.25*L))*cm();
     p.atk=p.ad=.5;p.face=ts[0].x>p.x?1:-1;
@@ -2120,7 +2120,7 @@ function updNew(dt){
  for(const f of S.fields){DSRC=f.src||'bomb';f.t-=dt;f.k=(f.k||0)-dt;if(f.k<=0){f.k=.4;for(const e of S.en)if(!e.dead&&Math.hypot(e.x-f.x,e.y-f.y)<f.r+e.r)hitE(e,f.d)}}
  S.fields=S.fields.filter(f=>f.t>0);
  // Masenko: close-range cone
- if(W_.masenko){S.cd.masenko-=dt;if(S.cd.masenko<=0){const L=W_.masenko,E=ev.masenko,ts=near(1,300);
+ if(W_.masenko){S.cd.masenko-=dt;if(S.cd.masenko<=0){const L=W_.masenko,E=ev.masenko,ts=aimT('masenko',near(1,300),300);
   if(!ts.length)S.cd.masenko=.15;
   else{S.cd.masenko=(E?.85:Math.max(1.05,1.8-.15*L))*cm()*(S.hero=='gohan'?.9:1);p.atk=p.ad=.4;p.face=ts[0].x>p.x?1:-1;
    const a=Math.atan2(ts[0].y-p.y,ts[0].x-p.x),n=6+(L>=2)+(L>=3)+(L>=5)+PX()+(E?2:0),dir=[a];
@@ -2420,7 +2420,7 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="opt8.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>

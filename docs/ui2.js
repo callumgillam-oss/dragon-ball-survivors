@@ -155,6 +155,7 @@ hud = function () {
     if (ev) { LT(); gl('or', x0, y0, 24, .55 + .2 * Math.sin(S.t * 5)); NM(); }
     ctx.strokeStyle = ev ? '#ffe27a' : g == 'w' ? '#ff9a1f' : '#6ac8ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x0, y0, 16, 0, 7); ctx.stroke();
     ctx.drawImage(icn(k), x0 - 12, y0 - 12, 24, 24);
+    if (g == 'w' && typeof pot8Slot == 'function') pot8Slot(k, x0, y0);   // Potara earrings: fusion partners (opt8.js)
     if (ev) { ctx.fillStyle = '#ffe27a'; ctx.font = 'bold 11px ' + F; ctx.textAlign = 'center'; ctx.fillText('★', x0, y0 + 26); }
     else for (let i = 0; i < 5; i++) { ctx.fillStyle = i < l ? '#ffd27a' : 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.arc(x0 - 8 + i * 4, y0 + 21, 1.5, 0, 7); ctx.fill(); }
     ix += 38; if (ix > W - 100 - SI) { ix = m; iy -= 46; } }

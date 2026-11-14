@@ -45,7 +45,7 @@ const INF = () => (S.pe && S.pe.inf) || 0;
 function updW4(dt) {
   const p = S.p, W_ = S.w, ev = S.evo;
   // Shining Sword Attack: a quick flurry of slashes toward the nearest enemy, then a ki blast
-  if (W_.sword) { DSRC = 'sword'; S.cd.sword -= dt; if (S.cd.sword <= 0) { const L = W_.sword, E = ev.sword, M = MY('sword'), R = (78 + 6 * L) * AR() * (M ? 1.4 : 1), ts = near(1, R * 2.2);
+  if (W_.sword) { DSRC = 'sword'; S.cd.sword -= dt; if (S.cd.sword <= 0) { const L = W_.sword, E = ev.sword, M = MY('sword'), R = (78 + 6 * L) * AR() * (M ? 1.4 : 1), ts = aimT('sword', near(1, R * 2.2), R * 2.2);
     if (!ts.length) S.cd.sword = .2;
     else { S.cd.sword = (E ? 1 : Math.max(1.05, 1.7 - .12 * L)) * cm() * (S.hero == 'trunks' ? .85 : 1);
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (10 + 4.5 * WL('sword')) * dm() * W4B.sword, n = (E ? 5 : 3) + (PX() >> 1);

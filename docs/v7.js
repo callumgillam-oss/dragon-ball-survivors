@@ -344,5 +344,3 @@ const LP7 = { t: performance.now(), ts: -1, streak: 0, errN: 0, shown: '' };
   }; }
 setInterval(() => { if (!document.hidden && performance.now() - LP7.t > 1500) { LP7.t = performance.now(); requestAnimationFrame(loop); } }, 1000);
 
-// every script has loaded: the built-in game loop may start (see the boot watchdog in index.html)
-window.DBS_READY = 1;

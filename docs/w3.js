@@ -73,7 +73,7 @@ function updW3(dt) {
   const p = S.p, W_ = S.w, ev = S.evo;
 
   // Galick Gun: charge, then a beam that sweeps through the crowd (Final Flash: one colossal straight beam)
-  if (W_.galick) { DSRC = 'galick'; S.cd.galick -= dt; if (S.cd.galick <= 0) { const L = W_.galick, E = ev.galick, M = MY('galick'), a = denseDir(E ? 700 : 520, .5);
+  if (W_.galick) { DSRC = 'galick'; S.cd.galick -= dt; if (S.cd.galick <= 0) { const L = W_.galick, E = ev.galick, M = MY('galick'), a = aimA('galick', denseDir(E ? 700 : 520, .5), E ? 700 : 520);
     if (a === null) S.cd.galick = .3;
     else { S.cd.galick = (E ? 2.2 : Math.max(2, 3 - .25 * L)) * cm() * (S.hero == 'vegeta' ? .8 : 1); p.atk = p.ad = .5; p.face = Math.cos(a) > 0 ? 1 : -1;
       const arc = (E ? .75 + .08 * L : 1.2 + .14 * L) * (M ? 1.15 : 1), extra = PX() >> 1;   // Final Flash keeps the sweep, narrower
@@ -110,7 +110,7 @@ function updW3(dt) {
   S.wav = arr('wav').filter(w => !w.done);
 
   // Tri-Beam: a triangle zone on the crowd; each tick hits harder than the last
-  if (W_.tri) { DSRC = 'tri'; S.cd.tri -= dt; if (S.cd.tri <= 0) { const L = W_.tri, E = ev.tri, M = MY('tri'), c = denseSpot(420, 90);
+  if (W_.tri) { DSRC = 'tri'; S.cd.tri -= dt; if (S.cd.tri <= 0) { const L = W_.tri, E = ev.tri, M = MY('tri'), c = aimP('tri', denseSpot(420, 90), 420);
     if (!c) S.cd.tri = .3;
     else { S.cd.tri = (E ? 2.4 : Math.max(2, 3 - .2 * L)) * cm(); p.atk = p.ad = .4; p.face = c.x > p.x ? 1 : -1;
       const n = (E ? 3 : 1) + (PX() >> 1), s = (70 + 8 * WL('tri')) * AR2(), d = (3 + 1.2 * WL('tri')) * dm() * W3B.tri;

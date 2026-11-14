@@ -863,6 +863,12 @@ Players found it weak with little game feel. New loop, ABSORB then RELEASE (`BAR
 - Visuals: a charge arc fills around the rim, the dome shimmers as it nears full, the blast is a bold expanding ring with a flash, and while reforming a dashed outline closes back up.
 - Chasing-crowd test (80 Level 3 mobs, hero strafing): base L5 ≈3.4 kills/s, letting through ≈18 damage/s; evolved ≈6 kills/s, ≈8 damage/s. Other evolved attacks: 5.5–10 kills/s, 30–55 damage/s. The first draft (4 s hold, 0.8 s evolved reform) let through 0 damage, so it was shortened.
 
+### Options & readability pass (2026-11-14), new file docs/opt8.js (the last script; it sets DBS_READY)
+- **Settings → Targeting.** Aimed attacks can be set to Normal, Strongest (the enemy with the most health in reach) or Facing (fires the way you last moved). This covers Kamehameha, Galick Gun, Masenko, Special Beam Cannon, Tri-Beam, Shining Sword, Final Kamehameha and Father-Son Kamehameha. Homing, area and random attacks are excluded. Only unlocked attacks are listed, there's a "Default (reset all)" button, and the first visit shows a warning that this isn't the intended way to play ("it's your game, play how you want"). Wiring: `aimT`/`aimA`/`aimP` wrap each attack's `near()`/`denseDir`/`denseSpot` call; settings are stored in `SET.tgt`.
+- **Reduced flashing now covers additive light.** With Reduced on, 'lighter' blending on the main canvas becomes normal blending (glows no longer stack into a white or blue wash), `gl`/`softGlow` draw at 45% strength, and Solar Flare shows a soft ring instead of the screen-wide sunburst. Full is unchanged.
+- **Off-screen pointers.** A dark badge with a coloured rim, a bigger arrow, a pulse ring and the distance in a pill, kept clear of the attack slots and buttons. A compass of small chevrons circles the hero for each off-screen Dragon Ball and the Time Chamber.
+- **Potara earrings for fusions.** Each fusion has its own earring colour. Power-up cards say "Fuses with X → Fusion (both evolved)" when the fusion and the partner are unlocked. HUD slots wear the earring when you hold both partners, and it glows when the pair is ready to fuse.
+
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
 2. **Phase A ships now** as a 2.1 patch, before the big update. ✓

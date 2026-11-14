@@ -169,13 +169,13 @@ function updW5(dt) {
   // ---- fused attacks (damage x1 / x1.35 / x1.8 by tier, plus each tier's extra trick) ----
   const fm = k => FTM[FT(k)] * ((FB5[k] || [])[FT(k)] ?? 1);
   const beam = o => S.beams.push(Object.assign({ h: new Set(), fz: 1, tk: .22, src: DSRC }, o));
-  if (W_.fkame) { DSRC = 'fkame'; S.cd.fkame -= dt; if (S.cd.fkame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fkame = .2; else { const T = FT('fkame'); S.cd.fkame = 2.8 * cm();
+  if (W_.fkame) { DSRC = 'fkame'; S.cd.fkame -= dt; if (S.cd.fkame <= 0) { const ts = aimT('fkame', near(1, 900), 900); if (!ts.length) S.cd.fkame = .2; else { const T = FT('fkame'); S.cd.fkame = 2.8 * cm();
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (70 + 10 * WL('fkame')) * dm() * fm('fkame'); p.atk = p.ad = .9; p.face = Math.cos(a) > 0 ? 1 : -1;
       beam({ a: T ? a - .25 : a, t: 1.1, T: 1.1, w: 130 * AR2() * (T ? 1.2 : 1), len: 1200, d, pal: T == 2 ? 'fin2' : 'fin', kb: 30, clr: 1, rot: T ? .45 : 0, tm: fm('fkame') });
       if (T == 2) { for (const o of [-.5, .5]) beam({ a: a + o, t: .9, T: .9, w: 70 * AR2(), len: 1000, d: d * .4, pal: 'fin', kb: 20, tm: 1 }); S.fsw = { t: 1.1, d: d }; }
       sfxPlay('beam'); kick(6); } } }
   if (S.fsw) { DSRC = 'fkame'; S.fsw.t -= dt; if (S.fsw.t <= 0) { const R = 260 * AR2(); for (const e of S.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < R + e.r) { hitE(e, e.boss ? Math.min(S.fsw.d, e.max * .02) : S.fsw.d); shove(e, p.x, p.y, 70); } boom(p.x, p.y, R, '#fff2b0'); kick(12); S.fsw = null; } }
-  if (W_.fskame) { DSRC = 'fskame'; S.cd.fskame -= dt; if (S.cd.fskame <= 0) { const ts = near(1, 900); if (!ts.length) S.cd.fskame = .2; else { const T = FT('fskame'); S.cd.fskame = 2.2 * cm();
+  if (W_.fskame) { DSRC = 'fskame'; S.cd.fskame -= dt; if (S.cd.fskame <= 0) { const ts = aimT('fskame', near(1, 900), 900); if (!ts.length) S.cd.fskame = .2; else { const T = FT('fskame'); S.cd.fskame = 2.2 * cm();
       const a = Math.atan2(ts[0].y - p.y, ts[0].x - p.x), d = (52 + 8 * WL('fskame')) * dm() * fm('fskame'); p.atk = p.ad = .7; p.face = Math.cos(a) > 0 ? 1 : -1;
       for (const o of T ? [-.16, 0, .16] : [-.11, .11]) beam({ a: a + o, t: .85, T: .85, w: 76 * AR2(), len: 1050, d, pal: 'fs', kb: 22, tm: fm('fskame'), rot: T == 2 ? -o * .25 : 0 });
       if (T == 2) arr5('dsb').push({ x: ts[0].x, y: ts[0].y, t: .35, T: .9, R: 130 * AR2(), d: d * 2.5, fs: 1 });
