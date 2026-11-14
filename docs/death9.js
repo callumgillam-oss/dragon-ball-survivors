@@ -32,10 +32,13 @@ let dthRaw = null;   // the original sprite function
 
 function dthStart(fin) {
   const p = S.p; p.hp = 0; S.mode = 'dying'; S.ban = null; S.hurt = 0; S.flash = .7; joy = null;
-  p.mag = 0; p.atk = 0;
+  // time freezes while they fall, so settle the sprite first: a hero caught mid-turn would stay squeezed thin,
+  // and the attack frame it was blending out of would hang over the pose
+  const face = (p.face || 1) < 0 ? -1 : 1;
+  p.face = face; p.fs = face; p.mag = 0; p.sm = 0; p.atk = 0; p.row = 1; p.from = null;
   try { store.removeItem(RUNK); } catch (e) { }   // never resume a run from just before the KO
   const hero = DTH_T[S.hero] ? S.hero : 'goku';
-  DTH = { t: 0, last: performance.now(), hero, face: p.face || 1, fin, cue: {}, pt: [] };
+  DTH = { t: 0, last: performance.now(), hero, face, fin, cue: {}, pt: [] };
   try { sfxPlay('hurt'); } catch (e) { }
 }
 function dthFinish() {

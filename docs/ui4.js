@@ -23,8 +23,11 @@ function carDraw() {
       if (!sel && c._d) return; c._d = 1;
       x.clearRect(0, 0, c.width, c.height); const im = sheetOf(h, 0); if (!im) return;
       const row = 1, f = sel && !lk ? Math.floor(T * 8) % FRN[row] : 0;
-      x.save(); if (lk) x.filter = 'brightness(0)'; x.globalAlpha = lk ? .75 : 1;
-      const q = PCROP(im, 'full'); x.drawImage(im, f * HC + q[0], row * HC + q[1], q[2], q[3], 0, 0, c.width, c.height); x.restore();
+      x.save(); x.globalAlpha = lk ? .75 : 1;
+      const q = PCROP(im, 'full'); x.drawImage(im, f * HC + q[0], row * HC + q[1], q[2], q[3], 0, 0, c.width, c.height);
+      // locked: paint the sprite's own pixels black (ctx.filter does nothing on iPhone Safari)
+      if (lk) { x.globalAlpha = 1; x.globalCompositeOperation = 'source-atop'; x.fillStyle = '#000'; x.fillRect(0, 0, c.width, c.height); }
+      x.restore();
       if (lk) { x.fillStyle = 'rgba(255,210,122,.9)'; x.font = '800 ' + (c.width * .3 | 0) + 'px system-ui,sans-serif'; x.textAlign = 'center'; x.fillText('?', c.width / 2, c.height * .62); } });
     CAR.raf = requestAnimationFrame(step);
   };

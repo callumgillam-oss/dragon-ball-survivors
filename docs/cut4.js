@@ -132,8 +132,8 @@ function drawBossCut() {
     if (age < .06) { ctx.fillStyle = `rgba(230,220,255,${.25 * FLM()})`; ctx.fillRect(0, 0, W, H); } }
   // the boss: a silhouette until the reveal
   ctx.save(); ctx.translate(bx + (rev ? 0 : (Math.random() - .5) * 2.5), by); ctx.scale(Z, Z);
-  if (fin && !rev) ctx.filter = 'brightness(0)';
-  enemy(e, 0, 0); ctx.filter = 'none'; ctx.restore();
+  if (fin && !rev) silhouette(() => enemy(e, 0, 0)); else enemy(e, 0, 0);
+  ctx.restore();
   if (fin && !rev) { LT(); gl('wh', bx, by - e.r * Z * .9, 6 * Z, .9); NM(); }   // glowing eyes in the dark
   // reveal: shockwave + flash
   const rt = fin ? 3 : 1.4, ra = t - rt;
@@ -193,3 +193,16 @@ cv.addEventListener('pointerdown', () => { if (S.mode == 'play' && (V2.bc || V2.
 // capture phase: while a cutscene plays, Space/Enter/Esc skip it and never reach the Ki Burst / pause handlers
 addEventListener('keydown', e => { if (S.mode != 'play' || !(V2.bc || V2.sc)) return; if (e.key == ' ' || e.key == 'Enter' || e.key == 'Escape' || e.key == 'e' || e.key == 'E' || e.key == 'p' || e.key == 'P') { e.preventDefault(); e.stopImmediatePropagation(); cutSkip(); } }, true);
 { const _uf = ultFire; ultFire = function () { if (V2.bc || V2.sc) return; return _uf(); }; }
+
+// Draws whatever fn paints as a solid black silhouette. ctx.filter does nothing on iPhone Safari, so instead:
+// park the frame so far, paint fn onto a clear canvas, black out its pixels, then put the frame back behind it.
+const SIL_B = mk(1, 1);
+function silhouette(fn) {
+  if (SIL_B.width != cv.width || SIL_B.height != cv.height) { SIL_B.width = cv.width; SIL_B.height = cv.height; }
+  const b = SIL_B.getContext('2d'); b.clearRect(0, 0, SIL_B.width, SIL_B.height); b.drawImage(cv, 0, 0);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.restore();
+  fn();
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.globalCompositeOperation = 'destination-over'; ctx.drawImage(SIL_B, 0, 0); ctx.restore();
+}
