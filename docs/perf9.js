@@ -121,3 +121,33 @@ const FPS9 = { next: 0, n: 0, t0: 0, fps: 0, dms: 0, dsum: 0 };
 @keyframes pair9{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
 @media (prefers-reduced-motion:reduce){.up.r4::before,.up.r5::before,.card .up.pair7::after{animation:none!important;transform:none}}`;
   document.head.append(st); }
+
+// FPS counter: off by default. It isn't saved on unless you turn it on, but anyone who switched it on while testing gets
+// it switched off once with this update (2026-11-14).
+if (!SET.fps9d) { SET.fpsShow = false; SET.fps9d = 1; try { saveSet(); } catch (e) { } }
+
+/* ---------- 2026-11-14: crisp heroes when drawn big ----------
+   Hero sheets are painted from vector art at 256 px per frame. In gameplay a frame is shown at ~92 px (276 device px on a
+   3x phone: fine), but the level intros, King Kai, Super Saiyan and transformation cutscenes draw it 2-3x larger, which
+   upscaled the bitmap and looked soft. Every sheet remembers how it was painted; when a frame would be drawn more than
+   ~15% larger than its cell, that single frame is repainted from the vector art at the needed resolution (cached). */
+const HIC = { m: new Map() };
+{ const _p = paintSheet; paintSheet = function (cv, pal, ssj) { cv._pal = pal; cv._ssj = ssj; return _p(cv, pal, ssj); }; }
+function heroCell(im, row, f, s) {
+  const key = im._hid || (im._hid = 'h' + Math.random().toString(36).slice(2)), k = key + '|' + row + '|' + f + '|' + s;
+  let c = HIC.m.get(k); if (c) return c;
+  const N = Math.round(HC * s); c = mk(N, N); const x = c.getContext('2d'), keep = PAL;
+  try { PAL = im._pal; x.setTransform(s, 0, 0, s, 0, 0); x.translate(HOX, HOY); x.scale(HK, HK); gokuBody(x, poseFor(row, f), im._ssj); } finally { PAL = keep; }
+  if (HIC.m.size > 48) HIC.m.delete(HIC.m.keys().next().value);   // keep the newest ~48 frames
+  HIC.m.set(k, c); return c;
+}
+{ const _di = ctx.drawImage; ctx.drawImage = function (im, sx, sy, sw, sh, dx, dy, dw, dh) {
+    if (arguments.length == 9 && im && im._pal && sw == HC && sh == HC && SET.hiHero !== false) {
+      const m = this.getTransform(), dev = Math.abs(dw) * Math.hypot(m.a, m.b);
+      if (dev > HC * 1.15) { const row = Math.round(sy / HC), f = Math.round(sx / HC), s = Math.min(3, Math.ceil(dev / HC * 2) / 2);
+        if (row >= 0 && row < 4 && f >= 0 && f < FRN[row]) return _di.call(this, heroCell(im, row, f, s), 0, 0, HC * s, HC * s, dx, dy, dw, dh); } }
+    return _di.apply(this, arguments);
+  }; }
+// sheets painted before this file loaded
+for (const [c, pal, ss] of [[GSHEET, PALS.goku, 0], [typeof GSSJ != 'undefined' && GSSJ, PALS.goku, 1], [PSHEET, PALS.pic, 0], [PSSJ, PALS.pico, 1], [HSHEET, PALS.gohan, 0], [HSSJ, PALS.gohan, 1]])
+  if (c && !c._pal) { c._pal = pal; c._ssj = ss; }

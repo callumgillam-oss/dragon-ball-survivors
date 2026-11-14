@@ -224,7 +224,7 @@ function updW5(dt) {
           hitE(e, e.boss ? Math.min(d * KWF.dash, e.max * .008) : d * KWF.dash);
           { const BR = KWF.br[T] * AR2(), bd = d * (T == 2 ? 1.2 : KWF.burst); for (const o of S.en) if (!o.dead && o !== e && Math.hypot(o.x - e.x, o.y - e.y) < BR + o.r) hitE(o, o.boss ? Math.min(bd, o.max * .004) : bd);
             if (T == 2 || i < 4) boom(e.x, e.y, BR, '#ff8a3a'); else arr5('kwb').push({ x: e.x, y: e.y, R: BR, t: -i * .04 }); } }
-        if (T) p.hp = Math.min(p.max, p.hp + 1 + ts.length * .3); sfxPlay('dash'); } } }
+        if (T) p.hp = Math.min(p.max, p.hp + .5 + ts.length * .15); sfxPlay('dash'); } } }   // wished heal ~2 HP/s (was ~4, 2026-11-14)
   for (const s of arr5('kws')) s.t += dt; S.kws = arr5('kws').filter(s => s.t < s.l);
   for (const b of arr5('kwb')) b.t += dt; S.kwb = arr5('kwb').filter(b => b.t < .3);
   // Sweet Ghost Parade: candy ghosts (and at two wishes, a giant one that sweeps the screen)

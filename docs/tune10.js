@@ -12,3 +12,10 @@
 WB.hellE *= .7;
 // Android Barrier (and Perfect Barrier): -20% on both the rim drain and the blast
 W4B.barrier = .8;
+
+// Senzu Bean drops (2026-11-14): Levels 3-4 drop a bean on ~2% of ordinary kills, so a strong build killing 30+ enemies a
+// second ate ~34 beans (30% heal each) a minute and was effectively unkillable. Ordinary kills can now drop at most one bean
+// every 12 s. Elites and bosses still always drop one, and the low-HP safety bean still comes.
+{ const _bd = beanDrop; beanDrop = function (e) {
+    if (!e.boss && !e.elite && S.t - (S.beanRT ?? -99) < 12) return false;
+    const r = _bd(e); if (r && !e.boss && !e.elite) S.beanRT = S.t; return r; }; }
