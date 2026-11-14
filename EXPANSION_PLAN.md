@@ -869,6 +869,14 @@ Players found it weak with little game feel. New loop, ABSORB then RELEASE (`BAR
 - **Off-screen pointers.** A dark badge with a coloured rim, a bigger arrow, a pulse ring and the distance in a pill, kept clear of the attack slots and buttons. A compass of small chevrons circles the hero for each off-screen Dragon Ball and the Time Chamber.
 - **Potara earrings for fusions.** Each fusion has its own earring colour. Power-up cards say "Fuses with X → Fusion (both evolved)" when the fusion and the partner are unlocked. HUD slots wear the earring when you hold both partners, and it glows when the pair is ready to fuse.
 
+### Time limit: Beerus (2026-11-14), new file docs/beerus8.js
+- Story runs end at 20:00 (not in Endless). At 19:00 a "HURRY! YOU ARE RUNNING OUT OF TIME!" banner appears, and a "TIME LEFT" countdown pill sits top-right under the run clock and the Dragon Ball tracker; it was first placed top-centre, but up to three rows of boss bars stack there. It pulses red in the last 10 s.
+- At 20:00 the battle freezes and a cutscene plays (`S.mode = 'bcut'`, about 9.8 s). The sky turns black, a purple light flickers and grows, then a close-up of Beerus (gaunt, bored, drawn on canvas) looming behind the Earth: "You ants bore me." He flicks a ki orb into the planet; flash, cracks, shockwave, debris, then "YOU RAN OUT OF TIME".
+- Then the end screen shows "OUT OF TIME — Beerus got bored and destroyed the Earth. Defeat the final boss before 20:00." It doesn't count as a death (no revive, no death achievements). The flashes respect Reduced flashing.
+- Fairness: the final bosses are scheduled at 6:00 (Vegeta), 7:30 (Cell, Buu) and 8:00 (Frieza), and earlier bosses delay later ones by at most 75–90 s, so a normal run finishes in about 8–13 minutes. Reaching 20:00 means about 10 minutes stuck on the final boss.
+- Secret achievement "Hakai" (hint: "Some gods hate waiting."), +500 Zeni.
+- Debug: set `V2.bc.fix` to pin the scene clock for screenshots.
+
 ## 13. Decisions (answered 2026-11-12)
 1. "Dragon scouter" = the **Dragon Radar** passive. ✓
 2. **Phase A ships now** as a 2.1 patch, before the big update. ✓
