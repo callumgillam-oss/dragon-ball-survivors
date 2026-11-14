@@ -83,33 +83,65 @@ if (typeof softGlow == 'function') { const _s = softGlow; softGlow = function (r
     for (const f of rays) { const k = f.t / f.T; ctx.strokeStyle = 'rgba(255,250,220,' + .45 * (1 - k) + ')'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(W / 2, H / 2, 40 + Math.max(W, H) * .35 * k, 0, 7); ctx.stroke(); }
   }; }
 
-/* ---------- 3) pointers that stand out over a crowd ---------- */
-// A dark badge with a coloured rim, a bigger arrow, the icon, and the distance in a pill, plus a slow pulse ring.
+/* ---------- 3) off-screen pointers: readable, but out of the way ---------- */
+// Every pointer call is queued, then all of them are laid out and drawn together at the end of the frame:
+//  · each sits on the screen edge exactly in its target's direction, hugging the edge (label on the inner side)
+//  · pointers that would overlap are spread apart along the edge (Dragon Balls first, then the Time Chamber, then chests)
+//  · chests get a compact badge (icon only), Dragon Balls / Time Chamber the full one with the distance
+//  · a badge fades to 65% when an enemy or your hero is right next to it; everything scales down on small screens
+const PQ8 = [];
 edgePointer = function (wx, wy, label, glow, fill, icon) {
   const p = S.p, x = wx - p.x + W / 2, y = wy - p.y + H / 2;
   if (x > -40 && y > -40 && x < W + 40 && y < H + 40) return;
-  // Slide along the ray from the hero (screen centre) towards the target until it meets the safe frame, so the badge
-  // sits exactly in the target's direction. (It used to project 1000 px and clamp x and y separately, which on a
-  // wide screen pushed a ball that was mostly below you far off to one side.)
-  const a = Math.atan2(y - H / 2, x - W / 2), dx = Math.cos(a), dy = Math.sin(a), cx = W / 2, cy = H / 2;
-  const hit = ymax => { const k = Math.min(dx > 0 ? (W - 70 - cx) / dx : dx < 0 ? (70 - cx) / dx : 1e9, dy > 0 ? (ymax - cy) / dy : dy < 0 ? (ST + 120 - cy) / dy : 1e9); return [cx + dx * k, cy + dy * k]; };
-  let [ex, ey] = hit(H - 70);
-  const btnSide = SET.hand == 'left' ? ex < 140 : ex > W - 140, slotSide = SET.hand == 'left' ? ex > W * .45 : ex < W * .55;   // keep clear of the buttons and attack slots
-  const ylim = btnSide ? H - 250 - SB : slotSide ? H - 120 - SB : H - 70; if (ey > ylim) [ex, ey] = hit(ylim);
-  const d = Math.round(Math.hypot(wx - p.x, wy - p.y) / 10), u = (S.t * .8) % 1;
-  ctx.save(); ctx.translate(ex, ey);
-  ctx.strokeStyle = fill; ctx.globalAlpha = .7 * (1 - u); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 21 + 14 * u, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
-  ctx.fillStyle = 'rgba(14,7,2,.86)'; ctx.beginPath(); ctx.arc(0, 0, 21, 0, 7); ctx.fill(); ctx.lineWidth = 3; ctx.stroke();
-  ctx.save(); ctx.rotate(a); ctx.fillStyle = fill; ctx.strokeStyle = 'rgba(14,7,2,.95)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(40, 0); ctx.lineTo(24, -11); ctx.lineTo(24, 11); ctx.closePath(); ctx.stroke(); ctx.fill(); ctx.restore();
-  if (icon) ctx.drawImage(icon, -13, -13, 26, 26); else { ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(0, 0, 7, 0, 7); ctx.fill(); }
-  const tx = label + ' ' + d + 'm'; ctx.font = 'bold 11px "Trebuchet MS",sans-serif'; const tw = ctx.measureText(tx).width + 14;
-  ctx.fillStyle = 'rgba(14,7,2,.86)'; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(-tw / 2, 25, tw, 17, 8.5); else ctx.rect(-tw / 2, 25, tw, 17); ctx.fill(); ctx.strokeStyle = fill; ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.fillStyle = fill; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(tx, 0, 34); ctx.textBaseline = 'alphabetic';
-  ctx.restore();
+  PQ8.push({ wx, wy, label, fill, icon, small: label == 'CHEST', pr: label == 'CHEST' ? 2 : label == 'TIME CHAMBER' ? 1 : 0 });
 };
+function layoutPointers8() {
+  if (!PQ8.length) return;
+  const q = PQ8.splice(0).sort((a, b) => a.pr - b.pr); if (S.mode != 'play') return;
+  const p = S.p, sc = Math.max(.72, Math.min(1, Math.min(W, H) / 520)), cx = W / 2, cy = H / 2, placed = [];
+  const top = ST + 108 * sc, bot = H - 30 * sc;
+  for (const o of q) {
+    const r = (o.small ? 15 : 20) * sc, m = r + 12 * sc;   // margin from the screen edge
+    const a = Math.atan2(o.wy - p.y, o.wx - p.x), dx = Math.cos(a), dy = Math.sin(a);
+    const frame = ymax => { const kx = dx > 0 ? (W - m - cx) / dx : dx < 0 ? (m - cx) / dx : 1e9, ky = dy > 0 ? (ymax - cy) / dy : dy < 0 ? (top - cy) / dy : 1e9;
+      const k = Math.min(kx, ky); return [cx + dx * k, cy + dy * k, kx <= ky ? 'v' : 'h']; };   // 'v' = on a side edge, 'h' = top/bottom
+    let [x, y, e] = frame(bot);
+    const btnSide = SET.hand == 'left' ? x < 140 : x > W - 140, slotSide = SET.hand == 'left' ? x > W * .45 : x < W * .55;   // keep clear of buttons / attack slots
+    const ylim = btnSide ? H - 250 - SB : slotSide ? H - 112 - SB : bot; if (y > ylim) [x, y, e] = frame(ylim);
+    // spread apart along the edge if another pointer is already there
+    const need = (o2, x_, y_) => Math.hypot(o2.x - x_, o2.y - y_) < o2.r + r + (o.small || o2.small ? 8 : 34) * sc;
+    for (let n = 1; n < 9 && placed.some(o2 => need(o2, x, y)); n++) {
+      const step = (2 * r + 10 * sc) * Math.ceil(n / 2) * (n % 2 ? 1 : -1);
+      const [bx, by] = frame(Math.min(ylim, bot)); x = e == 'v' ? bx : bx + step; y = e == 'v' ? by + step : by;
+      x = Math.max(m, Math.min(W - m, x)); y = Math.max(top, Math.min(ylim, y)); }
+    // fade when something is right next to it
+    let near = Math.hypot(x - cx, y - cy) < 90 * sc;
+    if (!near) for (const en of S.en) { if (en.dead) continue; const sx = en.x - p.x + cx, sy = en.y - p.y + cy; if (Math.abs(sx - x) < r + 26 && Math.abs(sy - y) < r + 26) { near = true; break; } }
+    const d = Math.round(Math.hypot(o.wx - p.x, o.wy - p.y) / 10);
+    placed.push(Object.assign(o, { x, y, r, e, a, al: near ? .65 : 1, d }));
+  }
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  for (const o of placed) drawPointer8(o, sc);
+  ctx.restore();
+}
+function drawPointer8(o, sc) {
+  const { x, y, r, a, fill } = o, u = (S.t * .8) % 1;
+  ctx.save(); ctx.globalAlpha = o.al; ctx.translate(x, y);
+  if (!o.small) { ctx.strokeStyle = fill; ctx.globalAlpha = o.al * .6 * (1 - u); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, r + 10 * u * sc, 0, 7); ctx.stroke(); ctx.globalAlpha = o.al; }
+  ctx.fillStyle = 'rgba(14,7,2,.86)'; ctx.strokeStyle = fill; ctx.lineWidth = o.small ? 2 : 2.6; ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.save(); ctx.rotate(a); ctx.fillStyle = fill; ctx.strokeStyle = 'rgba(14,7,2,.95)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(r + 10 * sc, 0); ctx.lineTo(r + 1, -7 * sc); ctx.lineTo(r + 1, 7 * sc); ctx.closePath(); ctx.stroke(); ctx.fill(); ctx.restore();
+  const is = r * 1.25; if (o.icon) ctx.drawImage(o.icon, -is / 2, -is / 2, is, is); else { ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(0, 0, r * .35, 0, 7); ctx.fill(); }
+  if (!o.small) {   // label on the side facing the middle of the screen
+    const tx = (o.label == 'TIME CHAMBER' ? 'CHAMBER' : o.label.replace('NAMEKIAN ', '').replace('DRAGON ', '')) + ' ' + o.d + 'm';
+    ctx.font = 'bold ' + Math.round(11 * sc) + 'px "Trebuchet MS",sans-serif'; const tw = ctx.measureText(tx).width + 12 * sc, th = 16 * sc;
+    let lx, ly; if (o.e == 'v') { lx = x < W / 2 ? r + 4 : -r - 4 - tw; ly = -th / 2; } else { lx = -tw / 2; ly = y < H / 2 ? r + 4 : -r - 4 - th; }
+    lx = Math.max(4 - x, Math.min(W - 4 - x - tw, lx));   // stay on screen
+    ctx.fillStyle = 'rgba(14,7,2,.86)'; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(lx, ly, tw, th, th / 2); else ctx.rect(lx, ly, tw, th); ctx.fill(); ctx.strokeStyle = fill; ctx.lineWidth = 1.3; ctx.stroke();
+    ctx.fillStyle = fill; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(tx, lx + tw / 2, ly + th / 2 + .5); ctx.textBaseline = 'alphabetic'; }
+  ctx.restore();
+}
 drawChamberPointer = function () {
-  const s = S.shr; if (!s || S.mode != 'play') return;
-  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); edgePointer(s.x, s.y, 'TIME CHAMBER', 'cy', '#9fe8ff', null); ctx.restore();
+  const s = S.shr; if (!s || S.mode != 'play') return; edgePointer(s.x, s.y, 'TIME CHAMBER', 'cy', '#9fe8ff', null);
 };
 // compass: small coloured chevrons circling the hero, pointing at each off-screen Dragon Ball / Time Chamber
 function compass8() {
@@ -124,7 +156,7 @@ function compass8() {
     ctx.fillStyle = c; ctx.strokeStyle = 'rgba(14,7,2,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-5, -7); ctx.lineTo(-2, 0); ctx.lineTo(-5, 7); ctx.closePath(); ctx.stroke(); ctx.fill(); ctx.restore(); }
   ctx.restore();
 }
-{ const _d = draw; draw = function () { _d(); try { compass8(); } catch (e) { } }; }
+{ const _d = draw; draw = function () { _d(); try { compass8(); layoutPointers8(); } catch (e) { PQ8.length = 0; } }; }
 
 /* ---------- 4) Potara earrings: which attacks fuse ---------- */
 // Every fusion has its own earring colour. Two attacks wearing the same colour fuse together once both are evolved.
