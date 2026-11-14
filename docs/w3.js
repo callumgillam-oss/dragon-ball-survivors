@@ -85,7 +85,7 @@ function updW3(dt) {
     if (b.ch > 0) { b.ch -= dt; if (b.ch <= 0) sfx('galfire'); continue; }
     b.t += dt; const k = Math.min(1, b.t / b.T), a = b.a0 + (b.a1 - b.a0) * (b.back == 2 ? 1 - k : k); b.a = a;
     for (const e of S.en) { if (e.dead || b.h.has(e) || !onScr(e)) continue;
-      if (lineHit(p.x, p.y, a, b.len, b.w, e)) { b.h.add(e); hitE(e, b.fin ? bossCap(b.d, e, .5) : bossCap(b.d, e, .8)); if (b.fin) shove(e, p.x, p.y, 40); } }
+      if (lineHit(p.x, p.y, a, b.len, b.w, e)) { b.h.add(e); hitE(e, b.fin ? bossCap(b.d, e, 1) : bossCap(b.d, e, .8)); /* Final Flash vs bosses .5 -> 1 (2026-11-14 audit: 8 dmg/s on a boss) */ if (b.fin) shove(e, p.x, p.y, 40); } }
     if (k >= 1) { if (b.back == 1) { b.back = 2; b.t = 0; b.h = new Set(); } else b.done = 1; }
   }
   S.gal = arr('gal').filter(b => !b.done);
@@ -96,14 +96,14 @@ function updW3(dt) {
     else { S.cd.wave = (E ? 2.2 : Math.max(2.6, 4.2 - .3 * L)) * cm(); p.atk = p.ad = .35;
       // A slow pulse (feedback 2026-11-13): rolls outwards at a walking-pace speed and loses 10% of its power on every enemy it
       // passes through (a boss soaks 40%), fading out once spent, so it thins a crowd instead of wiping the whole screen.
-      const R = (110 + 12 * WL('wave')) * AR2() * (E ? 1.25 : 1), d = (14 + 6 * WL('wave')) * dm() * W3B.wave * (E ? 1.3 : 1) * (M ? .9 : 1), n = (E ? 2 : 1) + (M ? 1 : 0);
-      for (let i = 0; i < n; i++) { const Ri = R * (1 + i * .18); arr('wav').push({ x: p.x, y: p.y, R: Ri, d, pw: 1, dl: i * .35, t: 0, T: Ri / WAVE_SPD, h: new Set(), st: E ? .8 : 0, kb: E ? 42 : M ? 36 : 95, clr: M }); }   // pushes further (2026-11-14): base 60 → 95, evolved 16 → 42, mythic 12 → 36
+      const R = (110 + 12 * WL('wave')) * AR2() * (E ? 1.25 : 1), d = (14 + 6 * WL('wave')) * dm() * W3B.wave * (E ? 3.2 : 1) * (M ? .9 : 1), n = (E ? 2 : 1) + (M ? 1 : 0);
+      for (let i = 0; i < n; i++) { const Ri = R * (1 + i * .18); arr('wav').push({ x: p.x, y: p.y, R: Ri, d, pw: 1, dk: E ? .965 : .93, dl: i * .35, t: 0, T: Ri / WAVE_SPD, h: new Set(), st: E ? .8 : 0, kb: E ? 42 : M ? 36 : 95, clr: M }); }   // pushes further (2026-11-14): base 60 → 95, evolved 16 → 42, mythic 12 → 36
       sfx('wave'); } } }
   for (const w of arr('wav')) { DSRC = 'wave';
     if (w.dl > 0) { w.dl -= dt; if (w.dl <= 0) { w.x = p.x; w.y = p.y; } continue; }
     w.t += dt; const k = Math.min(1, w.t / w.T), r = 12 + (w.R - 12) * k; w.r = r;
     const hits = S.en.filter(e => !e.dead && !w.h.has(e)).map(e => [e, Math.hypot(e.x - w.x, e.y - w.y)]).filter(([e, dd]) => dd < r + e.r && dd > r - 30 - e.r).sort((a, b) => a[1] - b[1]);
-    for (const [e] of hits) { if (w.pw < WAVE_MIN) break; w.h.add(e); hitE(e, w.d * w.pw); shove(e, w.x, w.y, w.kb * Math.max(.4, w.pw)); if (w.st && !e.boss) e.st = Math.max(e.st || 0, w.st); w.pw *= e.boss ? .6 : .93; }
+    for (const [e] of hits) { if (w.pw < WAVE_MIN) break; w.h.add(e); hitE(e, w.d * w.pw); shove(e, w.x, w.y, w.kb * Math.max(.4, w.pw)); if (w.st && !e.boss) e.st = Math.max(e.st || 0, w.st); w.pw *= e.boss ? .6 : (w.dk || .93); }   // evolved waves lose 3.5% per enemy instead of 7% (2026-11-14 audit)
     if (w.clr) for (const q of S.eb) if (Math.abs(Math.hypot(q.x - w.x, q.y - w.y) - r) < 20) q.l = 0;
     if (k >= 1 || w.pw < WAVE_MIN) w.done = 1;
   }
@@ -127,10 +127,10 @@ function updW3(dt) {
   S.tris = arr('tris').filter(z => !z.done);
 
   // Wolf Fang Fist: rapid afterimage strikes on the closest enemies
-  if (W_.wolf) { DSRC = 'wolf'; S.cd.wolf -= dt; if (S.cd.wolf <= 0) { const L = W_.wolf, E = ev.wolf, M = MY('wolf'), n = 3 + L + PX() + (E ? 2 : 0) + (M ? 1 : 0), ts = near(n, (210 + 6 * L) * AR2());
+  if (W_.wolf) { DSRC = 'wolf'; S.cd.wolf -= dt; if (S.cd.wolf <= 0) { const L = W_.wolf, E = ev.wolf, M = MY('wolf'), n = 3 + L + PX() + (E ? 4 : 0) + (M ? 1 : 0), ts = near(n, (210 + 6 * L) * AR2());
     if (!ts.length) S.cd.wolf = .2;
     else { S.cd.wolf = (E ? 1 : Math.max(1.1, 2 - .18 * L)) * cm(); p.atk = p.ad = .3; p.face = ts[0].x > p.x ? 1 : -1;
-      const d = (12 + 5 * WL('wolf')) * dm() * W3B.wolf, hits = E ? 6 : 4;
+      const d = (12 + 5 * WL('wolf')) * dm() * W3B.wolf * (E ? 1.3 : 1), hits = E ? 6 : 4;   // Neo: +2 targets, +30% (2026-11-14 audit: weakest crowd clearer)
       ts.forEach((e, i) => arr('wfq').push({ e, n: hits, t: i * .05, d, st: M, heal: E })); } } }
   for (const q of arr('wfq')) { DSRC = 'wolf';
     q.t -= dt; if (q.t > 0) continue;

@@ -54,7 +54,7 @@ const ballSet = n => { for (let i = 0; i < 7; i++) BALLS[i] = n ? NBALLS[i] : OB
 // after Shenron's wish: the Namekian set awakens
 { const _m = mythic; mythic = function (g, k) {
     const r = _m(g, k);
-    if (!S.set2 && RU('nballs')) { S.set2 = 1; S.dbPrev = S.dbGot; S.dbN = 0; S.dbGot = 0; S.dbT = 22; ballSet(1); setTimeout(() => { if (S.mode == 'play') ban('THE NAMEKIAN DRAGON BALLS AWAKEN!'); }, 1600); }
+    if (!S.set2 && RU('nballs')) { S.set2 = 1; S.dbPrev = S.dbGot; S.dbN = 0; S.dbGot = 0; S.dbHave = 0; S.dbT = 22; ballSet(1); setTimeout(() => { if (S.mode == 'play') ban('THE NAMEKIAN DRAGON BALLS AWAKEN!'); }, 1600); }
     else if (S.set2 == 1) { S.set2 = 2; S.wish2 = 1; P.wish2 = (P.wish2 || 0) + 1; try { saveProg(); } catch (e) { } }
     return r; }; }
 { const _b = ban; ban = function (t) {
@@ -62,6 +62,7 @@ const ballSet = n => { for (let i = 0; i < 7; i++) BALLS[i] = n ? NBALLS[i] : OB
       if (t == 'A DRAGON BALL APPEARS!') t = 'A NAMEKIAN DRAGON BALL APPEARS!';
       else if (t == 'ALL SEVEN DRAGON BALLS!') t = 'ALL SEVEN NAMEKIAN DRAGON BALLS!';
       else if (/^DRAGON BALL \d/.test(t)) t = 'NAMEKIAN ' + t;
+      else if (/^\d-STAR DRAGON BALL/.test(t)) t = t.replace('DRAGON BALL', 'NAMEKIAN DRAGON BALL');
     }
     return _b(t); }; }
 { const _a = awardZeni; awardZeni = function (win) { const z = _a(win), x = (S.dbPrev || 0) * 12; if (!x) return z; META.zeni += x; P.zeni += x; saveMeta(); return z + x; }; }

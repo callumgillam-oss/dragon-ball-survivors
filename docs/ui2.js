@@ -170,7 +170,7 @@ hud = function () {
     ctx.strokeStyle = '#5a0e08'; ctx.lineWidth = 7; ctx.lineJoin = 'round'; ctx.strokeText(S.ban.txt, W / 2, by); ctx.strokeStyle = '#d83a14'; ctx.lineWidth = 3; ctx.strokeText(S.ban.txt, W / 2, by); ctx.fillStyle = g; ctx.fillText(S.ban.txt, W / 2, by); ctx.globalAlpha = 1; }
 };
 // Dragon Ball tracker sits under the timer panel
-hud2 = function () { const m = 12 + SI, x0 = W - m - 7 * 17, y = ST + 10 + 46; for (let i = 0; i < 7; i++) { ctx.globalAlpha = i < S.dbGot ? 1 : .3; ctx.drawImage(BALLS[i], x0 + i * 17, y, 16, 16); } ctx.globalAlpha = 1; };
+hud2 = function () { const m = 12 + SI, x0 = W - m - 7 * 17, y = ST + 10 + 46; for (let i = 0; i < 7; i++) { ctx.globalAlpha = (S.dbHave !== undefined ? S.dbHave >> i & 1 : i < S.dbGot) ? 1 : .3; ctx.drawImage(BALLS[i], x0 + i * 17, y, 16, 16); } ctx.globalAlpha = 1; };
 // Bigger off-screen pointer for the Time Chamber, with distance
 function drawChamberPointer() {
   const s = S.shr; if (!s || S.mode != 'play') return; const p = S.p, x = s.x - p.x + W / 2, y = s.y - p.y + H / 2;

@@ -19,3 +19,7 @@ W4B.barrier = .8;
 { const _bd = beanDrop; beanDrop = function (e) {
     if (!e.boss && !e.elite && S.t - (S.beanRT ?? -99) < 12) return false;
     const r = _bd(e); if (r && !e.boss && !e.elite) S.beanRT = S.t; return r; }; }
+
+// Evolved Ki Blast vs bosses (2026-11-14 audit, no shop upgrades): four homing shots every 0.15 s all land on a lone boss,
+// ~366 damage/s against 20-200 for every other evolution. Bosses take 55% from it; crowds are unchanged.
+{ const _h = hitE; hitE = function (e, d) { if (e.boss && DSRC == 'blast' && S.evo && S.evo.blast) d *= .55; return _h(e, d); }; }
