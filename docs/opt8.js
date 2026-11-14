@@ -88,9 +88,15 @@ if (typeof softGlow == 'function') { const _s = softGlow; softGlow = function (r
 edgePointer = function (wx, wy, label, glow, fill, icon) {
   const p = S.p, x = wx - p.x + W / 2, y = wy - p.y + H / 2;
   if (x > -40 && y > -40 && x < W + 40 && y < H + 40) return;
-  const a = Math.atan2(y - H / 2, x - W / 2), ex = Math.max(70, Math.min(W - 70, W / 2 + Math.cos(a) * 1000)), btnSide = SET.hand == 'left' ? ex < 140 : ex > W - 140,
-    slotSide = SET.hand == 'left' ? ex > W * .45 : ex < W * .55,   // keep clear of the attack slots along the bottom
-    ey = Math.max(ST + 120, Math.min(btnSide ? H - 250 - SB : slotSide ? H - 120 - SB : H - 70, H / 2 + Math.sin(a) * 1000)), d = Math.round(Math.hypot(wx - p.x, wy - p.y) / 10), u = (S.t * .8) % 1;
+  // Slide along the ray from the hero (screen centre) towards the target until it meets the safe frame, so the badge
+  // sits exactly in the target's direction. (It used to project 1000 px and clamp x and y separately, which on a
+  // wide screen pushed a ball that was mostly below you far off to one side.)
+  const a = Math.atan2(y - H / 2, x - W / 2), dx = Math.cos(a), dy = Math.sin(a), cx = W / 2, cy = H / 2;
+  const hit = ymax => { const k = Math.min(dx > 0 ? (W - 70 - cx) / dx : dx < 0 ? (70 - cx) / dx : 1e9, dy > 0 ? (ymax - cy) / dy : dy < 0 ? (ST + 120 - cy) / dy : 1e9); return [cx + dx * k, cy + dy * k]; };
+  let [ex, ey] = hit(H - 70);
+  const btnSide = SET.hand == 'left' ? ex < 140 : ex > W - 140, slotSide = SET.hand == 'left' ? ex > W * .45 : ex < W * .55;   // keep clear of the buttons and attack slots
+  const ylim = btnSide ? H - 250 - SB : slotSide ? H - 120 - SB : H - 70; if (ey > ylim) [ex, ey] = hit(ylim);
+  const d = Math.round(Math.hypot(wx - p.x, wy - p.y) / 10), u = (S.t * .8) % 1;
   ctx.save(); ctx.translate(ex, ey);
   ctx.strokeStyle = fill; ctx.globalAlpha = .7 * (1 - u); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 21 + 14 * u, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
   ctx.fillStyle = 'rgba(14,7,2,.86)'; ctx.beginPath(); ctx.arc(0, 0, 21, 0, 7); ctx.fill(); ctx.lineWidth = 3; ctx.stroke();
