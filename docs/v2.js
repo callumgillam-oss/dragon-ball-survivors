@@ -4,7 +4,7 @@
    Sections: settings · balance · boss AI · hazards · boss intros · feel · shop · audio
    ===================================================================== */
 'use strict';
-const V2 = { ver: '2.0' };
+const V2 = {};
 
 /* ---------- settings (persisted) ---------- */
 const SET = { music: true, sfx: true, shake: true };
@@ -26,7 +26,7 @@ function settings(back) {
   ${row('Sound effects', SET.sfx ? 'On' : 'Off', "togSet('sfx')")}
   ${row('Screen shake', SET.shake ? 'On' : 'Off', "togSet('shake')")}
   <button class="go" onclick="settingsBack()">Back</button>
-  <p class="how">Dragon Ball Survivors ${V2.ver}</p></div>`);
+  <p class="how">Dragon Ball Survivors</p></div>`);
 }
 function cycleGfx() { const o = ['auto', 'high', 'med', 'low']; setGfx(o[(o.indexOf(GFX) + 1) % o.length]); settings(); }
 function togSet(k) { SET[k] = !SET[k]; saveSet(); if (k == 'music') MUS.sync(); settings(); }
@@ -37,7 +37,6 @@ function settingsBack() { if (V2.back == 'pause') pz.onclick(); else menu(); }
     const c = ov.querySelector('.in') || ov.querySelector('.card'); if (!c) return;
     const b = document.createElement('button'); b.style.textAlign = 'center'; b.innerHTML = '⚙️ Settings <small>(graphics, sound)</small>';
     b.onclick = () => settings('menu'); c.appendChild(b);
-    const h = c.querySelector('h1'); if (h && !c.querySelector('.ver')) h.insertAdjacentHTML('afterend', '<div class="ver">2.0</div>');
   }; }
 { const _p = pz.onclick; pz.onclick = function () {
     if (S.mode == 'play') { _p(); } else if (S.mode == 'pause') { S.mode = 'play'; _p(); }
@@ -521,6 +520,5 @@ MUS.want('menu');
 
 /* ---------- css bits for 2.0 ---------- */
 document.head.insertAdjacentHTML('beforeend', `<style>
-.ver{display:inline-block;margin:2px auto 6px;padding:1px 10px;border-radius:20px;background:linear-gradient(90deg,#ff5a3a,#ffd23a);color:#2a0600;font:900 13px Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif;letter-spacing:2px}
 </style>`);
 if (S && S.mode == 'menu' && !/Welcome back/.test(ov.textContent)) menu();

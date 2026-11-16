@@ -61,7 +61,7 @@ settings = function (back) {
   ${row('Character art', SET.art == 'classic' ? 'Classic' : '2.0', 'togArt()')}
   </div>
   <button class="go" onclick="settingsBack()">Back</button>
-  <p class="how">Dragon Ball Survivors ${V2.ver}</p></div>`);
+  <p class="how">Dragon Ball Survivors</p></div>`);
 };
 function togOpt(k, a, b) { SET[k] = SET[k] == a ? b : a; saveSet(); applyHand(); settings(); }
 function togArt() { SET.art = SET.art == 'classic' ? 'v2' : 'classic'; saveSet(); applyArt(SET.art); settings(); }

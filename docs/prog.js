@@ -5,7 +5,6 @@
    Unlocks earned during a run take effect from the NEXT run.
    ===================================================================== */
 'use strict';
-V2.ver = '3.0';
 
 /* ---------- unlock keys ---------- */
 // w:<attack>  p:<passive>  s:<shop item>  h:<hero>  plus feature flags
@@ -275,13 +274,12 @@ const LOCKED_HEROES = [['h:vegeta', 'Vegeta', 'Defeat Vegeta', 'vegeta'], ['h:kr
     }
     if (hs) { const sel = hs.querySelector('.hb.sel'); hs.classList.add('cmp');
       if (sel) hs.insertAdjacentHTML('afterend', `<p class="hdesc"><b>${sel.querySelector('b').textContent}</b> · ${sel.querySelector('small').textContent}</p>`); }
-    const vb = c.querySelector('.ver'); if (vb) vb.textContent = V2.ver;
     const how = c.querySelector('.how'); if (how && !HAS('kiburst')) how.textContent = 'Drag anywhere or use WASD (default) to move. Attacks fire automatically.';
     const lk = c.querySelector('.lock'); if (lk && !HAS('lvl2')) lk.textContent = 'Level 2: Planet Namek (defeat Vegeta to unlock)';
   }; }
 function welcome3() {
-  show(`<div class="card dbz reveal"><div class="rvh">DRAGON BALL SURVIVORS 3.0</div><div class="rvt">🐉</div><h2>Your journey starts over!</h2>
-    <p class="rvd">3.0 is a fresh start for everyone: your Zeni, upgrades and unlocks have been reset.</p>
+  show(`<div class="card dbz reveal"><div class="rvh">DRAGON BALL SURVIVORS</div><div class="rvt">🐉</div><h2>Your journey starts over!</h2>
+    <p class="rvd">This update is a fresh start for everyone: your Zeni, upgrades and unlocks have been reset.</p>
     <p class="rvd">You begin with Ki Blast, Kamehameha, Special Beam Cannon and Masenko. Defeat bosses and hit milestones to unlock new attacks, passives, heroes, levels and more. Check <b>🏆 Achievements</b> to see what's next.</p>
     <button class="go" onclick="V2.welcome3=0;menu()">Let's go!</button></div>`);
 }

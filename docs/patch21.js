@@ -6,7 +6,6 @@
    (Gohan's numbers and Dragon Ball spawn distance/timer are edited in index.html.)
    ===================================================================== */
 'use strict';
-V2.ver = '2.1';
 
 /* ---------- 1) screen-flash limiter for abilities ---------- */
 // Spirit Bomb detonations and Solar Flare used to set a full-screen white flash every time they fired.
