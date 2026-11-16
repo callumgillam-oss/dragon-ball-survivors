@@ -68,7 +68,7 @@ function carDesc(e) {
     v.addEventListener('pointerdown', e => { x0 = e.clientX; });
     v.addEventListener('pointerup', e => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 35) carGo(dx < 0 ? 1 : -1); });
   }; }
-addEventListener('keydown', e => { if (S && S.mode == 'menu' && document.querySelector('.hcar') && (e.key == 'ArrowLeft' || e.key == 'ArrowRight')) { e.preventDefault(); carGo(e.key == 'ArrowLeft' ? -1 : 1); } });
+// keyboard / controller hero switching: navDir() in keys11.js
 
 document.head.insertAdjacentHTML('beforeend', `<style>
 .hcar{position:relative;display:flex;align-items:center;gap:4px;margin:8px 0 0}

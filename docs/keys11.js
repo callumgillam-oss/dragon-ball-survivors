@@ -1,6 +1,7 @@
 /* keys11.js — keyboard play (2026-11-16)
-   1) Level-up, Shenron and pause menus: Up/Down (or Left/Right, or your move keys) highlight a choice, Space or Enter picks it.
-      Nothing is highlighted until you press a direction, so mashing Space for Ki Burst can't pick a choice by accident.
+   1) Every menu, keyboard and controller alike: arrows / move keys / D-pad / stick move a highlight to the nearest button that
+      way, Space/Enter/A press it, Esc/B press the screen's Back. Main menu: left/right change hero, up/down walk the options.
+      In a run nothing is highlighted until you press a direction, so mashing Space for Ki Burst can't pick a choice by accident.
    2) Settings → Keybindings (shown with a mouse/keyboard or a controller): rebind move, Ki Burst, pause and menu select,
       and the controller's Ki Burst / pause / select buttons (stick and D-pad always move).
       The arrow keys always move too (unless bound to something else), Escape always pauses, Enter always selects.
@@ -36,23 +37,60 @@ function kbApply() {
 }
 kbApply();
 
-/* ---------- 1) choose upgrades with the keyboard ---------- */
-addEventListener('keydown', e => {
-  if (!S || (S.mode != 'lvl' && S.mode != 'wish' && S.mode != 'pause') || kbWait) return;
-  const bs = [...ov.querySelectorAll('button:not(:disabled)')].filter(b => b.offsetParent); if (!bs.length) return;
-  const cur = ov.querySelector('button.kb11'), i = bs.indexOf(cur);
-  if (kbIs(e, 'pick') || e.key == 'Enter') {
-    e.preventDefault(); if (e.repeat || !cur) return;   // shortcut: needs a direction press first, so held/mashed Space never picks
-    cur.click(); return;
+/* ---------- 1) menus with keyboard and controller (both land in navDir) ---------- */
+// nearest button that lies in the pressed direction (by edges, so a wide Back button only answers up/down);
+// being off to the side costs triple, so the button straight ahead wins
+function navNear(cur, dx, dy, l) {
+  const c = cur.getBoundingClientRect(); let best = null, bs = 1e9;
+  for (const b of l) {
+    if (b == cur) continue; const q = b.getBoundingClientRect();
+    const along = dx > 0 ? q.left - c.right : dx < 0 ? c.left - q.right : dy > 0 ? q.top - c.bottom : c.top - q.bottom;
+    const side = dx ? Math.max(0, q.top - c.bottom, c.top - q.bottom) : Math.max(0, q.left - c.right, c.left - q.right);
+    const cross = dx ? Math.abs(q.top + q.height / 2 - c.top - c.height / 2) : Math.abs(q.left + q.width / 2 - c.left - c.width / 2);
+    const sc = along + side * 3 + cross * .1;
+    if (along > -3 && sc < bs) { bs = sc; best = b; }
   }
-  const back = e.key == 'ArrowUp' || e.key == 'ArrowLeft' || kbIs(e, 'up') || kbIs(e, 'left');
-  const fwd = e.key == 'ArrowDown' || e.key == 'ArrowRight' || kbIs(e, 'down') || kbIs(e, 'right');
-  if (!back && !fwd) return;
-  e.preventDefault(); if (cur) cur.classList.remove('kb11');
-  const b = bs[i < 0 ? (fwd ? 0 : bs.length - 1) : (i + (fwd ? 1 : -1) + bs.length) % bs.length];
-  b.classList.add('kb11'); b.scrollIntoView({ block: 'nearest' });
-  try { sfxPlay('ui'); } catch (x) { }
-});
+  return best;
+}
+function navDir(dx, dy) {
+  const car = S.mode == 'menu' && ov.querySelector('.hcar'), cur = navCur();
+  if (car && dx) { carGo(dx); return; }   // main menu: left/right picks the hero
+  if (!cur) { gpAuto(); return; }
+  let nx;
+  const l = gpBtns();
+  if (car) { const m = l.filter(b => !b.classList.contains('ha')); nx = m[(m.indexOf(cur) + dy + m.length) % m.length]; }   // up/down walks the options in order, looping round
+  else nx = navNear(cur, dx, dy, l);
+  if (!nx && dy) {   // off the bottom → top row (and back), the button nearest the same column
+    const r = b => b.getBoundingClientRect(), y = b => dy > 0 ? r(b).top : -r(b).bottom, top = Math.min(...l.map(y));
+    const cx = b => r(b).left + r(b).width / 2, c = cx(cur);
+    nx = l.filter(b => y(b) - top < 4).sort((a, b) => Math.abs(cx(a) - c) - Math.abs(cx(b) - c))[0];
+  }
+  if (nx) { gpFocus(nx); try { sfxPlay('ui'); } catch (x) { } }
+}
+function navBack() {   // Esc / B: the screen's own Back / Cancel button, if it has one
+  const b = gpBtns().find(b => /^(back|done|cancel|close|not now|no\b)/i.test(b.textContent.trim()));
+  if (b) b.click(); return !!b;
+}
+let navOv = null, navT = 0;   // the card on screen and when it appeared
+// capture phase: Esc goes back a screen before the pause handler sees it
+addEventListener('keydown', e => {
+  if (!S || kbWait || ov.style.display != 'flex' || S.mode == 'play' || S.mode == 'intro') return;
+  if (ov.firstElementChild != navOv) { navOv = ov.firstElementChild; navT = performance.now(); }
+  if (kbIs(e, 'pick') || e.key == 'Enter') {
+    e.preventDefault(); e.stopImmediatePropagation();   // e.g. a Keybindings row must not take this same Enter as its new key
+    if (e.repeat || performance.now() - navT < 300) return;   // the press that opened this screen (skipping the intro) doesn't also press a button
+    const run = S.mode == 'lvl' || S.mode == 'wish' || S.mode == 'pause';
+    if (!navCur() && !run) gpAuto();   // outside a run, Space/Enter presses the main button; in a run a choice must be highlighted first (Ki Burst mashing)
+    const b = navCur(); if (b) b.click();
+    if (!run && !navCur() && ov.style.display == 'flex') gpAuto();   // a toggle re-rendered its screen: keep the highlight on it
+    return;
+  }
+  if (e.key == 'Escape') { if (navBack()) { e.preventDefault(); e.stopImmediatePropagation(); } return; }
+  const dy = (e.key == 'ArrowDown' || kbIs(e, 'down')) - (e.key == 'ArrowUp' || kbIs(e, 'up'));
+  const dx = (e.key == 'ArrowRight' || kbIs(e, 'right')) - (e.key == 'ArrowLeft' || kbIs(e, 'left'));
+  if (!dx && !dy) return;
+  e.preventDefault(); navDir(dx, dy);
+}, true);
 
 /* ---------- 2) Settings → Keybindings ---------- */
 function kbMenu() {
@@ -103,5 +141,3 @@ const GFX_ROW = /^(cycleGfx\(\)|togSet\('(fps30|fpsShow|shake|nums)'\)|togOpt\('
     ov.querySelector('.card button.go').setAttribute('onclick', 'V2.gfx=0;settings()');
   }; }
 
-{ const st = document.createElement('style'); st.textContent = `
-#ov button.kb11{outline:3px solid #ffd23a;outline-offset:2px;box-shadow:0 0 16px 3px rgba(255,210,58,.55);filter:brightness(1.12)}`; document.head.append(st); }

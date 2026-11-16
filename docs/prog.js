@@ -340,7 +340,7 @@ body.noult #ub{display:none!important}
  background:linear-gradient(180deg,#6a3a08,#3a1e04);border:2px solid #ffd27a;border-radius:12px;padding:7px 14px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.5),0 0 14px rgba(255,180,40,.45);max-width:min(90vw,420px);font-family:system-ui,sans-serif}
 #achT.on{opacity:1;transform:translate(-50%,0)}
 #achT .at1{font:800 10px system-ui,sans-serif;letter-spacing:.12em;color:#ffd27a}#achT .at2{font:800 16px system-ui,sans-serif;color:#fff}#achT .at3{font-size:12px;color:#ffe9b8}#achT i{opacity:.7}
-.mrow{display:flex;gap:6px}.mrow button{flex:1;text-align:center}
+.mrow button{display:block;width:100%;text-align:center}
 .hb.lk{opacity:.6}.hb .hq{display:block;width:64px;height:64px;margin:0 auto 2px;border-radius:50%;background:radial-gradient(circle,#2a1a0a,#0e0804);color:#ffd27a;font:800 34px/64px system-ui,sans-serif}
 .heroes .hb{flex:1 1 0}.hb.lk small{opacity:.85}.heroes.cmp .hb:not(.lk) small{display:none}.hdesc{margin:2px 0 8px;font-size:13px;text-align:center;opacity:.9}.hdesc b{color:#ffd27a}
 @media (max-width:600px){.hb .hq{width:46px;height:46px;font-size:26px;line-height:46px}}

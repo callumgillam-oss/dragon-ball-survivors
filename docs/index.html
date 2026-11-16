@@ -2425,13 +2425,15 @@ const GP={x:0,y:0,on:false,id:'',blocked:false,prev:[],navDir:0,navT:0,ovSince:0
 function gpPads(){try{return(navigator.getGamepads?navigator.getGamepads():[])||[]}catch(e){GP.blocked=true;return[]}}
 function gpToast(t){let d=document.getElementById('gptoast');if(!d){d=document.createElement('div');d.id='gptoast';d.style.cssText='position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);background:#2b1a0d;color:#ffe9b8;border:2px solid #ffb458;border-radius:10px;padding:6px 12px;font:600 13px system-ui,sans-serif;z-index:50;pointer-events:none;transition:opacity .4s;white-space:nowrap';document.body.append(d)}
  d.textContent=t;d.style.opacity=1;clearTimeout(d._t);d._t=setTimeout(()=>d.style.opacity=0,2400)}
-{const st=document.createElement('style');st.textContent='#ov button.gpf{outline:3px solid #ffe27a!important;outline-offset:2px;background:#55331a}';document.head.append(st)}
+{const st=document.createElement('style');st.textContent='#ov button.gpf{outline:3px solid #ffd23a!important;outline-offset:2px;box-shadow:0 0 16px 3px rgba(255,210,58,.55);filter:brightness(1.12)}';document.head.append(st)}
 addEventListener('gamepadconnected',e=>{GP.on=true;GP.id=e.gamepad.id;gpToast('🎮 Controller connected')});
 addEventListener('gamepaddisconnected',()=>{if(!gpPads().some(p=>p&&p.connected)){GP.on=false;GP.x=GP.y=0;if(S.mode=='play')pz.onclick();gpToast('🎮 Controller disconnected')}});
 const gpBtns=()=>[...ov.querySelectorAll('button')].filter(b=>b.offsetParent!==null&&!b.disabled);
-function gpFocus(b){if(!b)return;ov.querySelectorAll('.gpf').forEach(x=>x.classList.remove('gpf'));b.classList.add('gpf');try{b.focus({preventScroll:true})}catch(e){}try{b.scrollIntoView({block:'nearest'})}catch(e){}}
-function gpAuto(){const l=gpBtns();gpFocus(l.find(b=>b.classList.contains('go'))||l[0])}
-function gpMove(d){const l=gpBtns();if(!l.length)return;let i=l.indexOf(document.activeElement);i=i<0?(d>0?0:l.length-1):Math.max(0,Math.min(l.length-1,i+d));gpFocus(l[i])}
+// menu highlight shared by keyboard and controller (keys11.js moves it). A class, not native focus: a focused button would also fire on the browser's own Space/Enter
+function gpFocus(b){if(!b)return;ov.querySelectorAll('.gpf').forEach(x=>x.classList.remove('gpf'));b.classList.add('gpf');GP.oc=b.getAttribute('onclick');try{b.scrollIntoView({block:'nearest'})}catch(e){}}
+const navCur=()=>gpBtns().find(b=>b.classList.contains('gpf'));
+// a toggle re-renders its screen: stay on the same button (same onclick), else the main one
+function gpAuto(){const l=gpBtns();gpFocus(l.find(b=>GP.oc&&b.getAttribute('onclick')==GP.oc)||l.find(b=>b.classList.contains('go'))||l[0])}
 function gpPoll(){
  let g=null;for(const p of gpPads())if(p&&p.connected){g=p;break}
  const now=performance.now(),ovVis=ov.style.display=='flex'&&S.mode!='intro';
@@ -2447,12 +2449,13 @@ function gpPoll(){
  if(S.mode=='intro'){if([0,1,2,3,9].some(dn))introEnd()}
  else if(ovVis&&kbWait&&kbWait.startsWith('gp:')){const i=g.buttons.findIndex((_,i)=>(i<12||i>15)&&dn(i));if(i>=0)gpBind(i)}   // Keybindings: next button (not the D-pad)
  else if(ovVis){
-  if(!gpBtns().includes(document.activeElement))gpAuto();
-  const ay=ax(1),axx=ax(0),dir=(B(13)||B(15)||ay>.6||axx>.6)?1:(B(12)||B(14)||ay<-.6||axx<-.6)?-1:0;
-  if(dir!==GP.navDir){GP.navDir=dir;if(dir){gpMove(dir);GP.navT=now+340}}else if(dir&&now>GP.navT){gpMove(dir);GP.navT=now+170}
+  if(!navCur())gpAuto();
+  const ay=ax(1),axx=ax(0),dy=(B(13)||ay>.6)?1:(B(12)||ay<-.6)?-1:0,dx=dy?0:(B(15)||axx>.6)?1:(B(14)||axx<-.6)?-1:0,dir=dx*2+dy;
+  if(dir!==GP.navDir){GP.navDir=dir;if(dir){navDir(dx,dy);GP.navT=now+340}}else if(dir&&now>GP.navT){navDir(dx,dy);GP.navT=now+170}
   const armed=now-GP.ovSince>450;                       // ignore the button that was mashed as the card opened
-  if(armed&&SET.gp.pick.some(dn)){const a=document.activeElement;if(gpBtns().includes(a))a.click()}
-  if(S.mode=='pause'&&!svWelcomeOn&&armed&&(SET.gp.pause.some(dn)||dn(1)))resume();
+  if(armed&&SET.gp.pick.some(dn)){const a=navCur();if(a)a.click()}
+  if(armed&&dn(1)&&navBack());                         // B = the screen's Back / Cancel
+  else if(S.mode=='pause'&&!svWelcomeOn&&armed&&(SET.gp.pause.some(dn)||dn(1)))resume();
  }else if(S.mode=='play'){
   if(SET.gp.ult.some(dn))ultFire();                    // default A / X / R1 / R2 (Settings > Keybindings)
   if(SET.gp.pause.some(dn))pz.onclick();               // default Start / Select / B
