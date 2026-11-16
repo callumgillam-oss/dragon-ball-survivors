@@ -276,7 +276,7 @@ const LOCKED_HEROES = [['h:vegeta', 'Vegeta', 'Defeat Vegeta', 'vegeta'], ['h:kr
     if (hs) { const sel = hs.querySelector('.hb.sel'); hs.classList.add('cmp');
       if (sel) hs.insertAdjacentHTML('afterend', `<p class="hdesc"><b>${sel.querySelector('b').textContent}</b> · ${sel.querySelector('small').textContent}</p>`); }
     const vb = c.querySelector('.ver'); if (vb) vb.textContent = V2.ver;
-    const how = c.querySelector('.how'); if (how && !HAS('kiburst')) how.textContent = 'Drag anywhere or use WASD to move. Attacks fire automatically.';
+    const how = c.querySelector('.how'); if (how && !HAS('kiburst')) how.textContent = 'Drag anywhere or use WASD (default) to move. Attacks fire automatically.';
     const lk = c.querySelector('.lock'); if (lk && !HAS('lvl2')) lk.textContent = 'Level 2: Planet Namek (defeat Vegeta to unlock)';
   }; }
 function welcome3() {

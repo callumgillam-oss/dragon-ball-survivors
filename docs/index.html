@@ -156,7 +156,7 @@ const el=(x,y,a,b)=>{ctx.beginPath();ctx.ellipse(x,y,a,b,0,0,7);ctx.fill()};
 // WASD works on AZERTY/QWERTZ keyboards; held keys are cleared when the window loses focus so nothing gets stuck; the
 // arrow keys don't scroll the page during play.
 const keys={},KCODE={KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d',ArrowUp:'arrowup',ArrowDown:'arrowdown',ArrowLeft:'arrowleft',ArrowRight:'arrowright'};
-const keySet=(e,v)=>{if(e.key)keys[e.key.toLowerCase()]=v;if(KCODE[e.code])keys[KCODE[e.code]]=v};
+const keySet=(e,v)=>{if(KCODE[e.code])keys[KCODE[e.code]]=v};   // KCODE is rebuilt from Settings > Keybindings (keys11.js)
 addEventListener('keydown',e=>{keySet(e,1);if(e.key&&e.key.startsWith('Arrow')&&typeof S!='undefined'&&S.mode=='play')e.preventDefault()});addEventListener('keyup',e=>keySet(e,0));
 addEventListener('blur',()=>{for(const k in keys)keys[k]=0});
 let joy=null;
@@ -209,7 +209,7 @@ function menu(){
  show(`<div class="card"><h1>DRAGON BALL<br>SURVIVORS</h1><p><small>Level 1 · The Wasteland</small></p>
  <div class="hero"><canvas id="pt" width="96" height="96"></canvas><div><b>Goku</b><br><small>Starts with Ki Blast. Kamehameha, Kaioken and more unlock as you level up.</small></div></div>
  <div class="lock">Vegeta · Gohan · Piccolo — coming soon</div>
- <p>Drag anywhere (or WASD) to move. Attacks fire on their own. Defeat the final boss to clear the level.</p>
+ <p>Drag anywhere (or WASD, the default keys) to move. Attacks fire on their own. Defeat the final boss to clear the level.</p>
  <button class="go" onclick="start(1)">Level 1: The Wasteland</button>${U2?'<button class="go" onclick="start(2)">Level 2: Planet Namek</button>':'<div class="lock">Level 2: Planet Namek (clear Level 1 to unlock)</div>'}</div>`);setTimeout(portrait,0);
 }
 function start(st){const k=S,ps=k.stage||1;unlockAudio();init();S.stage=st||ps;S.eliteT=S.stage==2?65:35;show('');S.mode='intro';S.intro={t:0}}
@@ -801,7 +801,7 @@ pz.onclick=()=>{if(S.mode=='play'){S.mode='pause';show('<div class="card"><h2>Pa
 const mu=document.createElement('button');mu.id='mu';mu.textContent='🔊';mu.onclick=()=>{muted=!muted;mu.textContent=muted?'🔇':'🔊'};
 document.body.append(pz,mu);
 function resume(){S.mode='play';show('')}
-addEventListener('keydown',e=>{if(S.mode=='intro'&&(e.key==' '||e.key=='Enter'||e.key=='Escape')){e.preventDefault();introEnd();return}if(e.key=='p'||e.key=='Escape'){if(S.mode=='play')pz.onclick();else if(S.mode=='pause')resume()}});
+addEventListener('keydown',e=>{if(S.mode=='intro'&&(e.key==' '||e.key=='Enter'||e.key=='Escape')){e.preventDefault();introEnd();return}if(kbIs(e,'pause')||e.key=='Escape'){if(S.mode=='play')pz.onclick();else if(S.mode=='pause')resume()}});
 setInterval(()=>{pz.style.display=mu.style.display=S.mode=='play'?'block':'none'},150);
 // ===== v5: iOS audio fix, stages, Namek, Ginyu Force, Frieza, Super Saiyan =====
 function silentWav(){const n=800,b=new Uint8Array(44+n),dv=new DataView(b.buffer),w=(o,t)=>{for(let i=0;i<t.length;i++)b[o+i]=t.charCodeAt(i)};
@@ -1218,7 +1218,7 @@ function menu(){
  <p>Survive the Saiyan invasion. Power up, evolve, go Super Saiyan.</p>
  <button class="go" onclick="start(1)">Level 1: The Wasteland<small>Raditz · Nappa · Vegeta</small></button>
  ${U2?'<button class="go" onclick="start(2)">Level 2: Planet Namek<small>Ginyu Force · Frieza</small></button>':'<div class="lock">Level 2: Planet Namek (clear Level 1 to unlock)</div>'}
- <p class="how">Drag anywhere or use WASD to move. Attacks fire automatically.</p></div></div>`);
+ <p class="how">Drag anywhere or use WASD (default) to move. Attacks fire automatically.</p></div></div>`);
  setTimeout(drawBanner,0);
 }
 function evoHint(g,k){
@@ -1855,7 +1855,7 @@ function menu(){
  <button class="go" onclick="start(1)">Level 1: The Wasteland<small>Raditz · Nappa · Vegeta</small></button>
  ${U2?'<button class="go" onclick="start(2)">Level 2: Planet Namek<small>Ginyu Force · Frieza</small></button>':'<div class="lock">Level 2: Planet Namek (clear Level 1 to unlock)</div>'}
  <button onclick="shop()">🛒 Capsule Corp Upgrades <small>(${META.zeni} Zeni)</small></button>
- <p class="how">Drag anywhere or use WASD to move. Attacks fire automatically. Tap the ⚡ button (or Space) for your Ki Burst.</p></div></div>`);
+ <p class="how">Drag anywhere or use WASD (default) to move. Attacks fire automatically. Tap the ⚡ button (or Space, default) for your Ki Burst.</p></div></div>`);
  setTimeout(()=>{drawBanner();drawHeroCards()},0);
 }
 // ===== v8 perf + Level 2 fixes =====
@@ -2303,7 +2303,7 @@ function ultFire(){
   ban('FINAL KAMEHAMEHA!');
  }
 }
-addEventListener('keydown',e=>{if((e.key==' '||e.key=='e'||e.key=='E')&&S.mode=='play'){e.preventDefault();ultFire()}});
+addEventListener('keydown',e=>{if(kbIs(e,'ult')&&S.mode=='play'){e.preventDefault();ultFire()}});
 const ub=document.createElement('button');ub.id='ub';ub.textContent='⚡';ub.onclick=ultFire;document.body.append(ub);
 {const st=document.createElement('style');st.textContent=`#ub{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 116px);width:64px;height:64px;padding:0;margin:0;border-radius:50%;text-align:center;font-size:28px;display:none;z-index:5;border:3px solid #ffd27a;background:conic-gradient(#ffb300 calc(var(--p,0)*1%),#2b1a0d 0);box-shadow:inset 0 0 0 9px #2b1a0d;color:#ffd27a}
 #ub.rdy{background:radial-gradient(#fff6b8,#ff9a1f);box-shadow:0 0 18px 4px #ffb300;color:#7a2a05;animation:ubp .7s ease-in-out infinite alternate}
@@ -2314,7 +2314,7 @@ setInterval(()=>{ub.style.display=S.mode=='play'?'block':'none';ub.style.setProp
 function updB(dt){
  const p=S.p;S.inv=Math.max(0,(S.inv||0)-dt);S.rage=Math.max(0,(S.rage||0)-dt);
  S.ult=Math.min(100,(S.ult||0)+dt*1.0*ucm());
- if(S.ult>=100&&!S.ultHint){S.ultHint=1;ban('KI BURST READY!  Tap the bolt or press Space')}
+ if(S.ult>=100&&!S.ultHint){S.ultHint=1;ban('KI BURST READY!  Tap the bolt or press Space (default)')}
  for(const q of S.ultQ){q.t-=dt;if(q.t<=0&&!q.d){q.d=1;for(let i=0;i<q.n;i++)S.beams.push({a:q.off+i*6.2832/q.n,t:.7,T:.7,w:62*AR(),d:q.dm,h:new Set(),len:900,clr:1,sup:0,src:'ult'})}}
  S.ultQ=S.ultQ.filter(q=>!q.d);
  for(const r of S.ultR)r.t+=dt;S.ultR=S.ultR.filter(r=>r.t<r.T);
@@ -2438,33 +2438,35 @@ function gpPoll(){
  if(ovVis&&!GP.ovVis)GP.ovSince=now;GP.ovVis=ovVis;
  if(!g){GP.x=GP.y=0;GP.prev=[];return}
  if(!GP.on){GP.on=true;GP.id=g.id}
+ if(typeof kbWait=='undefined')return;                 // keys11.js (button bindings) still loading
  const B=i=>!!(g.buttons[i]&&g.buttons[i].pressed),ax=i=>g.axes[i]||0,dn=i=>B(i)&&!GP.prev[i];
  // movement: left stick (analog) or D-pad
  let x=ax(0),y=ax(1);if(B(14))x=-1;if(B(15))x=1;if(B(12))y=-1;if(B(13))y=1;
  const m=Math.hypot(x,y),dz=.2;if(m<dz){x=y=0}else{const k=Math.min(1,(m-dz)/(1-dz))/m;x*=k;y*=k}
  GP.x=x;GP.y=y;
  if(S.mode=='intro'){if([0,1,2,3,9].some(dn))introEnd()}
+ else if(ovVis&&kbWait&&kbWait.startsWith('gp:')){const i=g.buttons.findIndex((_,i)=>(i<12||i>15)&&dn(i));if(i>=0)gpBind(i)}   // Keybindings: next button (not the D-pad)
  else if(ovVis){
   if(!gpBtns().includes(document.activeElement))gpAuto();
   const ay=ax(1),axx=ax(0),dir=(B(13)||B(15)||ay>.6||axx>.6)?1:(B(12)||B(14)||ay<-.6||axx<-.6)?-1:0;
   if(dir!==GP.navDir){GP.navDir=dir;if(dir){gpMove(dir);GP.navT=now+340}}else if(dir&&now>GP.navT){gpMove(dir);GP.navT=now+170}
   const armed=now-GP.ovSince>450;                       // ignore the button that was mashed as the card opened
-  if(armed&&dn(0)){const a=document.activeElement;if(gpBtns().includes(a))a.click()}
-  if(S.mode=='pause'&&!svWelcomeOn&&armed&&(dn(9)||dn(1)))resume();
+  if(armed&&SET.gp.pick.some(dn)){const a=document.activeElement;if(gpBtns().includes(a))a.click()}
+  if(S.mode=='pause'&&!svWelcomeOn&&armed&&(SET.gp.pause.some(dn)||dn(1)))resume();
  }else if(S.mode=='play'){
-  if(dn(0)||dn(2)||dn(5)||dn(7))ultFire();             // A / X / R1 / R2 = Ki Burst
-  if(dn(9)||dn(8)||dn(1))pz.onclick();                 // Start / Select / B = pause
+  if(SET.gp.ult.some(dn))ultFire();                    // default A / X / R1 / R2 (Settings > Keybindings)
+  if(SET.gp.pause.some(dn))pz.onclick();               // default Start / Select / B
  }
  GP.prev=g.buttons.map(b=>b.pressed);
 }
 setInterval(gpPoll,16);
 function gpStatus(){return GP.blocked?'Controller access is blocked by this page.':GP.on?'Controller connected: '+String(GP.id||'gamepad').split('(')[0].trim():'No controller detected yet. Connect it, then press any button.'}
-{const _m=menu;menu=function(){_m();const c=ov.querySelector('.in')||ov.querySelector('.card');if(c&&GP.on){const p=document.createElement('p');p.innerHTML='<small>🎮 Left stick move · A Ki Burst · Start pause · D-pad and A in menus</small>';c.appendChild(p)}}}
+{const _m=menu;menu=function(){_m();const c=ov.querySelector('.in')||ov.querySelector('.card');if(c&&GP.on){const p=document.createElement('p');p.innerHTML='<small>🎮 Left stick move · A Ki Burst · Start pause (default buttons) · D-pad and A in menus</small>';c.appendChild(p)}}}
 
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script src="perf9.js"></script><script src="death9.js"></script><script src="tune10.js"></script><script src="bgc10.js"></script><script>
+</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script src="perf9.js"></script><script src="death9.js"></script><script src="tune10.js"></script><script src="bgc10.js"></script><script src="keys11.js"></script><script>
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>

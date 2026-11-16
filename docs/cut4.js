@@ -200,7 +200,7 @@ function cutSkip() {
 }
 cv.addEventListener('pointerdown', () => { if (S.mode == 'play' && (V2.bc || V2.sc)) cutSkip(); });
 // capture phase: while a cutscene plays, Space/Enter/Esc skip it and never reach the Ki Burst / pause handlers
-addEventListener('keydown', e => { if (S.mode != 'play' || !(V2.bc || V2.sc)) return; if (e.key == ' ' || e.key == 'Enter' || e.key == 'Escape' || e.key == 'e' || e.key == 'E' || e.key == 'p' || e.key == 'P') { e.preventDefault(); e.stopImmediatePropagation(); cutSkip(); } }, true);
+addEventListener('keydown', e => { if (S.mode != 'play' || !(V2.bc || V2.sc)) return; if (e.key == ' ' || e.key == 'Enter' || e.key == 'Escape' || e.key == 'e' || e.key == 'E' || e.key == 'p' || e.key == 'P' || kbIs(e, 'ult') || kbIs(e, 'pause')) { e.preventDefault(); e.stopImmediatePropagation(); cutSkip(); } }, true);
 { const _uf = ultFire; ultFire = function () { if (V2.bc || V2.sc) return; return _uf(); }; }
 
 // Draws whatever fn paints as a solid black silhouette. ctx.filter does nothing on iPhone Safari, so instead:
