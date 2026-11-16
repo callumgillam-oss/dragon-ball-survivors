@@ -308,7 +308,8 @@ document.head.insertAdjacentHTML('beforeend', `<style>
 .card button{background:linear-gradient(180deg,#4a2a12 0%,#2e1608 100%);border:2px solid #c86a14;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,220,150,.25),0 2px 0 rgba(0,0,0,.4);transition:transform .08s,box-shadow .15s}
 .card button:hover,.card button:focus-visible{background:linear-gradient(180deg,#6a3a14,#3e1e0a);box-shadow:inset 0 1px 0 rgba(255,220,150,.35),0 0 12px rgba(255,150,40,.5)}
 .card button:active{transform:translateY(1px)}
-.card button.go{background:linear-gradient(180deg,#ff5a2a 0%,#d4260e 55%,#a8180a 100%);border:2px solid #ffe08a;font-family:Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif;letter-spacing:1px;text-shadow:2px 2px 0 #5a0e08;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 3px 0 #5a0e08,0 0 14px rgba(255,90,30,.4)}
+.card button.go{background:linear-gradient(180deg,#ff5a2a 0%,#d4260e 55%,#a8180a 100%);border:2px solid #ffe08a;font-family:Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Next Condensed","Roboto Condensed",sans-serif-condensed,"Arial Narrow","Arial Black",sans-serif;letter-spacing:1px;-webkit-text-stroke:3px #4a0a05;paint-order:stroke fill;text-shadow:2px 3px 0 #4a0a05;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 3px 0 #5a0e08,0 0 14px rgba(255,90,30,.4)}
+.card button.go small,.card button.go em{-webkit-text-stroke:0}
 .card button.go small{font-family:"Trebuchet MS",sans-serif;letter-spacing:0;text-shadow:none}
 .up .ic,.ic{border-radius:50%!important;border:2px solid var(--db-or)!important;background:radial-gradient(circle at 35% 30%,#5a3214,#1a0a02)!important;box-shadow:0 0 0 2px #3a1206,0 0 10px rgba(255,150,40,.35);padding:2px;box-sizing:border-box}
 .dhead{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 8px}.dhead h2{margin:0}
