@@ -15,14 +15,14 @@ const UNL_NAME = {
   lvl2: 'Level 2: Planet Namek', lvl3: 'Level 3: Androids & Cell',
   'h:vegeta': 'Vegeta (playable hero)', 'h:krillin': 'Krillin (playable hero)',
   timefreeze: 'Time Freeze pickup', vacuum: 'Capsule Vacuum pickup', ginyu: 'Ginyu Force Challenges',
-  limitbreak: 'Limit Break', scouter: 'Scouter power-level readout', wish4: 'A 4th wish choice from Shenron',
+  ssj: 'Super Saiyan: transform after 3 evolutions', limitbreak: 'Limit Break', scouter: 'Scouter power-level readout', wish4: 'A 4th wish choice from Shenron',
   'alt:vegeta': 'Vegeta alt colours: Saiyan-saga armour',
   's:seal': 'Shop: Mafuba Seal (banish)', 's:slot': 'Shop: Potential Unleashed (5th attack slot)',
   'w:galick': 'Galick Gun', 'w:wave': 'Explosive Wave', 'w:tri': 'Tri-Beam', 'w:wolf': 'Wolf Fang Fist',
   'w:after': 'Afterimage Strike', 'w:scatter': 'Scattering Bullet'
 };
 const UNL_ICON = { kiburst: '⚡', dragonballs: '🐉', chambers: '⏳', lvl2: '🪐', lvl3: '🏙️', 'h:vegeta': '👑', 'h:krillin': '🥋',
-  timefreeze: '⏱️', vacuum: '💊', ginyu: '💪', limitbreak: '♾️', scouter: '📟', wish4: '🌟', 'alt:vegeta': '🎨', 's:seal': '🏺', 's:slot': '➕' };
+  timefreeze: '⏱️', vacuum: '💊', ginyu: '💪', ssj: '🔥', limitbreak: '♾️', scouter: '📟', wish4: '🌟', 'alt:vegeta': '🎨', 's:seal': '🏺', 's:slot': '➕' };
 function unlName(u) {
   if (u.startsWith('z:')) return '+' + (+u.slice(2)).toLocaleString() + ' Zeni';
   if (UNL_NAME[u]) return UNL_NAME[u];
@@ -40,7 +40,10 @@ function unlIcon(u) {
 /* ---------- lifetime progress (dbs_prog) ---------- */
 const PROG_NEW = () => ({ unl: {}, ach: {}, kills: 0, discK: 0, zeni: 0, bestLv: 0, bestT: 0, bk: {}, wishes: 0, runs: 0, deaths: 0, clr: {}, evo: {}, balls: 0, elites: 0 });
 let P = PROG_NEW(), PROG_READY = false;
-function loadProg() { P = PROG_NEW(); try { Object.assign(P, JSON.parse(store.getItem('dbs_prog') || '{}')); } catch (e) { } U2 = HAS('lvl2'); }
+function loadProg() { P = PROG_NEW(); try { Object.assign(P, JSON.parse(store.getItem('dbs_prog') || '{}')); } catch (e) { }
+  // rewards added to an achievement later still reach saves that already earned it
+  for (const a of ACH) if (P.ach[a.id]) for (const r of a.r) if (!r.startsWith('z:')) P.unl[r] = 1;
+  U2 = HAS('lvl2'); }
 function saveProg() { if (PROG_READY) try { store.setItem('dbs_prog', JSON.stringify(P)); } catch (e) { } }
 const HAS = u => BASE_UNL.has(u) || !!P.unl[u];
 const heroKey = h => h == 'kri' ? 'h:krillin' : 'h:' + h;
@@ -61,7 +64,7 @@ const ACH = [
   { id: 's6', c: 'story', n: 'Ultra Fighting Bomber', d: 'Defeat Recoome', r: ['w:wave'], t: () => P.bk.rec },
   { id: 's7', c: 'story', n: 'Fastest in the Universe', d: 'Defeat Burter and Jeice', r: ['w:after'], t: () => P.bk.bur && P.bk.jei },
   { id: 's8', c: 'story', n: 'Time Stands Still', d: 'Defeat Guldo', r: ['timefreeze'], t: () => P.bk.gul },
-  { id: 's9', c: 'story', n: 'Special Fighting Pose', d: 'Defeat Captain Ginyu', r: ['ginyu'], t: () => P.bk.gin },
+  { id: 's9', c: 'story', n: 'Special Fighting Pose', d: 'Defeat Captain Ginyu', r: ['ginyu', 'ssj'], t: () => P.bk.gin },
   { id: 's9a', c: 'story', n: 'Emperor of the Universe', d: 'Defeat Frieza (first form)', r: ['z:600'], t: () => P.bk.fr1 },
   { id: 's9b', c: 'story', n: 'Fearsome Transformation', d: "Defeat Frieza's second form", r: ['z:900'], t: () => P.bk.fr2 },
   { id: 's10', c: 'story', n: 'Namek is Free', d: "Defeat Frieza's Final Form", r: ['lvl3', 'limitbreak', 's:slot', 'nballs'], t: () => P.bk.fr3 },

@@ -661,7 +661,7 @@ function updExtra(dt){
  S.beans=S.beans.filter(b=>!b.got);
  if(!S.sch)S.sch=STAGES[S.stage||1].sched.map(a=>({t:a[0],k:a[1],b:a[2],d:0}));
  for(const q of S.sch)if(!q.d&&S.t>=q.t){q.d=1;q.k=='swarm'?swarm():spawnE(q.k);if(q.b)ban(q.b)}
- if(!S.ssj&&Object.keys(S.evo).length>=3){DSRC='ssj';S.ssj=1;S.flash=1;boom(p.x,p.y,150,'#ffe27a');for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<220)hitE(e,80);ban(S.hero=='pic'?'ORANGE PICCOLO!':S.hero=='gohan'?'SUPER SAIYAN 2!':'SUPER SAIYAN!')}
+ if(!S.ssj&&(typeof RU!='function'||RU('ssj'))&&Object.keys(S.evo).length>=3){DSRC='ssj';S.ssj=1;S.flash=1;boom(p.x,p.y,150,'#ffe27a');for(const e of S.en)if(!e.dead&&Math.hypot(e.x-p.x,e.y-p.y)<220)hitE(e,80);ban(S.hero=='pic'?'ORANGE PICCOLO!':S.hero=='gohan'?'SUPER SAIYAN 2!':'SUPER SAIYAN!')}
  S.eliteT-=dt;if(S.eliteT<=0&&S.t>20){S.eliteT=Math.max(20,32-S.t/40);spawnElite()}
  for(const n of S.nums)n.l-=dt;S.nums=S.nums.filter(n=>n.l>0);separate();
  for(const c of S.chests)if(!c.got&&Math.hypot(c.x-p.x,c.y-p.y)<30){c.got=1;S.flash=.6;S.pend+=c.n;S.luckN=(S.luckN||0)+c.n;ban('TREASURE CHEST!')}

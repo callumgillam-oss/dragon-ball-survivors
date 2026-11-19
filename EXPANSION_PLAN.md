@@ -159,7 +159,7 @@ on the field at once. Dragon Radar shortens the timer by up to 40%. All 7 can co
 | S6 | Ultra Fighting Bomber | Defeat Recoome | **Explosive Wave** (new) |
 | S7 | Fastest in the Universe | Defeat Burter and Jeice | **Afterimage Strike** (new) |
 | S8 | Time Stands Still | Defeat Guldo | **Time Freeze** floor pickup (new mechanic) |
-| S9 | Special Fighting Pose | Defeat Captain Ginyu | **Ginyu Force Challenges** (run modifiers, §6.3) |
+| S9 | Special Fighting Pose | Defeat Captain Ginyu | **Ginyu Force Challenges** (run modifiers, §6.3) + **Super Saiyan** (transforming at 3 evolutions is locked until then) |
 | S9a | Emperor of the Universe | Defeat Frieza (first form) | +600 Zeni |
 | S9b | Fearsome Transformation | Defeat Frieza's second form | +900 Zeni |
 | S10 | Namek is Free | Defeat Frieza (Final Form) | **Level 3** + **Limit Break** + shop: Potential Unleashed (5th attack slot) |

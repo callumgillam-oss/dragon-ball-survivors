@@ -1,5 +1,5 @@
 // Offline cache: network-first (revalidating with the server, so an update never mixes old and new files), cache fallback when offline.
-const CACHE = 'dbs-ebdd43ceafb1';   // set by tools/build.mjs: a hash of index.html + game.js
+const CACHE = 'dbs-d1a33acd9466';   // set by tools/build.mjs: a hash of index.html + game.js
 const FILES = ['./', './index.html', './game.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
