@@ -14,7 +14,7 @@ const BTO = { warn: 1140, end: 1200, T: 9.8 };
     const r = _u(dt);
     if (S.mode == 'play' && !S.endless) {
       if (S.t >= BTO.warn && !S.btw) { S.btw = 1; ban('HURRY! YOU ARE RUNNING OUT OF TIME!'); try { sfxPlay('i6menace'); } catch (e) { } }
-      if (S.t >= BTO.end && !S.bto) { S.bto = 1; S.mode = 'bcut'; S.ban = null; show(''); joy = null; V2.bc = { t0: performance.now() / 1000, q: {} }; }
+      if (S.t >= BTO.end && !S.bto) { S.bto = 1; S.mode = 'bcut'; S.ban = null; show(''); joy = null; V2.btc = { t0: performance.now() / 1000, q: {} }; }   // own variable: V2.bc is the boss-cutscene state (cut4.js)
     }
     return r;
   }; }
@@ -163,10 +163,10 @@ function drawEarth(c, x, y, R, crack) {
 }
 
 /* ---------- the cutscene ---------- */
-function btoCue(t, tt, k) { const q = V2.bc.q; if (t >= tt && !q[k + tt]) { q[k + tt] = 1; try { sfxPlay(k); } catch (e) { } } }
+function btoCue(t, tt, k) { const q = V2.btc.q; if (t >= tt && !q[k + tt]) { q[k + tt] = 1; try { sfxPlay(k); } catch (e) { } } }
 function drawBerusCut() {
-  if (S.mode != 'bcut' || !V2.bc) return;
-  const t = V2.bc.fix != null ? V2.bc.fix : performance.now() / 1000 - V2.bc.t0, FL = FLM(), c = ctx;
+  if (S.mode != 'bcut' || !V2.btc) return;
+  const t = V2.btc.fix != null ? V2.btc.fix : performance.now() / 1000 - V2.btc.t0, FL = FLM(), c = ctx;
   if (t >= BTO.T) { btoEnd(); return; }
   c.save(); c.setTransform(DPR, 0, 0, DPR, 0, 0);
   // 1) the sky turns black over the frozen battle
@@ -221,7 +221,7 @@ function drawBerusCut() {
   c.restore();
 }
 function btoEnd() {
-  V2.bc = null; S.btoDone = 1; S.mode = 'over'; endCard(false);
+  V2.btc = null; S.btoDone = 1; S.mode = 'over'; endCard(false);
   const c = ov.querySelector('.card.end'); if (!c) return;
   const h = c.querySelector('h2'); if (h) h.textContent = 'OUT OF TIME';
   const p = c.querySelector('h2 + p'); if (p) p.textContent = 'Beerus got bored and destroyed the Earth. Defeat the final boss before 20:00.';

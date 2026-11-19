@@ -4,7 +4,7 @@
    2) Reduced flashing now also tames additive light (Solar Flare rays, Spirit Bomb glow, big explosions).
    3) Off-screen pointers (Dragon Balls, Time Chamber, chests) stand out over crowds, plus a compass round the hero.
    4) Potara earrings show which attacks fuse together (power-up cards and HUD slots).
-   This is the LAST script: it sets DBS_READY, which lets the game loop start (see index.html).
+   (DBS_READY, which lets the game loop start, is now set at the end of index.html once every script has loaded.)
    ===================================================================== */
 'use strict';
 
@@ -197,5 +197,3 @@ document.head.insertAdjacentHTML('beforeend', `<style>
     return r;
   }; }
 
-// every script has loaded: the built-in game loop may start (see the boot watchdog in index.html)
-window.DBS_READY = 1;

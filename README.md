@@ -14,11 +14,13 @@ Four levels (Wasteland, Namek, Androids & Cell, Majin Buu), Endless Mode, 7 hero
 10 passives, evolutions, 8 Fusion Dance attacks with wish tiers, two sets of Dragon Balls (Shenron and Porunga),
 achievements and unlocks. `EXPANSION_PLAN.md` is the full design and build log.
 
-Code is layered: `index.html` is the original game; each later file wraps or extends it, loaded in this order:
-`v2.js art2.js ui2.js fix.js patch21.js prog.js w3.js w4.js heroes3.js sys3.js cut3.js lv3.js w5.js lv4.js
-endless.js dball5.js bal5.js cut4.js ui4.js rw5.js fx6.js ui6.js cut6.js snd6.js`. The last four are
-presentation only (effects, UI, cutscenes, sound). `sw.js` caches every file for offline play; bump its `CACHE`
-name whenever you ship.
+Code is layered: `index.html` is the original game; each later file in `docs/` wraps or extends it, in the order
+listed in index.html's `<script src="game.js" data-files="...">` tag (add new files there).
+
+**Shipping:** players download all those files as one `docs/game.js`. After editing any `docs/*.js` file, run
+`node tools/build.mjs` before committing (`--check` tells you if you forgot). It also updates `sw.js`: the offline
+cache name is a hash of the game, so it changes by itself whenever the game does. On localhost the page loads the
+separate files directly, so edits show without a rebuild; add `?bundle` to the URL to test the packed game.js.
 
 ## Balance testing
 

@@ -96,6 +96,13 @@ h1{font-family:Impact,Haettenschweiler,"HelveticaNeue-CondensedBlack","Avenir Ne
 </style></head><body>
 <canvas id="c"></canvas><div id="probe"></div><div id="ov"></div>
 <script>
+// Chrome's Math.hypot builds a temporary array on every call, and the game makes thousands of distance checks a frame
+// (2026-11-19 profile: about half of all per-frame garbage; game logic ran 40% faster without it). Two numbers take a
+// plain square root; any other call still goes to the built-in.
+{const h=Math.hypot;Math.hypot=function(a,b,c,d){return c===undefined&&b!==undefined?Math.sqrt(a*a+b*b):h(a,b===undefined?0:b,c===undefined?0:c,d===undefined?0:d)}}
+// A script file that fails to download leaves the game half-built (it would still flag itself ready and run with pieces
+// missing). Note it here; the boot check at the end of the page offers a clean reload instead of starting.
+addEventListener('error',e=>{const t=e.target;if(!window.DBS_READY&&t&&t.tagName=='SCRIPT')window.DBS_FAIL=t.src||'a script'},true);
 /* ===== v12: persistent storage layer =====
    localStorage first (sync), mirrored to IndexedDB, in-memory fallback if the browser blocks both.
    Everything the game saves goes through `store`, which has the same API as localStorage. */
@@ -769,11 +776,14 @@ function sfx(k){if(muted||!AC)return;if(AC.state!='running'){AC.resume();return}
 // contact and targeting all still use the real position, so balance is unchanged. (A stronger real push was tried and
 // made crowds harder to kite through: the bot took ~1.5x the contact damage per second on Level 1.)
 let VIDN=0;
+// The grid is kept between frames with number keys: rebuilding it with "x,y" text keys made ~2,500 strings a frame in
+// a late-game crowd (2026-11-19 allocation profile), garbage that phones pay for in collection pauses.
+const SEPG=new Map(),SEPK=(x,y)=>(x+32768)*65536+(y+32768);
 function separate(){
- const g=new Map(),F=Math.floor;
- for(const e of S.en){if(e.dead||e.boss||e.line)continue;const k=F(e.x/28)+','+F(e.y/28);let a=g.get(k);if(!a)g.set(k,a=[]);a.push(e)}
+ const g=SEPG,F=Math.floor;for(const a of g.values())a.length=0;if(g.size>4000)g.clear();
+ for(const e of S.en){if(e.dead||e.boss||e.line)continue;const k=SEPK(F(e.x/28),F(e.y/28));let a=g.get(k);if(!a)g.set(k,a=[]);a.push(e)}
  for(const e of S.en){if(e.dead||e.boss||e.line)continue;const cx=F(e.x/28),cy=F(e.y/28);let vx=0,vy=0;
-  for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const a=g.get((cx+i)+','+(cy+j));if(!a)continue;
+  for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const a=g.get(SEPK(cx+i,cy+j));if(!a||!a.length)continue;
    for(const o of a){if(o===e)continue;const dx=e.x-o.x,dy=e.y-o.y,d=Math.hypot(dx,dy)||.1,m=(e.r+o.r)*.8;if(d<m){const f=(m-d)*.08;e.x+=dx/d*f;e.y+=dy/d*f}
     const mv=e.r+o.r;if(d<mv){const w=(mv-d)/mv;if(d>.5){vx+=dx/d*w;vy+=dy/d*w}else{const a2=(e._vid??(e._vid=++VIDN))*2.4;vx+=Math.cos(a2)*w;vy+=Math.sin(a2)*w}}}}
   let tx=vx*6,ty=vy*6;const tl=Math.hypot(tx,ty);if(tl>7){tx*=7/tl;ty*=7/tl}
@@ -2424,7 +2434,8 @@ function bkRestore(){const d=bkParse($('bk_in').value);if(!d){bkScreen('That cod
 menu();requestAnimationFrame(loop);
 // If the game's script files never finish loading (a stalled request on refresh), don't sit frozen: offer a clean reload
 function bootReload(){const go=()=>location.reload();try{Promise.all([navigator.serviceWorker?navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))):0,window.caches?caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k)))):0]).then(go,go)}catch(e){go()}}
-setTimeout(()=>{if(!window.DBS_READY)show('<div class="card"><h2>Still loading…</h2><p>The game&#39;s files didn&#39;t finish downloading. Your saved run is safe.</p><button class="go" onclick="bootReload()">↻ Reload the game</button></div>')},10000);
+function bootFailCard(lock){show('<div class="card"><h2>Still loading…</h2><p>The game&#39;s files didn&#39;t finish downloading. Your saved run is safe.</p><button class="go" onclick="bootReload()">↻ Reload the game</button></div>');if(lock)show=function(){}}   // lock: a file failed, so nothing else may replace this card
+setTimeout(()=>{if(!window.DBS_READY)bootFailCard()},10000);
 /* ===== v14: gamepad support (Razer Kishi and other standard controllers) ===== */
 const GP={x:0,y:0,on:false,id:'',blocked:false,prev:[],navDir:0,navT:0,ovSince:0,ovVis:false};
 function gpPads(){try{return(navigator.getGamepads?navigator.getGamepads():[])||[]}catch(e){GP.blocked=true;return[]}}
@@ -2474,7 +2485,9 @@ function gpStatus(){return GP.blocked?'Controller access is blocked by this page
 // resume an interrupted run straight away; if IndexedDB held newer data than localStorage, adopt it
 svWelcome();
 store.hydrate(ch=>{if(!ch)return;reloadPersisted();if(S.mode=='menu'||S.mode=='pause'&&svWelcomeOn){if(!svWelcome())menu()}});
-</script><script src="v2.js"></script><script src="art2.js"></script><script src="ui2.js"></script><script src="fix.js"></script><script src="patch21.js"></script><script src="prog.js"></script><script src="w3.js"></script><script src="w4.js"></script><script src="heroes3.js"></script><script src="sys3.js"></script><script src="cut3.js"></script><script src="lv3.js"></script><script src="w5.js"></script><script src="lv4.js"></script><script src="endless.js"></script><script src="dball5.js"></script><script src="bal5.js"></script><script src="cut4.js"></script><script src="ui4.js"></script><script src="rw5.js"></script><script src="fx6.js"></script><script src="ui6.js"></script><script src="cut6.js"></script><script src="snd6.js"></script><script src="fix7.js"></script><script src="v7.js"></script><script src="beerus8.js"></script><script src="opt8.js"></script><script src="perf9.js"></script><script src="death9.js"></script><script src="tune10.js"></script><script src="bgc10.js"></script><script src="keys11.js"></script><script>
+</script><script src="game.js" data-files="v2.js art2.js ui2.js fix.js patch21.js prog.js w3.js w4.js heroes3.js sys3.js cut3.js lv3.js w5.js lv4.js endless.js dball5.js bal5.js cut4.js ui4.js rw5.js fx6.js ui6.js cut6.js snd6.js fix7.js v7.js beerus8.js opt8.js perf9.js death9.js tune10.js bgc10.js keys11.js"></script><script>
+// Every script has run: the game loop may start. If one failed to download, start nothing and offer a clean reload.
+if(window.DBS_FAIL)bootFailCard(1);else window.DBS_READY=1;
 // Installable web app: cache for offline play (only when served over http/https)
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
