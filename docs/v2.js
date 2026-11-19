@@ -232,7 +232,7 @@ function drawDiscFx(cx, cy, t) {
   if (!S.discs || !S.discs.length) return; const p = S.p; LT();
   for (const d of S.discs) { const dx = d.x - p.x, dy = d.y - p.y, R = Math.hypot(dx, dy), a = Math.atan2(dy, dx);
     let da = d.a - a; da = Math.atan2(Math.sin(da), Math.cos(da)); const dir = Math.abs(da) > 1.6 ? -1 : 1;
-    for (let i = 1; i <= 5; i++) { const aa = a - dir * i * .09; gl('or', p.x - cx + Math.cos(aa) * R, p.y - cy + Math.sin(aa) * R, d.r * (1.2 - i * .12), .28 - i * .045); }
+    if (!d.rc) for (let i = 1; i <= 5; i++) { const aa = a - dir * i * .09; gl('or', p.x - cx + Math.cos(aa) * R, p.y - cy + Math.sin(aa) * R, d.r * (1.2 - i * .12), .28 - i * .045); }
     const x = d.x - cx, y = d.y - cy; ctx.save(); ctx.translate(x, y); ctx.rotate(t * 30); ctx.strokeStyle = 'rgba(255,255,230,.95)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); for (let i = 0; i < 12; i++) { const q = i / 12 * 6.283, r = d.r * (i & 1 ? 1.08 : .86); i ? ctx.lineTo(Math.cos(q) * r, Math.sin(q) * r * .8) : ctx.moveTo(Math.cos(q) * r, Math.sin(q) * r * .8); } ctx.closePath(); ctx.stroke(); ctx.restore(); }
   NM();

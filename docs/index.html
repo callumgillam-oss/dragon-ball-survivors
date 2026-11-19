@@ -686,7 +686,7 @@ function drawCJ(e,x,y,f){
 }
 function drawExtra(cx,cy,t){
  for(const d of S.discs){const x=d.x-cx,y=d.y-cy,tx=-Math.sin(d.a),ty=Math.cos(d.a),r=d.r,n=14;   // a flat, serrated, spinning blade
-  LT();for(let i=3;i>=1;i--)gl('or',x-tx*i*r*.55,y-ty*i*r*.55,r*(1.3-i*.18),.3/i);NM();
+  if(!d.rc){LT();for(let i=3;i>=1;i--)gl('or',x-tx*i*r*.55,y-ty*i*r*.55,r*(1.3-i*.18),.3/i);NM()}
   ctx.save();ctx.translate(x,y);ctx.scale(1,.72);ctx.rotate(t*26+d.a);
   ctx.beginPath();for(let i=0;i<n*2;i++){const a=i*Math.PI/n,q=i&1?r*.92:r*1.18;i?ctx.lineTo(Math.cos(a)*q,Math.sin(a)*q):ctx.moveTo(Math.cos(a)*q,Math.sin(a)*q)}ctx.closePath();
   const g=ctx.createRadialGradient(0,0,r*.15,0,0,r*1.1);g.addColorStop(0,'#ffffff');g.addColorStop(.45,'#fff3b0');g.addColorStop(.8,'#ffc93a');g.addColorStop(1,'#ff8a1a');
@@ -2080,7 +2080,7 @@ const MYTH={
  kame:'Mythic: 45% wider and longer, shoves enemies back, erases enemy shots',
  aura:'Mythic: gravity well pulls enemies in and slows them',
  flare:'Mythic: blinded enemies take 40% more damage for 5s',
- disc:'Mythic: a second ring of larger discs spins the other way',
+ disc:'Mythic: a second, wider ring of bigger discs spins the other way and cuts 50% harder (only the first ring blocks shots)',
  bomb:'Mythic: leaves a lingering energy field that burns and slows',
  sbc:'Mythic: the beam ricochets between enemies (3 bounces)',
  masenko:'Mythic: also blasts a cone out of your back, bolts pierce one more enemy',
@@ -2125,14 +2125,19 @@ function sbcFire(mk,a,E,d,w){
  for(const o of offs)S.beams.push(mk(a+o));
  if(MY('sbc'))S.rbq.push({t:.1,a,x:S.p.x,y:S.p.y,len:E?1000:850,w,d});
 }
+const DISC_RC=1.5;
 function discTick(dt){DSRC='disc';
  const p=S.p,L=S.w.disc,E=S.evo.disc,M=MY('disc'),n=(E?6:2+(L>>1))+PX(),rad=(E?120:68+6*L)*AR2(),r=(E?22:12)*(1+(AR()-1)*.5);
  S.da+=dt*(E?5:2.6+.2*L);S.discs=[];
- const ring=(cnt,R,rr,dir,off)=>{for(let i=0;i<cnt;i++){const a=dir*S.da+off+i/cnt*6.283,x=p.x+Math.cos(a)*R,y=p.y+Math.sin(a)*R;S.discs.push({x,y,r:rr,a:dir>0?a:a+Math.PI});
-  for(const e of S.en){if(e.dead)continue;if(Math.hypot(e.x-x,e.y-y)<e.r+rr&&S.t-(e.dd||-9)>.25){e.dd=S.t;hitE(e,(7+3.4*WL('disc'))*WB.disc*dm()*(E?2.4:1));shove(e,p.x,p.y,10)}}
-   for(const b of S.eb)if(Math.hypot(b.x-x,b.y-y)<rr+7)b.l=0}};
- ring(n,rad,r,1,0);
- if(M)ring(Math.max(2,Math.ceil(n/2)+1),rad*1.85,r*1.3,-1,.5);
+ // blk: the ring also destroys enemy shots, one per blade, then that blade recharges for DISC_RC seconds (rc: drawn without
+ // its glow). Blocking every shot made Namek's shooting bosses harmless (bot sweep 2026-11-18: an evolved Disc won 14 of 17
+ // first Namek runs, 0 of 10 with no blocking at all). The wished second ring doesn't block; it cuts harder instead.
+ const bk=S.dbk||(S.dbk=[]);
+ const ring=(cnt,R,rr,dir,off,dmul,blk)=>{for(let i=0;i<cnt;i++){const a=dir*S.da+off+i/cnt*6.283,x=p.x+Math.cos(a)*R,y=p.y+Math.sin(a)*R,rc=blk&&bk[i]>S.t;S.discs.push({x,y,r:rr,a:dir>0?a:a+Math.PI,rc});
+  for(const e of S.en){if(e.dead)continue;if(Math.hypot(e.x-x,e.y-y)<e.r+rr&&S.t-(e.dd||-9)>.25){e.dd=S.t;hitE(e,(7+3.4*WL('disc'))*WB.disc*dm()*(E?2.4:1)*dmul);shove(e,p.x,p.y,10)}}
+   if(blk&&!rc)for(const b of S.eb)if(b.l>0&&Math.hypot(b.x-x,b.y-y)<rr+7){b.l=0;bk[i]=S.t+DISC_RC;break}}};
+ ring(n,rad,r,1,0,1,1);
+ if(M)ring(Math.max(2,Math.ceil(n/2)+1),rad*1.85,r*1.45,-1,.5,1.5,0);
 }
 function bombTick(dt){
  const p=S.p;S.cd.bomb-=dt;if(S.cd.bomb>0)return;

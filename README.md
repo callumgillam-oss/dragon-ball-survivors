@@ -32,6 +32,11 @@ name whenever you ship.
 
 The bot plays like a strong player, so a human lands a little later on every milestone.
 
+`tools/sweep.mjs` finds builds that break progression: with the game served on port 8123, `node tools/sweep.mjs` plays
+every evolution and fusion each level allows (plus a no-build baseline) in parallel headless Chrome windows, with the
+unlocks and shop Zeni a player has on first reaching that level, and ranks them by win rate. `--pairs 5` also tries
+pairs of the strongest; `--eval tweak.js` tries a change in the test windows only. Each window has its own empty save.
+
 ## Performance testing
 
 `tools/perf-audit.js` counts what each frame draws (canvas calls, additive glow sprites, glow area, new gradients, text)
