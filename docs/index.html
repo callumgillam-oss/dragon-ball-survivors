@@ -33,6 +33,12 @@ button:hover,button:focus-visible{background:#55331a;outline:none}
 button.go{background:var(--ac2);border-color:#ffd27a;text-align:center;font-size:20px;font-weight:bold}
 .new{color:#7dff8a;font-weight:bold}
 button.evo{background:#5a3a08;border-color:#ffe27a;box-shadow:0 0 12px #ffb300}
+button.evo.ssj{position:relative;background:linear-gradient(135deg,#5e3c06,#9a6a0c 50%,#5e3c06);border-color:#fff3a0}
+/* glow on ::after: opt8.js clears the button's own animation when the card redraws (reroll) */
+button.evo.ssj::after{content:'';position:absolute;inset:-2px;border-radius:inherit;pointer-events:none;animation:ssjg 1s ease-in-out infinite alternate}
+button.evo.ssj .ic{border-color:#fff3a0}.ssjt{color:#ffec6a;font-weight:bold;opacity:1;text-shadow:0 0 6px #ff9a00}
+@keyframes ssjg{from{box-shadow:0 0 10px #ffb300}to{box-shadow:0 0 28px 7px #ffd000,0 0 4px 2px #fff6b0 inset}}
+@media (prefers-reduced-motion:reduce){button.evo.ssj::after{animation:none;box-shadow:0 0 24px 5px #ffd000}}
 #pz,#mu{position:fixed;right:12px;width:44px;height:44px;padding:0;margin:0;border-radius:50%;text-align:center;font-size:20px;display:none;z-index:5;background:rgba(43,26,13,.8)}
 #pz{bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}#mu{bottom:calc(env(safe-area-inset-bottom,0px) + 64px)}
 .hero{display:flex;gap:10px;align-items:center;background:#3b2512;border-radius:10px;padding:10px;margin:12px 0;text-align:left}
@@ -1244,8 +1250,10 @@ function lvlUp(){
  wShuffle(all);const c=[...ev,...all].slice(0,3);
  if(!c.length){S.pend=0;S.p.hp=S.p.max;S.mode='play';show('');return}
  const o_=rollOffer(c);
+ // this evolution would be the 3rd: picking it transforms (same test as the trigger in update)
+ const xf=!S.ssj&&(typeof RU!='function'||RU('ssj'))&&Object.keys(S.evo).length>=2;
  show(`<div class="card"><h2>Power up! Level ${S.p.lv}</h2>`+slots()+(S.luckN>0?'<div class="luck">★ Treasure luck: better odds!</div>':'')+c.map(([g,k],ix)=>{
-  if(g=='e')return `<button class="up evo" onclick="pick('e','${k}')"><img class="ic" src="${iurl(k)}"><div><b>★ EVOLVE: ${EVO[k][0]}</b><br><small>${EVO[k][1]}</small></div></button>`;
+  if(g=='e')return `<button class="up evo${xf?' ssj':''}" onclick="pick('e','${k}')"><img class="ic" src="${iurl(k)}"><div><b>★ EVOLVE: ${EVO[k][0]}</b><br><small>${EVO[k][1]}</small>${xf?`<br><small class="ssjt">⚡ Transforms you: ${FORM().trim()}!</small>`:''}</div></button>`;
   const r=o_[ix],R=RAR[r],l=S[g][k],pips='●'.repeat(l+1)+'○'.repeat(4-l),h=evoHint(g,k);
   return `<button class="up r${r}" onclick="pick('${g}','${k}',${r})"><img class="ic" src="${iurl(k)}"><div>${r?`<span class="rt r${r}">${R.n}</span> `:''}<b>${INFO[k][0]}</b> ${l?'':'<span class="new">NEW</span>'}<span class="pips"> ${pips}</span><br><small>${INFO[k][1]}</small><br><small class="bon">${bonusText(g,k,r)}</small>${h}</div></button>`}).join('')+rerollBtn()+`</div>`);
 }
